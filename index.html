@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta
+      name="description"
+      content="Boulevard Pádel. Reservá tu turno online de forma rápida y sencilla."
+    />
+
+    <title>Boulevard Pádel</title>
+
+    <!-- Tipografías -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@400;500;600&family=Montserrat:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+
+  <body>
+    <!-- =====================================================
+         ENCABEZADO
+    ====================================================== -->
+    <header class="header">
+      <div class="header__container">
+        <a
+          href="index.html"
+          class="brand"
+          aria-label="Boulevard Pádel - Inicio"
+        >
+          <div class="brand__symbol">BP</div>
+
+          <div class="brand__name">
+            <span>BOULEVARD</span>
+            <small>PÁDEL</small>
+          </div>
+        </a>
+
+        <nav class="nav" id="nav">
+          <a href="#inicio">Inicio</a>
+          <a href="#cancha">La cancha</a>
+          <a href="#reservas">Reservas</a>
+          <a href="#contacto">Contacto</a>
+        </nav>
+
+        <a href="reservar.html" class="button button--header">
+          Reservar turno
+        </a>
+
+        <button
+          class="menu-button"
+          id="menuButton"
+          type="button"
+          aria-label="Abrir menú"
+          aria-expanded="false"
+        >
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+      </div>
+    </header>
+
+    <main>
+      <!-- =================================================
+             HERO
+        ================================================== -->
+      <section class="hero" id="inicio">
+        <div class="hero__overlay"></div>
+
+        <div class="hero__content">
+          <p class="hero__eyebrow">BOULEVARD PÁDEL</p>
+
+          <h1>
+            MÁS PÁDEL<br />
+            MÁS MOMENTOS
+          </h1>
+
+          <p class="hero__text">
+            Tu próximo partido empieza acá. Elegí el día, encontrá un horario
+            disponible y reservá tu cancha en segundos.
+          </p>
+
+          <div class="hero__actions">
+            <a href="reservar.html" class="button button--primary">
+              Reservar cancha
+            </a>
+
+            <a href="#cancha" class="button button--secondary">
+              Conocer la cancha
+            </a>
+          </div>
+        </div>
+
+        <a href="#cancha" class="hero__scroll" aria-label="Continuar">
+          <span></span>
+        </a>
+      </section>
+
+      <!-- =================================================
+             LA CANCHA
+        ================================================== -->
+      <section class="section court" id="cancha">
+        <div class="container">
+          <div class="section-heading">
+            <span class="section-heading__eyebrow"> BOULEVARD PÁDEL </span>
+
+            <h2>Un lugar para jugar, competir y compartir.</h2>
+
+            <p>
+              Una cancha pensada para disfrutar el pádel en un espacio moderno,
+              cómodo y preparado para que cada partido sea una experiencia
+              única.
+            </p>
+          </div>
+
+          <div class="court__features">
+            <article class="feature-card">
+              <span class="feature-card__number"> 01 </span>
+
+              <h3>Cancha panorámica</h3>
+
+              <p>
+                Un espacio moderno diseñado para disfrutar al máximo cada
+                partido.
+              </p>
+            </article>
+
+            <article class="feature-card">
+              <span class="feature-card__number"> 02 </span>
+
+              <h3>Reserva online</h3>
+
+              <p>
+                Consultá horarios disponibles y reservá directamente desde tu
+                celular.
+              </p>
+            </article>
+
+            <article class="feature-card">
+              <span class="feature-card__number"> 03 </span>
+
+              <h3>Sin aplicaciones</h3>
+
+              <p>
+                Sin aplicaciones ni procesos largos para reservar y jugar tu
+                próximo partido.
+              </p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- =================================================
+             RESERVAS
+        ================================================== -->
+      <section class="booking-section" id="reservas">
+        <div class="container booking-section__container">
+          <div>
+            <span class="section-heading__eyebrow"> RESERVAS </span>
+
+            <h2>¿Jugamos?</h2>
+
+            <p>
+              Elegí el día, seleccioná uno de los horarios disponibles y
+              confirmá tu turno. También podrás reservar un turno fijo semanal
+              para vos y tu grupo de juego.
+            </p>
+          </div>
+
+          <a href="reservar.html" class="button button--light">
+            Ver turnos disponibles
+          </a>
+        </div>
+      </section>
+
+      <!-- =================================================
+             CONTACTO
+        ================================================== -->
+      <section class="section contact" id="contacto">
+        <div class="container">
+          <div class="section-heading">
+            <span class="section-heading__eyebrow"> CONTACTO </span>
+
+            <h2>Boulevard Pádel</h2>
+
+            <p>
+              Seguinos en Instagram para conocer novedades, horarios y todo lo
+              que pasa en la cancha.
+            </p>
+          </div>
+
+          <div class="contact__actions">
+            <a
+              href="https://www.instagram.com/padel_bv/"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="button button--dark"
+            >
+              @padel_bv
+            </a>
+
+            <a href="reservar.html" class="button button--outline">
+              Reservar turno
+            </a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- =====================================================
+         PIE
+    ====================================================== -->
+    <footer class="footer">
+      <div class="container footer__container">
+        <div class="footer__brand">
+          <strong>BOULEVARD PÁDEL</strong>
+          <span>Más Pádel, Más Momentos.</span>
+        </div>
+
+        <p>
+          © <span id="currentYear"></span> TecnoGestión JotaPe para Boulevard
+          Pádel
+        </p>
+      </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+  </body>
+</html>
