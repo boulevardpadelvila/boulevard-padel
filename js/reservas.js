@@ -233,7 +233,8 @@ function selectTime(button, time) {
 ========================================================= */
 
 if (bookingForm) {
-  bookingForm.addEventListener("submit", (event) => {
+  // 1. Agregamos 'async' a la función
+  bookingForm.addEventListener("submit", async (event) => {
     event.preventDefault();
 
     if (!selectedDate || !selectedTime) return;
@@ -244,6 +245,17 @@ if (bookingForm) {
       ?.value.trim();
 
     if (!customerName || !customerPhone) return;
+
+    // 2. Capturamos el botón y le agregamos la clase de carga
+    const submitButton = bookingForm.querySelector(".booking-submit");
+    submitButton.classList.add("button--loading");
+
+    // 3. Simulación de la petición a Supabase (demora de 1.5 segundos)
+    // Cuando integres Supabase, aquí iría algo como: await supabase.from('reservas').insert([...])
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+
+    // 4. Quitamos el estado de carga
+    submitButton.classList.remove("button--loading");
 
     const code = generateReservationCode();
 

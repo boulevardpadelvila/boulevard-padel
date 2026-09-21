@@ -171,8 +171,10 @@
                 id="customerPhone"
                 name="customerPhone"
                 autocomplete="tel"
-                inputmode="tel"
-                placeholder="Ej. 3492 123456"
+                inputmode="numeric"
+                placeholder="Ej. 3492123456"
+                pattern="[0-9]{10,14}"
+                title="Ingresá tu código de área y número sin el 0 ni el 15. Solo números."
                 required
               />
             </div>
