@@ -11,15 +11,12 @@ const summaryDate = document.getElementById("summaryDate");
 const summaryTime = document.getElementById("summaryTime");
 
 const bookingForm = document.getElementById("bookingForm");
-
+const bookingIntro = document.querySelector(".booking-intro");
 const bookingConfirmation = document.getElementById("bookingConfirmation");
 
 const confirmationCode = document.getElementById("confirmationCode");
-
 const confirmationName = document.getElementById("confirmationName");
-
 const confirmationDate = document.getElementById("confirmationDate");
-
 const confirmationTime = document.getElementById("confirmationTime");
 
 const newBookingButton = document.getElementById("newBookingButton");
@@ -27,13 +24,10 @@ const newBookingButton = document.getElementById("newBookingButton");
 let selectedDate = null;
 let selectedTime = null;
 
-/*
-=========================================================
-HORARIOS DEL PROTOTIPO
-
-Después estos horarios vendrán del backend.
-=========================================================
-*/
+/* =========================================================
+   HORARIOS DEL PROTOTIPO
+   Después estos horarios vendrán del backend.
+========================================================= */
 
 const availableTimes = [
   "08:00",
@@ -49,11 +43,9 @@ const availableTimes = [
   "23:00",
 ];
 
-/*
-=========================================================
-SIMULACIÓN DE HORARIOS OCUPADOS
-=========================================================
-*/
+/* =========================================================
+   SIMULACIÓN DE HORARIOS OCUPADOS
+========================================================= */
 
 function getUnavailableTimes(dayIndex) {
   const examples = [
@@ -69,11 +61,50 @@ function getUnavailableTimes(dayIndex) {
   return examples[dayIndex % examples.length];
 }
 
-/*
-=========================================================
-GENERAR LOS PRÓXIMOS 7 DÍAS
-=========================================================
-*/
+function capitalize(text) {
+  if (!text) return "";
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
+function formatSelectedDate(date) {
+  return capitalize(
+    date.toLocaleDateString("es-AR", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+    }),
+  );
+}
+
+function scrollToStep(section) {
+  if (!section) return;
+
+  requestAnimationFrame(() => {
+    setTimeout(() => {
+      section.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }, 80);
+  });
+}
+
+function resetDetailsStep() {
+  selectedTime = null;
+
+  detailsSection?.classList.add("booking-step--disabled");
+
+  if (selectedBookingText) {
+    selectedBookingText.textContent = "Seleccioná un horario para continuar.";
+  }
+
+  if (summaryDate) summaryDate.textContent = "—";
+  if (summaryTime) summaryTime.textContent = "—";
+}
+
+/* =========================================================
+   GENERAR LOS PRÓXIMOS 7 DÍAS
+========================================================= */
 
 function generateDates() {
   if (!dateSelector) return;
@@ -81,14 +112,13 @@ function generateDates() {
   dateSelector.innerHTML = "";
 
   const today = new Date();
+  today.setHours(12, 0, 0, 0);
 
   for (let i = 0; i < 7; i++) {
     const date = new Date(today);
-
     date.setDate(today.getDate() + i);
 
     const button = document.createElement("button");
-
     button.type = "button";
     button.className = "date-card";
 
@@ -105,19 +135,16 @@ function generateDates() {
       .replace(".", "")
       .toUpperCase();
 
+    button.setAttribute(
+      "aria-label",
+      `${formatSelectedDate(date)}. Seleccionar fecha`,
+    );
+
     button.innerHTML = `
-            <span class="date-card__day">
-                ${weekday}
-            </span>
-
-            <span class="date-card__number">
-                ${date.getDate()}
-            </span>
-
-            <span class="date-card__month">
-                ${month}
-            </span>
-        `;
+      <span class="date-card__day">${weekday}</span>
+      <span class="date-card__number">${date.getDate()}</span>
+      <span class="date-card__month">${month}</span>
+    `;
 
     button.addEventListener("click", () => {
       document
@@ -127,59 +154,45 @@ function generateDates() {
       button.classList.add("date-card--active");
 
       selectedDate = date;
-      selectedTime = null;
-
+      resetDetailsStep();
       renderTimes(i);
-
-      setTimeout(() => {
-        timeSection.scrollIntoView({
-          behavior: "smooth",
-          block: "start",
-        });
-      }, 150);
+      scrollToStep(timeSection);
     });
 
     dateSelector.appendChild(button);
   }
 }
 
-/*
-=========================================================
-MOSTRAR HORARIOS
-=========================================================
-*/
+/* =========================================================
+   MOSTRAR HORARIOS
+========================================================= */
 
 function renderTimes(dayIndex) {
+  if (!timeSection || !timeSelector || !selectedDate) return;
+
   timeSection.classList.remove("booking-step--disabled");
-
-  detailsSection.classList.add("booking-step--disabled");
-
   timeSelector.innerHTML = "";
 
-  const formattedDate = selectedDate.toLocaleDateString("es-AR", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-  });
+  const readableDate = formatSelectedDate(selectedDate);
 
-  selectedDateText.textContent = capitalize(formattedDate);
+  if (selectedDateText) {
+    selectedDateText.textContent = readableDate;
+  }
 
   const unavailableTimes = getUnavailableTimes(dayIndex);
 
   availableTimes.forEach((time) => {
     const button = document.createElement("button");
-
     button.type = "button";
-
     button.className = "time-slot";
-
     button.textContent = time;
 
     if (unavailableTimes.includes(time)) {
       button.disabled = true;
-
       button.title = "Horario no disponible";
+      button.setAttribute("aria-label", `${time} hs, no disponible`);
     } else {
+      button.setAttribute("aria-label", `${time} hs, disponible`);
       button.addEventListener("click", () => selectTime(button, time));
     }
 
@@ -187,90 +200,66 @@ function renderTimes(dayIndex) {
   });
 }
 
-/*
-=========================================================
-SELECCIONAR HORARIO
-=========================================================
-*/
+/* =========================================================
+   SELECCIONAR HORARIO
+========================================================= */
 
 function selectTime(button, time) {
+  if (!selectedDate) return;
+
   document
     .querySelectorAll(".time-slot")
     .forEach((slot) => slot.classList.remove("time-slot--active"));
 
   button.classList.add("time-slot--active");
-
   selectedTime = time;
 
-  detailsSection.classList.remove("booking-step--disabled");
+  detailsSection?.classList.remove("booking-step--disabled");
 
-  const formattedDate = selectedDate.toLocaleDateString("es-AR", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-  });
+  const readableDate = formatSelectedDate(selectedDate);
 
-  const readableDate = capitalize(formattedDate);
+  if (selectedBookingText) {
+    selectedBookingText.textContent = `${readableDate} · ${time} hs`;
+  }
 
-  selectedBookingText.textContent = `${readableDate} · ${time} hs`;
+  if (summaryDate) summaryDate.textContent = readableDate;
+  if (summaryTime) summaryTime.textContent = `${time} hs`;
 
-  summaryDate.textContent = readableDate;
-
-  summaryTime.textContent = `${time} hs`;
-
-  setTimeout(() => {
-    detailsSection.scrollIntoView({
-      behavior: "smooth",
-      block: "start",
-    });
-  }, 150);
+  scrollToStep(detailsSection);
 }
 
-/*
-=========================================================
-CONFIRMAR RESERVA
-=========================================================
-*/
+/* =========================================================
+   CONFIRMAR RESERVA
+========================================================= */
 
 if (bookingForm) {
   bookingForm.addEventListener("submit", (event) => {
     event.preventDefault();
 
-    if (!selectedDate || !selectedTime) {
-      return;
-    }
+    if (!selectedDate || !selectedTime) return;
 
-    const customerName = document.getElementById("customerName").value.trim();
+    const customerName = document.getElementById("customerName")?.value.trim();
+    const customerPhone = document
+      .getElementById("customerPhone")
+      ?.value.trim();
 
-    const customerPhone = document.getElementById("customerPhone").value.trim();
-
-    if (!customerName || !customerPhone) {
-      return;
-    }
+    if (!customerName || !customerPhone) return;
 
     const code = generateReservationCode();
 
-    confirmationCode.textContent = code;
-
-    confirmationName.textContent = customerName;
-
-    confirmationDate.textContent = capitalize(
-      selectedDate.toLocaleDateString("es-AR", {
-        weekday: "long",
-        day: "numeric",
-        month: "long",
-      }),
-    );
-
-    confirmationTime.textContent = `${selectedTime} hs`;
+    if (confirmationCode) confirmationCode.textContent = code;
+    if (confirmationName) confirmationName.textContent = customerName;
+    if (confirmationDate) {
+      confirmationDate.textContent = formatSelectedDate(selectedDate);
+    }
+    if (confirmationTime) confirmationTime.textContent = `${selectedTime} hs`;
 
     document.querySelectorAll(".booking-step").forEach((section) => {
-      section.style.display = "none";
+      section.hidden = true;
     });
 
-    document.querySelector(".booking-intro").style.display = "none";
-
-    bookingConfirmation.hidden = false;
+    if (bookingIntro) bookingIntro.hidden = true;
+    if (bookingConfirmation) bookingConfirmation.hidden = false;
 
     window.scrollTo({
       top: 0,
@@ -279,11 +268,9 @@ if (bookingForm) {
   });
 }
 
-/*
-=========================================================
-NUEVA RESERVA
-=========================================================
-*/
+/* =========================================================
+   NUEVA RESERVA
+========================================================= */
 
 if (newBookingButton) {
   newBookingButton.addEventListener("click", () => {
@@ -291,34 +278,17 @@ if (newBookingButton) {
   });
 }
 
-/*
-=========================================================
-GENERAR CÓDIGO DE RESERVA
-=========================================================
-*/
+/* =========================================================
+   CÓDIGO DE RESERVA DE DEMOSTRACIÓN
+========================================================= */
 
 function generateReservationCode() {
   const number = Math.floor(1000 + Math.random() * 9000);
-
   return `BP-${number}`;
 }
 
-/*
-=========================================================
-CAPITALIZAR TEXTO
-=========================================================
-*/
-
-function capitalize(text) {
-  if (!text) return "";
-
-  return text.charAt(0).toUpperCase() + text.slice(1);
-}
-
-/*
-=========================================================
-INICIAR
-=========================================================
-*/
+/* =========================================================
+   INICIAR
+========================================================= */
 
 generateDates();

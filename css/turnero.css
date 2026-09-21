@@ -9,11 +9,11 @@
 
 .booking-app {
   min-height: 100svh;
-  padding: 130px 0 90px;
+  padding: calc(var(--header-height) + 52px) 0 90px;
 }
 
 .booking-app__container {
-  width: min(100% - 40px, 920px);
+  width: min(calc(100% - 40px), 920px);
   margin-inline: auto;
 }
 
@@ -62,10 +62,13 @@
   text-transform: uppercase;
   letter-spacing: 0.04em;
 
-  transition: var(--transition);
+  transition:
+    background var(--transition),
+    border-color var(--transition);
 }
 
 .booking-back:hover {
+  border-color: rgba(255, 255, 255, 0.42);
   background: rgba(255, 255, 255, 0.1);
 }
 
@@ -75,6 +78,7 @@
 
 .booking-step {
   padding: 42px 0;
+  scroll-margin-top: calc(var(--header-height) + 26px);
 
   border-top: 1px solid var(--color-border);
 
@@ -97,8 +101,9 @@
 }
 
 .booking-step__number {
-  min-width: 42px;
+  width: 42px;
   height: 42px;
+  flex: 0 0 42px;
 
   display: grid;
   place-items: center;
@@ -132,11 +137,12 @@
 
 .date-selector {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 10px;
 }
 
 .date-card {
+  min-width: 0;
   min-height: 105px;
   padding: 14px 8px;
 
@@ -161,8 +167,14 @@
 
 .date-card:hover {
   transform: translateY(-3px);
-
   border-color: var(--color-olive);
+}
+
+.date-card:focus-visible,
+.time-slot:focus-visible,
+.form-field input:focus-visible {
+  outline: 3px solid rgba(125, 130, 88, 0.25);
+  outline-offset: 2px;
 }
 
 .date-card__day {
@@ -200,7 +212,7 @@
 
 .date-card--active .date-card__day,
 .date-card--active .date-card__month {
-  color: rgba(255, 255, 255, 0.75);
+  color: rgba(255, 255, 255, 0.78);
 }
 
 /* =========================================================
@@ -209,7 +221,7 @@
 
 .time-selector {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
 }
 
@@ -241,8 +253,8 @@
 }
 
 .time-slot--active {
-  background: var(--color-dark);
   border-color: var(--color-dark);
+  background: var(--color-dark);
   color: #fff;
 }
 
@@ -250,6 +262,7 @@
   background: rgba(11, 12, 10, 0.05);
   color: #aaa;
   text-decoration: line-through;
+
   cursor: not-allowed;
 }
 
@@ -294,7 +307,6 @@
 
 .form-field input:focus {
   border-color: var(--color-olive);
-
   box-shadow: 0 0 0 3px rgba(125, 130, 88, 0.12);
 }
 
@@ -304,13 +316,14 @@
 
 .booking-summary {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
 
   margin: 30px 0;
 }
 
 .booking-summary div {
+  min-width: 0;
   padding: 18px;
 
   border: 1px solid var(--color-border);
@@ -333,6 +346,9 @@
 }
 
 .booking-summary strong {
+  display: block;
+  overflow-wrap: anywhere;
+
   font-size: 0.9rem;
 }
 
@@ -398,7 +414,7 @@
   margin: 38px auto;
 
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 
   overflow: hidden;
 
@@ -411,8 +427,14 @@
 }
 
 .confirmation-card div {
+  min-width: 0;
   padding: 22px;
+
   border-bottom: 1px solid var(--color-border);
+}
+
+.confirmation-card strong {
+  overflow-wrap: anywhere;
 }
 
 .confirmation-card div:nth-child(odd) {
@@ -424,7 +446,7 @@
 }
 
 /* =========================================================
-   TURNERO RESPONSIVE
+   RESPONSIVE TURNERO
 ========================================================= */
 
 @media (max-width: 760px) {
@@ -434,9 +456,13 @@
 
   .date-selector {
     display: flex;
-    overflow-x: auto;
+    gap: 10px;
 
-    padding-bottom: 8px;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scroll-snap-type: x proximity;
+
+    padding: 2px 1px 10px;
 
     scrollbar-width: none;
   }
@@ -447,10 +473,11 @@
 
   .date-card {
     min-width: 88px;
+    scroll-snap-align: start;
   }
 
   .time-selector {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .booking-summary {
@@ -459,32 +486,68 @@
 }
 
 @media (max-width: 640px) {
-  .booking-step {
-    scroll-margin-top: 85px;
-  }
-
-  .booking-confirmation h2 {
-    white-space: normal;
-  }
-
   .booking-app {
-    padding: 105px 0 60px;
+    padding: calc(var(--header-height) + 34px) 0 56px;
   }
 
   .booking-app__container {
-    width: min(100% - 28px, 920px);
+    width: min(calc(100% - 28px), 920px);
   }
 
   .booking-intro {
-    margin-bottom: 50px;
+    margin-bottom: 44px;
+  }
+
+  .booking-intro h1 {
+    margin-bottom: 16px;
+
+    font-size: clamp(3rem, 15vw, 4.5rem);
+  }
+
+  .booking-intro p {
+    font-size: 0.98rem;
   }
 
   .booking-step {
-    padding: 34px 0;
+    padding: 32px 0;
+    scroll-margin-top: calc(var(--header-height) + 16px);
   }
 
   .booking-step__heading {
-    gap: 15px;
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+
+  .booking-step__number {
+    width: 38px;
+    height: 38px;
+    flex-basis: 38px;
+  }
+
+  .booking-step__heading h2 {
+    font-size: 1.3rem;
+  }
+
+  .date-card {
+    min-width: 82px;
+    min-height: 96px;
+  }
+
+  .time-selector {
+    gap: 10px;
+  }
+
+  .time-slot {
+    min-height: 54px;
+  }
+
+  .booking-confirmation {
+    padding: 38px 0;
+  }
+
+  .booking-confirmation h2 {
+    font-size: clamp(2.8rem, 14vw, 4rem);
+    white-space: normal;
   }
 
   .confirmation-card {
@@ -503,27 +566,12 @@
   }
 }
 
-.brand__symbol {
-  width: 46px;
-  height: 46px;
+@media (max-width: 380px) {
+  .booking-intro h1 {
+    font-size: 2.9rem;
+  }
 
-  flex: 0 0 46px;
-
-  border-radius: 50%;
-  overflow: hidden;
-
-  background: var(--color-dark);
-}
-
-.brand__symbol img {
-  width: 100%;
-  height: 100%;
-
-  display: block;
-
-  object-fit: cover;
-  border-radius: 50%;
-}
-.booking-step {
-  scroll-margin-top: 105px;
+  .date-card {
+    min-width: 78px;
+  }
 }

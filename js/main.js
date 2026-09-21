@@ -6,18 +6,33 @@ if (currentYear) {
   currentYear.textContent = new Date().getFullYear();
 }
 
+function closeMobileMenu() {
+  if (!menuButton || !nav) return;
+
+  nav.classList.remove("nav--open");
+  menuButton.setAttribute("aria-expanded", "false");
+  menuButton.setAttribute("aria-label", "Abrir menú");
+}
+
 if (menuButton && nav) {
   menuButton.addEventListener("click", () => {
     const isOpen = nav.classList.toggle("nav--open");
 
-    menuButton.setAttribute("aria-expanded", isOpen);
+    menuButton.setAttribute("aria-expanded", String(isOpen));
+    menuButton.setAttribute(
+      "aria-label",
+      isOpen ? "Cerrar menú" : "Abrir menú",
+    );
   });
 
   nav.querySelectorAll("a").forEach((link) => {
-    link.addEventListener("click", () => {
-      nav.classList.remove("nav--open");
-      menuButton.setAttribute("aria-expanded", "false");
-    });
+    link.addEventListener("click", closeMobileMenu);
+  });
+
+  window.addEventListener("resize", () => {
+    if (window.innerWidth > 900) {
+      closeMobileMenu();
+    }
   });
 }
 
@@ -31,6 +46,11 @@ function openAboutModal() {
 
   aboutModal.classList.add("about-modal--open");
   aboutModal.setAttribute("aria-hidden", "false");
+  document.body.classList.add("modal-open");
+
+  if (aboutModalClose) {
+    aboutModalClose.focus();
+  }
 }
 
 function closeAboutModal() {
@@ -38,6 +58,11 @@ function closeAboutModal() {
 
   aboutModal.classList.remove("about-modal--open");
   aboutModal.setAttribute("aria-hidden", "true");
+  document.body.classList.remove("modal-open");
+
+  if (aboutSiteButton) {
+    aboutSiteButton.focus();
+  }
 }
 
 if (aboutSiteButton) {
@@ -54,6 +79,10 @@ if (aboutModalBackdrop) {
 
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape") {
-    closeAboutModal();
+    closeMobileMenu();
+
+    if (aboutModal?.classList.contains("about-modal--open")) {
+      closeAboutModal();
+    }
   }
 });
