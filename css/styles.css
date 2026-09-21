@@ -682,7 +682,7 @@ button {
 ========================================================= */
 
 .contact {
-  min-height: calc(100svh - var(--header-height) - 110px);
+  min-height: calc(100svh - 78px - 110px);
 
   display: flex;
   align-items: center;
@@ -691,31 +691,199 @@ button {
 
   background:
     radial-gradient(
-      circle at 75% 30%,
-      rgba(125, 130, 88, 0.2),
-      transparent 32%
+      circle at 78% 35%,
+      rgba(125, 130, 88, 0.16),
+      transparent 34%
     ),
     var(--color-dark);
 }
 
-.contact .section-heading__eyebrow {
+.contact__container {
+  display: grid;
+
+  grid-template-columns:
+    minmax(0, 0.9fr)
+    minmax(430px, 1fr);
+
+  align-items: center;
+
+  gap: clamp(60px, 8vw, 120px);
+}
+
+/* =========================================================
+   INTRO CONTACTO
+========================================================= */
+
+.contact__intro {
+  max-width: 590px;
+}
+
+.contact__intro .section-heading__eyebrow {
   color: var(--color-olive-light);
 }
 
-.contact .section-heading h2 {
+.contact__intro h2 {
+  margin-bottom: 24px;
+
+  color: #fff;
+
+  font-family: var(--font-heading);
+  font-size: clamp(3rem, 5.5vw, 5.3rem);
+  font-weight: 700;
+
+  line-height: 0.98;
+  letter-spacing: -0.05em;
+}
+
+.contact__intro p {
+  max-width: 530px;
+
+  color: rgba(255, 255, 255, 0.65);
+
+  font-size: 1rem;
+  line-height: 1.7;
+}
+
+/* =========================================================
+   PANEL DE CONTACTO
+========================================================= */
+
+.contact__panel {
+  overflow: hidden;
+
+  border: 1px solid rgba(255, 255, 255, 0.12);
+
+  border-radius: 22px;
+
+  background: rgba(255, 255, 255, 0.035);
+
+  backdrop-filter: blur(10px);
+}
+
+/* =========================================================
+   ITEMS
+========================================================= */
+
+.contact-item {
+  position: relative;
+
+  min-height: 112px;
+
+  padding: 24px 28px;
+
+  display: grid;
+
+  grid-template-columns: 48px 1fr auto;
+
+  align-items: center;
+
+  gap: 18px;
+
+  border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+
   color: #fff;
 }
 
-.contact .section-heading p {
-  color: rgba(255, 255, 255, 0.72);
+.contact-item__icon {
+  width: 46px;
+  height: 46px;
+
+  display: grid;
+  place-items: center;
+
+  border: 1px solid rgba(155, 157, 122, 0.32);
+
+  border-radius: 50%;
+
+  color: var(--color-olive-light);
+
+  background: rgba(125, 130, 88, 0.08);
 }
 
-.contact__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 14px;
+.contact-item__icon svg {
+  width: 21px;
+  height: 21px;
+}
 
-  margin-top: 40px;
+.contact-item__label {
+  display: block;
+
+  margin-bottom: 5px;
+
+  color: var(--color-olive-light);
+
+  font-family: var(--font-heading);
+
+  font-size: 0.7rem;
+  font-weight: 700;
+
+  letter-spacing: 0.16em;
+}
+
+.contact-item strong {
+  display: block;
+
+  color: #fff;
+
+  font-family: var(--font-heading);
+
+  font-size: 1.05rem;
+}
+
+.contact-item p {
+  margin-top: 3px;
+
+  color: rgba(255, 255, 255, 0.52);
+
+  font-size: 0.83rem;
+}
+
+/* =========================================================
+   ITEMS CON ENLACE
+========================================================= */
+
+.contact-item--link {
+  transition:
+    background var(--transition),
+    padding-left var(--transition);
+}
+
+.contact-item--link:hover {
+  padding-left: 33px;
+
+  background: rgba(255, 255, 255, 0.055);
+}
+
+.contact-item__arrow {
+  color: var(--color-olive-light);
+
+  font-size: 1.1rem;
+
+  transition: transform var(--transition);
+}
+
+.contact-item--link:hover .contact-item__arrow {
+  transform: translate(3px, -3px);
+}
+
+/* =========================================================
+   RESERVA DESDE CONTACTO
+========================================================= */
+
+.contact__booking {
+  padding: 24px 28px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 20px;
+}
+
+.contact__booking span {
+  color: rgba(255, 255, 255, 0.68);
+
+  font-size: 0.9rem;
 }
 
 /* =========================================================
@@ -1082,6 +1250,19 @@ button {
   .contact {
     min-height: auto;
   }
+  .contact__container {
+    grid-template-columns: 1fr;
+
+    gap: 48px;
+  }
+
+  .contact__intro {
+    max-width: 650px;
+  }
+
+  .contact__panel {
+    width: 100%;
+  }
 }
 
 /* =========================================================
@@ -1266,6 +1447,55 @@ button {
     max-width: 100%;
     overflow-wrap: anywhere;
   }
+  .contact {
+    padding: 72px 0;
+  }
+
+  .contact__container {
+    gap: 38px;
+  }
+
+  .contact__intro h2 {
+    font-size: clamp(2.8rem, 14vw, 4rem);
+  }
+
+  .contact__intro p {
+    font-size: 0.94rem;
+  }
+
+  .contact-item {
+    min-height: auto;
+
+    padding: 21px 20px;
+
+    grid-template-columns: 42px 1fr auto;
+
+    gap: 14px;
+  }
+
+  .contact-item__icon {
+    width: 42px;
+    height: 42px;
+  }
+
+  .contact-item p {
+    font-size: 0.78rem;
+  }
+
+  .contact-item--link:hover {
+    padding-left: 20px;
+  }
+
+  .contact__booking {
+    align-items: stretch;
+    flex-direction: column;
+
+    padding: 22px 20px;
+  }
+
+  .contact__booking .button {
+    width: 100%;
+  }
 }
 
 @media (max-width: 380px) {
@@ -1299,4 +1529,12 @@ button {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+.footer__address {
+  margin-top: 6px;
+
+  color: var(--color-muted);
+
+  font-size: 0.82rem;
+  line-height: 1.4;
 }

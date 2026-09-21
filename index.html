@@ -198,34 +198,132 @@
       </section>
 
       <!-- =================================================
-           CONTACTO - SECCIÓN OSCURA
-      ================================================== -->
+     CONTACTO
+================================================== -->
       <section class="section contact" id="contacto">
-        <div class="container">
-          <div class="section-heading">
-            <span class="section-heading__eyebrow">CONTACTO</span>
+        <div class="container contact__container">
+          <div class="contact__intro">
+            <span class="section-heading__eyebrow"> CONTACTO </span>
 
-            <h2>Boulevard Pádel</h2>
+            <h2>
+              Complejo<br />
+              Boulevard Pádel
+            </h2>
 
             <p>
-              Seguinos en Instagram para conocer novedades, horarios y todo lo
-              que pasa en la cancha.
+              Tu próximo partido empieza acá. Encontranos en Vila, reservá tu
+              turno o seguinos para conocer todas las novedades del complejo.
             </p>
           </div>
 
-          <div class="contact__actions">
+          <div class="contact__panel">
+            <!-- UBICACIÓN -->
+            <div class="contact-item">
+              <div class="contact-item__icon" aria-hidden="true">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path
+                    d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0z"
+                  ></path>
+                  <circle cx="12" cy="10" r="3"></circle>
+                </svg>
+              </div>
+
+              <div>
+                <span class="contact-item__label"> ENCONTRANOS </span>
+
+                <strong> Bvd. Córdoba Este </strong>
+
+                <p>Vila · Santa Fe</p>
+              </div>
+            </div>
+
+            <!-- INSTAGRAM -->
             <a
               href="https://www.instagram.com/padel_bv/"
               target="_blank"
               rel="noopener noreferrer"
-              class="button button--light"
+              class="contact-item contact-item--link"
             >
-              @padel_bv
+              <div class="contact-item__icon" aria-hidden="true">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <rect x="3" y="3" width="18" height="18" rx="5"></rect>
+                  <circle cx="12" cy="12" r="4"></circle>
+                  <circle cx="17.5" cy="6.5" r="1"></circle>
+                </svg>
+              </div>
+
+              <div>
+                <span class="contact-item__label"> INSTAGRAM </span>
+
+                <strong> @padel_bv </strong>
+
+                <p>Seguinos y enterate de todas las novedades.</p>
+              </div>
+
+              <span class="contact-item__arrow"> ↗ </span>
             </a>
 
-            <a href="reservar.html" class="button button--secondary">
-              Reservar turno
+            <!-- WHATSAPP -->
+            <a
+              href="https://wa.me/543492258212"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="contact-item contact-item--link"
+            >
+              <div class="contact-item__icon" aria-hidden="true">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path
+                    d="M21 11.5a8.38 8.38 0 0 1-.9 3.8
+                 8.5 8.5 0 0 1-7.6 4.7
+                 8.38 8.38 0 0 1-3.8-.9
+                 L3 21l1.9-5.7
+                 a8.38 8.38 0 0 1-.9-3.8
+                 8.5 8.5 0 0 1 4.7-7.6
+                 8.38 8.38 0 0 1 3.8-.9h.5
+                 a8.48 8.48 0 0 1 8 8z"
+                  ></path>
+                </svg>
+              </div>
+
+              <div>
+                <span class="contact-item__label"> WHATSAPP </span>
+
+                <strong> +54 3492 258212 </strong>
+
+                <p>Escribinos para consultas.</p>
+              </div>
+
+              <span class="contact-item__arrow"> ↗ </span>
             </a>
+
+            <div class="contact__booking">
+              <span> ¿Ya sabés cuándo jugar? </span>
+
+              <a href="reservar.html" class="button button--primary">
+                Reservar turno
+              </a>
+            </div>
           </div>
         </div>
       </section>
