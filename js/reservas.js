@@ -130,6 +130,13 @@ function generateDates() {
       selectedTime = null;
 
       renderTimes(i);
+
+      setTimeout(() => {
+        timeSection.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      }, 150);
     });
 
     dateSelector.appendChild(button);
