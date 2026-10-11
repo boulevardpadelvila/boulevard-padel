@@ -135,14 +135,69 @@
    DÍAS
 ========================================================= */
 
-.date-selector {
+.date-picker {
   display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
+  grid-template-columns: 44px minmax(0, 1fr) 44px;
+  align-items: center;
+  gap: 12px;
+}
+
+.date-picker__arrow {
+  width: 44px;
+  height: 44px;
+
+  display: grid;
+  place-items: center;
+
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+
+  background: var(--color-surface);
+  color: var(--color-dark);
+
+  font-size: 1.7rem;
+  line-height: 1;
+
+  cursor: pointer;
+
+  transition:
+    transform var(--transition),
+    border-color var(--transition),
+    background var(--transition),
+    opacity var(--transition);
+}
+
+.date-picker__arrow:hover:not(:disabled) {
+  transform: translateY(-2px);
+  border-color: var(--color-olive);
+}
+
+.date-picker__arrow:disabled {
+  opacity: 0.25;
+  cursor: default;
+}
+
+.date-selector {
+  display: flex;
   gap: 10px;
+
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scroll-snap-type: x proximity;
+  scroll-behavior: smooth;
+
+  padding: 4px 2px 12px;
+
+  scrollbar-width: none;
+}
+
+.date-selector::-webkit-scrollbar {
+  display: none;
 }
 
 .date-card {
-  min-width: 0;
+  flex: 0 0 96px;
+  min-width: 96px;
   min-height: 105px;
   padding: 14px 8px;
 
@@ -151,10 +206,13 @@
   align-items: center;
   justify-content: center;
 
+  scroll-snap-align: start;
+
   border: 1px solid var(--color-border);
   border-radius: 14px;
 
   background: rgba(255, 255, 255, 0.6);
+  color: var(--color-text);
 
   cursor: pointer;
 
@@ -162,7 +220,8 @@
     background var(--transition),
     color var(--transition),
     border-color var(--transition),
-    transform var(--transition);
+    transform var(--transition),
+    opacity var(--transition);
 }
 
 .date-card:hover {
@@ -172,7 +231,8 @@
 
 .date-card:focus-visible,
 .time-slot:focus-visible,
-.form-field input:focus-visible {
+.form-field input:focus-visible,
+.date-picker__arrow:focus-visible {
   outline: 3px solid rgba(125, 130, 88, 0.25);
   outline-offset: 2px;
 }
@@ -213,6 +273,16 @@
 .date-card--active .date-card__day,
 .date-card--active .date-card__month {
   color: rgba(255, 255, 255, 0.78);
+}
+
+.booking-date-range {
+  margin-top: 10px;
+  margin-left: 56px;
+
+  color: var(--color-muted);
+
+  font-size: 0.78rem;
+  line-height: 1.5;
 }
 
 /* =========================================================
@@ -262,8 +332,30 @@
   background: rgba(11, 12, 10, 0.05);
   color: #aaa;
   text-decoration: line-through;
-
   cursor: not-allowed;
+}
+
+/* =========================================================
+   MENSAJES DEL TURNERO
+========================================================= */
+
+.booking-empty-message {
+  width: 100%;
+  min-height: 90px;
+  padding: 18px 20px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px dashed var(--color-border);
+  border-radius: 12px;
+
+  color: var(--color-muted);
+
+  font-size: 0.9rem;
+  line-height: 1.5;
+  text-align: center;
 }
 
 /* =========================================================
@@ -356,6 +448,11 @@
   width: 100%;
 }
 
+.booking-submit:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
 .booking-form__note {
   margin-top: 12px;
 
@@ -446,6 +543,487 @@
 }
 
 /* =========================================================
+   ESTADO DE CARGA
+========================================================= */
+
+.button--loading {
+  position: relative;
+
+  color: transparent !important;
+
+  pointer-events: none;
+  opacity: 0.85;
+}
+
+.button--loading::after {
+  content: "";
+
+  position: absolute;
+
+  width: 22px;
+  height: 22px;
+
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+
+  animation: spinner 0.8s linear infinite;
+}
+
+@keyframes spinner {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* =========================================================
+   CÓDIGO DE RESERVA
+========================================================= */
+
+.booking-code-box {
+  max-width: 680px;
+  margin: 36px auto 24px;
+  padding: 28px;
+
+  border: 1px solid rgba(125, 130, 88, 0.38);
+  border-radius: 18px;
+
+  background: rgba(125, 130, 88, 0.08);
+}
+
+.booking-code-box__label {
+  display: block;
+  margin-bottom: 10px;
+
+  color: var(--color-olive);
+
+  font-family: var(--font-heading);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.booking-code-box__code {
+  display: block;
+  margin-bottom: 18px;
+
+  color: var(--color-dark);
+
+  font-family: "Barlow Condensed", sans-serif;
+  font-size: clamp(2.4rem, 6vw, 3.8rem);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  overflow-wrap: anywhere;
+}
+
+.booking-code-box__warning {
+  max-width: 560px;
+  margin: 0 auto;
+
+  color: var(--color-text);
+
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.booking-code-box__actions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+
+  margin-top: 22px;
+}
+
+.booking-code-action {
+  min-width: 150px;
+}
+
+.button--outline-dark {
+  border: 1px solid var(--color-dark);
+  background: transparent;
+  color: var(--color-dark);
+}
+
+.button--outline-dark:hover {
+  background: var(--color-dark);
+  color: #fff;
+}
+
+.booking-code-box__lost {
+  margin-top: 18px;
+
+  color: var(--color-muted);
+
+  font-size: 0.76rem;
+  line-height: 1.5;
+}
+
+@media (max-width: 640px) {
+  .booking-code-box {
+    padding: 24px 18px;
+  }
+
+  .booking-code-box__actions {
+    flex-direction: column;
+  }
+
+  .booking-code-action {
+    width: 100%;
+  }
+}
+
+/* =========================================================
+   CONSULTAR / CANCELAR RESERVA
+========================================================= */
+
+.booking-manage-link {
+  margin-top: 24px;
+
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+
+  color: var(--color-muted);
+  font-size: 0.9rem;
+}
+
+.booking-manage-link__button {
+  padding: 0;
+
+  border: 0;
+  border-bottom: 1px solid var(--color-dark);
+
+  background: transparent;
+  color: var(--color-dark);
+
+  font-family: var(--font-heading);
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+
+  cursor: pointer;
+}
+
+.booking-manage {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 62px 0 80px;
+}
+
+.booking-manage__header {
+  margin-bottom: 32px;
+  text-align: center;
+}
+
+.booking-manage__header h2 {
+  margin: 10px 0 12px;
+
+  font-family: "Barlow Condensed", sans-serif;
+  font-size: clamp(3rem, 7vw, 4.8rem);
+  line-height: 0.95;
+  text-transform: uppercase;
+}
+
+.booking-manage__header p {
+  color: var(--color-muted);
+}
+
+.booking-manage__form {
+  max-width: 560px;
+  margin: 0 auto;
+}
+
+.booking-manage__form input {
+  text-transform: uppercase;
+}
+
+.booking-manage__submit {
+  width: 100%;
+}
+
+.booking-manage__result {
+  margin-top: 34px;
+}
+
+.booking-manage-card {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+
+  overflow: hidden;
+
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+
+  background: var(--color-surface);
+}
+
+.booking-manage-card div {
+  min-width: 0;
+  padding: 20px;
+
+  border-bottom: 1px solid var(--color-border);
+}
+
+.booking-manage-card div:nth-child(odd) {
+  border-right: 1px solid var(--color-border);
+}
+
+.booking-manage-card div:nth-last-child(-n + 2) {
+  border-bottom: 0;
+}
+
+.booking-manage-card span {
+  display: block;
+  margin-bottom: 5px;
+
+  color: var(--color-muted);
+
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.booking-manage-card strong {
+  overflow-wrap: anywhere;
+}
+
+.booking-manage__notice {
+  margin: 18px 0 0;
+  padding: 16px 18px;
+
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+
+  background: rgba(255, 255, 255, 0.55);
+
+  color: var(--color-text);
+
+  font-size: 0.88rem;
+  line-height: 1.55;
+  text-align: center;
+}
+
+.booking-manage__notice--success {
+  border-color: rgba(125, 130, 88, 0.45);
+  background: rgba(125, 130, 88, 0.08);
+}
+
+.booking-manage__notice--warning {
+  border-color: rgba(180, 130, 55, 0.35);
+  background: rgba(180, 130, 55, 0.08);
+}
+
+.booking-manage__notice--error {
+  border-color: rgba(160, 55, 55, 0.35);
+  background: rgba(160, 55, 55, 0.07);
+}
+
+.booking-manage__cancel {
+  margin: 0;
+}
+
+.booking-manage__cancel[hidden] {
+  display: none !important;
+}
+
+.button--danger {
+  border: 1px solid #7d2f2f;
+  background: #7d2f2f;
+  color: #fff;
+}
+
+.button--danger:hover {
+  background: #642525;
+  border-color: #642525;
+}
+
+.booking-manage__actions {
+  margin-top: 18px;
+
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.booking-manage__actions .button {
+  width: 100%;
+  min-width: 0;
+}
+
+@media (max-width: 640px) {
+  .booking-manage {
+    padding: 38px 0 56px;
+  }
+
+  .booking-manage__header {
+    text-align: left;
+  }
+
+  .booking-manage__header h2 {
+    font-size: clamp(2.8rem, 14vw, 4rem);
+  }
+
+  .booking-manage-card {
+    grid-template-columns: 1fr;
+  }
+
+  .booking-manage-card div,
+  .booking-manage-card div:nth-child(odd),
+  .booking-manage-card div:nth-last-child(-n + 2) {
+    border-right: 0;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .booking-manage-card div:last-child {
+    border-bottom: 0;
+  }
+}
+
+/* =========================================================
+   MODAL DE CANCELACIÓN
+========================================================= */
+
+.booking-modal[hidden] {
+  display: none;
+}
+
+.booking-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+
+  display: grid;
+  place-items: center;
+
+  padding: 20px;
+}
+
+.booking-modal__backdrop {
+  position: absolute;
+  inset: 0;
+
+  background: rgba(11, 12, 10, 0.62);
+  backdrop-filter: blur(4px);
+}
+
+.booking-modal__dialog {
+  position: relative;
+  z-index: 1;
+
+  width: min(100%, 520px);
+  padding: 34px;
+
+  border: 1px solid var(--color-border);
+  border-radius: 20px;
+
+  background: var(--color-bg);
+
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.24);
+
+  text-align: center;
+}
+
+.booking-modal__close {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+
+  width: 38px;
+  height: 38px;
+
+  display: grid;
+  place-items: center;
+
+  border: 0;
+  border-radius: 50%;
+
+  background: transparent;
+  color: var(--color-muted);
+
+  font-size: 1.8rem;
+  line-height: 1;
+
+  cursor: pointer;
+}
+
+.booking-modal__close:hover {
+  background: rgba(11, 12, 10, 0.06);
+  color: var(--color-dark);
+}
+
+.booking-modal__dialog h2 {
+  margin: 10px 0 18px;
+
+  font-family: "Barlow Condensed", sans-serif;
+  font-size: clamp(2.4rem, 6vw, 3.5rem);
+  line-height: 0.95;
+  text-transform: uppercase;
+}
+
+.booking-modal__booking {
+  margin: 22px 0;
+  padding: 18px;
+
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+
+  background: var(--color-surface);
+}
+
+.booking-modal__booking strong,
+.booking-modal__booking span {
+  display: block;
+}
+
+.booking-modal__booking strong {
+  margin-bottom: 6px;
+
+  font-family: var(--font-heading);
+  font-size: 1rem;
+}
+
+.booking-modal__booking span {
+  color: var(--color-muted);
+  font-size: 0.92rem;
+}
+
+.booking-modal__dialog > p {
+  max-width: 420px;
+  margin: 0 auto;
+
+  color: var(--color-muted);
+
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.booking-modal__actions {
+  display: grid;
+  grid-template-columns: 1fr 1.25fr;
+  gap: 10px;
+
+  margin-top: 26px;
+}
+
+body.booking-modal-open {
+  overflow: hidden;
+}
+
+@media (max-width: 560px) {
+  .booking-modal__dialog {
+    padding: 30px 20px 22px;
+  }
+
+  .booking-modal__actions {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* =========================================================
    RESPONSIVE TURNERO
 ========================================================= */
 
@@ -454,26 +1032,21 @@
     display: none;
   }
 
-  .date-selector {
-    display: flex;
-    gap: 10px;
-
-    overflow-x: auto;
-    overscroll-behavior-inline: contain;
-    scroll-snap-type: x proximity;
-
-    padding: 2px 1px 10px;
-
-    scrollbar-width: none;
+  .date-picker {
+    grid-template-columns: minmax(0, 1fr);
   }
 
-  .date-selector::-webkit-scrollbar {
+  .date-picker__arrow {
     display: none;
   }
 
   .date-card {
+    flex-basis: 88px;
     min-width: 88px;
-    scroll-snap-align: start;
+  }
+
+  .booking-date-range {
+    margin-left: 0;
   }
 
   .time-selector {
@@ -500,7 +1073,6 @@
 
   .booking-intro h1 {
     margin-bottom: 16px;
-
     font-size: clamp(3rem, 15vw, 4.5rem);
   }
 
@@ -526,11 +1098,6 @@
 
   .booking-step__heading h2 {
     font-size: 1.3rem;
-  }
-
-  .date-card {
-    min-width: 82px;
-    min-height: 96px;
   }
 
   .time-selector {
@@ -571,34 +1138,7 @@
     font-size: 2.9rem;
   }
 
-  .date-card {
-    min-width: 78px;
-  }
-}
-
-/* =========================================================
-   ESTADO DE CARGA (LOADING) PARA BOTONES
-========================================================= */
-.button--loading {
-  position: relative;
-  color: transparent !important;
-  pointer-events: none;
-  opacity: 0.85;
-}
-
-.button--loading::after {
-  content: "";
-  position: absolute;
-  width: 22px;
-  height: 22px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-top-color: #fff;
-  border-radius: 50%;
-  animation: spinner 0.8s linear infinite;
-}
-
-@keyframes spinner {
-  to {
-    transform: rotate(360deg);
+  .time-selector {
+    grid-template-columns: 1fr;
   }
 }

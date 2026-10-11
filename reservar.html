@@ -61,7 +61,7 @@
           <a href="index.html#contacto">Contacto</a>
         </nav>
 
-        <a href="index.html" class="booking-back"> ← Volver </a>
+        <a href="index.html" class="booking-back">← Volver</a>
 
         <button
           class="menu-button"
@@ -84,7 +84,7 @@
       <div class="booking-app__container">
         <!-- ENCABEZADO DEL TURNERO -->
         <section class="booking-intro">
-          <span class="section-heading__eyebrow"> RESERVAS </span>
+          <span class="section-heading__eyebrow">RESERVAS</span>
 
           <h1>Reservá tu cancha</h1>
 
@@ -93,14 +93,25 @@
             registrarte ni descargar ninguna aplicación. Tres simples pasos y tu
             turno queda reservado.
           </p>
+
+          <div class="booking-manage-link">
+            <span>¿Ya tenés una reserva?</span>
+            <button
+              type="button"
+              class="booking-manage-link__button"
+              id="openManageBookingButton"
+            >
+              Consultar / cancelar
+            </button>
+          </div>
         </section>
 
         <!-- =================================================
-                 PASO 1 - FECHA
-            ================================================== -->
+             PASO 1 - FECHA
+        ================================================== -->
         <section class="booking-step">
           <div class="booking-step__heading">
-            <span class="booking-step__number"> 01 </span>
+            <span class="booking-step__number">01</span>
 
             <div>
               <h2>Elegí el día</h2>
@@ -108,17 +119,47 @@
             </div>
           </div>
 
-          <div class="date-selector" id="dateSelector">
-            <!-- Se genera desde JavaScript -->
+          <div class="date-picker">
+            <button
+              class="date-picker__arrow"
+              id="datePrevButton"
+              type="button"
+              aria-label="Ver fechas anteriores"
+            >
+              ‹
+            </button>
+
+            <div
+              class="date-selector"
+              id="dateSelector"
+              aria-label="Fechas disponibles"
+            >
+              <p class="booking-empty-message">
+                Cargando fechas disponibles...
+              </p>
+            </div>
+
+            <button
+              class="date-picker__arrow"
+              id="dateNextButton"
+              type="button"
+              aria-label="Ver fechas siguientes"
+            >
+              ›
+            </button>
           </div>
+
+          <p class="booking-date-range" id="bookingDateRange">
+            Cargando período habilitado...
+          </p>
         </section>
 
         <!-- =================================================
-                 PASO 2 - HORARIO
-            ================================================== -->
+             PASO 2 - HORARIO
+        ================================================== -->
         <section class="booking-step booking-step--disabled" id="timeSection">
           <div class="booking-step__heading">
-            <span class="booking-step__number"> 02 </span>
+            <span class="booking-step__number">02</span>
 
             <div>
               <h2>Elegí el horario</h2>
@@ -133,14 +174,14 @@
         </section>
 
         <!-- =================================================
-                 PASO 3 - DATOS
-            ================================================== -->
+             PASO 3 - DATOS
+        ================================================== -->
         <section
           class="booking-step booking-step--disabled"
           id="detailsSection"
         >
           <div class="booking-step__heading">
-            <span class="booking-step__number"> 03 </span>
+            <span class="booking-step__number">03</span>
 
             <div>
               <h2>Completá tus datos</h2>
@@ -153,7 +194,7 @@
 
           <form class="booking-form" id="bookingForm">
             <div class="form-field">
-              <label for="customerName"> Nombre y Apellido </label>
+              <label for="customerName">Nombre y Apellido</label>
 
               <input
                 type="text"
@@ -166,7 +207,7 @@
             </div>
 
             <div class="form-field">
-              <label for="customerPhone"> Celular </label>
+              <label for="customerPhone">Celular</label>
 
               <input
                 type="tel"
@@ -194,7 +235,7 @@
 
               <div>
                 <span>Cancha</span>
-                <strong>Cancha principal</strong>
+                <strong id="summaryCourt">Cancha 1</strong>
               </div>
             </div>
 
@@ -203,30 +244,143 @@
             </button>
 
             <p class="booking-form__note">
-              Prototipo de demostración. La reserva todavía no se almacena en el
-              sistema.
+              Al confirmar, tu turno quedará reservado en el sistema.
             </p>
           </form>
         </section>
 
         <!-- =================================================
-                 CONFIRMACIÓN
-            ================================================== -->
+             CONSULTAR / CANCELAR RESERVA
+        ================================================== -->
+        <section class="booking-manage" id="bookingManage" hidden>
+          <div class="booking-manage__header">
+            <span class="section-heading__eyebrow">MI RESERVA</span>
+            <h2>Consultar / cancelar</h2>
+            <p>Ingresá el código de tu reserva para consultar sus datos.</p>
+          </div>
+
+          <form class="booking-manage__form" id="manageBookingForm">
+            <div class="form-field">
+              <label for="manageBookingCode">Código de reserva</label>
+
+              <input
+                type="text"
+                id="manageBookingCode"
+                name="manageBookingCode"
+                autocomplete="off"
+                autocapitalize="characters"
+                spellcheck="false"
+                placeholder="BP-XXXX-XXXX-XXXX"
+                maxlength="17"
+                required
+              />
+            </div>
+
+            <button
+              type="submit"
+              class="button button--primary booking-manage__submit"
+            >
+              Consultar reserva
+            </button>
+          </form>
+
+          <div class="booking-manage__result" id="manageBookingResult" hidden>
+            <div class="booking-manage-card">
+              <div>
+                <span>Código</span>
+                <strong id="manageResultCode">—</strong>
+              </div>
+
+              <div>
+                <span>Estado</span>
+                <strong id="manageResultStatus">—</strong>
+              </div>
+
+              <div>
+                <span>Día</span>
+                <strong id="manageResultDate">—</strong>
+              </div>
+
+              <div>
+                <span>Horario</span>
+                <strong id="manageResultTime">—</strong>
+              </div>
+            </div>
+
+            <div class="booking-manage__notice" id="manageBookingNotice"></div>
+
+            <div class="booking-manage__actions">
+  <button
+    type="button"
+    class="button button--outline-dark"
+    id="closeManageBookingButton"
+  >
+    Volver al turnero
+  </button>
+
+  <button
+    type="button"
+    class="button button--danger booking-manage__cancel"
+    id="cancelBookingButton"
+    hidden
+  >
+    Cancelar turno
+  </button>
+</div>
+        </section>
+
+        <!-- =================================================
+             CONFIRMACIÓN
+        ================================================== -->
         <section class="booking-confirmation" id="bookingConfirmation" hidden>
           <div class="booking-confirmation__icon">✓</div>
 
-          <span class="section-heading__eyebrow"> RESERVA CONFIRMADA </span>
+          <span class="section-heading__eyebrow">RESERVA CONFIRMADA</span>
 
           <h2>¡Nos vemos en la cancha!</h2>
 
           <p>Tu turno quedó reservado correctamente.</p>
 
-          <div class="confirmation-card">
-            <div>
-              <span>Reserva</span>
-              <strong id="confirmationCode"></strong>
+          <div class="booking-code-box">
+            <span class="booking-code-box__label">TU CÓDIGO DE RESERVA</span>
+
+            <strong
+              class="booking-code-box__code"
+              id="confirmationCode"
+            ></strong>
+
+            <p class="booking-code-box__warning">
+              Guardá bien este código. Lo vas a necesitar para consultar o
+              cancelar tu turno. Cualquier persona que tenga este código podrá
+              gestionar la reserva, así que compartilo solamente con integrantes
+              de tu grupo.
+            </p>
+
+            <div class="booking-code-box__actions">
+              <button
+                type="button"
+                class="button button--dark booking-code-action"
+                id="copyBookingCodeButton"
+              >
+                Copiar código
+              </button>
+
+              <button
+                type="button"
+                class="button button--outline-dark booking-code-action"
+                id="shareBookingCodeButton"
+              >
+                Compartir
+              </button>
             </div>
 
+            <p class="booking-code-box__lost">
+              Si perdés el código y necesitás gestionar la reserva, comunicate
+              cuanto antes con Boulevard Pádel.
+            </p>
+          </div>
+
+          <div class="confirmation-card">
             <div>
               <span>Jugador</span>
               <strong id="confirmationName"></strong>
@@ -241,6 +395,11 @@
               <span>Horario</span>
               <strong id="confirmationTime"></strong>
             </div>
+
+            <div>
+              <span>Cancha</span>
+              <strong>Cancha 1</strong>
+            </div>
           </div>
 
           <button
@@ -254,7 +413,68 @@
       </div>
     </main>
 
+    <!-- =====================================================
+         MODAL CONFIRMAR CANCELACIÓN
+    ====================================================== -->
+    <div class="booking-modal" id="cancelBookingModal" hidden>
+      <div
+        class="booking-modal__backdrop"
+        id="cancelBookingModalBackdrop"
+      ></div>
+
+      <div
+        class="booking-modal__dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="cancelBookingModalTitle"
+        aria-describedby="cancelBookingModalText"
+      >
+        <button
+          type="button"
+          class="booking-modal__close"
+          id="cancelBookingModalClose"
+          aria-label="Cerrar"
+        >
+          ×
+        </button>
+
+        <span class="section-heading__eyebrow">CANCELAR RESERVA</span>
+
+        <h2 id="cancelBookingModalTitle">¿Querés cancelar este turno?</h2>
+
+        <div class="booking-modal__booking">
+          <strong id="cancelBookingModalDate">—</strong>
+          <span id="cancelBookingModalTime">—</span>
+        </div>
+
+        <p id="cancelBookingModalText">
+          El horario volverá a quedar disponible para que pueda reservarlo otra
+          persona.
+        </p>
+
+        <div class="booking-modal__actions">
+          <button
+            type="button"
+            class="button button--outline-dark"
+            id="cancelBookingModalBack"
+          >
+            Volver
+          </button>
+
+          <button
+            type="button"
+            class="button button--danger"
+            id="cancelBookingModalConfirm"
+          >
+            Confirmar cancelación
+          </button>
+        </div>
+      </div>
+    </div>
+
     <script src="js/main.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-config.js"></script>
     <script src="js/reservas.js"></script>
   </body>
 </html>
