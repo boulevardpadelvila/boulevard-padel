@@ -403,6 +403,53 @@
 }
 
 /* =========================================================
+   TURNSTILE
+========================================================= */
+
+.turnstile-box {
+  margin: 28px 0 18px;
+  padding: 20px;
+
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+
+  background: rgba(255, 255, 255, 0.45);
+
+  text-align: center;
+}
+
+.turnstile-box__title {
+  display: block;
+
+  margin-bottom: 14px;
+
+  color: var(--color-olive);
+
+  font-family: var(--font-heading);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.turnstile-box__widget {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  min-height: 70px;
+}
+
+.turnstile-box__text {
+  margin-top: 10px;
+
+  color: var(--color-muted);
+
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+/* =========================================================
    RESUMEN
 ========================================================= */
 
@@ -1140,5 +1187,14 @@ body.booking-modal-open {
 
   .time-selector {
     grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 640px) {
+  .turnstile-box {
+    padding: 18px 12px;
+  }
+
+  .turnstile-box__widget {
+    overflow-x: auto;
   }
 }

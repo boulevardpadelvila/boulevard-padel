@@ -26,6 +26,11 @@
       href="assets/img/logo-boulevard-padel.jpg"
     />
     <link rel="apple-touch-icon" href="assets/img/logo-boulevard-padel.jpg" />
+    <script
+  src="https://challenges.cloudflare.com/turnstile/v0/api.js"
+  async
+  defer
+></script>
   </head>
 
   <body class="booking-page">
@@ -238,6 +243,24 @@
                 <strong id="summaryCourt">Cancha 1</strong>
               </div>
             </div>
+
+       <div class="turnstile-box">
+  <span class="turnstile-box__title">
+    Verificación de seguridad
+  </span>
+
+  <div class="turnstile-box__widget">
+    <div
+      class="cf-turnstile"
+      data-sitekey="0x4AAAAAAFT8R8Oy4VMKNRb1"
+      data-theme="light"
+    ></div>
+  </div>
+
+  <p class="turnstile-box__text">
+    Protegemos las reservas contra envíos automáticos.
+  </p>
+</div>
 
             <button type="submit" class="button button--primary booking-submit">
               Confirmar reserva

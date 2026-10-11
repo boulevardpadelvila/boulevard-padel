@@ -1,26 +1,39 @@
 const dateSelector = document.getElementById("dateSelector");
+
 const datePrevButton = document.getElementById("datePrevButton");
+
 const dateNextButton = document.getElementById("dateNextButton");
+
 const bookingDateRange = document.getElementById("bookingDateRange");
 
 const timeSelector = document.getElementById("timeSelector");
+
 const timeSection = document.getElementById("timeSection");
+
 const detailsSection = document.getElementById("detailsSection");
 
 const selectedDateText = document.getElementById("selectedDateText");
+
 const selectedBookingText = document.getElementById("selectedBookingText");
 
 const summaryDate = document.getElementById("summaryDate");
+
 const summaryTime = document.getElementById("summaryTime");
+
 const summaryCourt = document.getElementById("summaryCourt");
 
 const bookingForm = document.getElementById("bookingForm");
+
 const bookingIntro = document.querySelector(".booking-intro");
+
 const bookingConfirmation = document.getElementById("bookingConfirmation");
 
 const confirmationCode = document.getElementById("confirmationCode");
+
 const confirmationName = document.getElementById("confirmationName");
+
 const confirmationDate = document.getElementById("confirmationDate");
+
 const confirmationTime = document.getElementById("confirmationTime");
 
 const copyBookingCodeButton = document.getElementById("copyBookingCodeButton");
@@ -86,12 +99,17 @@ const cancelBookingModalTime = document.getElementById(
 const newBookingButton = document.getElementById("newBookingButton");
 
 let bookingConfig = null;
+
 let selectedDate = null;
+
 let selectedSlot = null;
+
 let managedBooking = null;
 
 /* =========================================================
+
    UTILIDADES
+
 ========================================================= */
 
 function capitalize(text) {
@@ -106,7 +124,9 @@ function parseLocalDate(dateString) {
 
 function formatDateToISO(date) {
   const year = date.getFullYear();
+
   const month = String(date.getMonth() + 1).padStart(2, "0");
+
   const day = String(date.getDate()).padStart(2, "0");
 
   return `${year}-${month}-${day}`;
@@ -118,8 +138,11 @@ function formatSelectedDate(dateString) {
   return capitalize(
     date.toLocaleDateString("es-AR", {
       weekday: "long",
+
       day: "numeric",
+
       month: "long",
+
       year: "numeric",
     }),
   );
@@ -130,7 +153,9 @@ function formatShortDate(dateString) {
 
   return date.toLocaleDateString("es-AR", {
     day: "numeric",
+
     month: "long",
+
     year: "numeric",
   });
 }
@@ -146,6 +171,7 @@ function scrollToStep(section) {
     setTimeout(() => {
       section.scrollIntoView({
         behavior: "smooth",
+
         block: "start",
       });
     }, 100);
@@ -156,7 +182,9 @@ function showDateMessage(message) {
   if (!dateSelector) return;
 
   dateSelector.innerHTML = `
+
     <p class="booking-empty-message">${message}</p>
+
   `;
 }
 
@@ -164,7 +192,9 @@ function showTimeMessage(message) {
   if (!timeSelector) return;
 
   timeSelector.innerHTML = `
+
     <p class="booking-empty-message">${message}</p>
+
   `;
 }
 
@@ -174,7 +204,9 @@ function resetDetailsStep() {
   detailsSection?.classList.add("booking-step--disabled");
 
   document
+
     .querySelectorAll(".time-slot")
+
     .forEach((item) => item.classList.remove("time-slot--active"));
 
   if (selectedBookingText) {
@@ -182,12 +214,16 @@ function resetDetailsStep() {
   }
 
   if (summaryDate) summaryDate.textContent = "—";
+
   if (summaryTime) summaryTime.textContent = "—";
+
   if (summaryCourt) summaryCourt.textContent = "Cancha 1";
 }
 
 /* =========================================================
+
    CONFIGURACIÓN DEL TURNERO
+
 ========================================================= */
 
 async function loadBookingConfig() {
@@ -214,6 +250,7 @@ async function loadBookingConfig() {
 
   if (!data || data.length === 0) {
     showDateMessage("El turnero no está disponible temporalmente.");
+
     return;
   }
 
@@ -221,6 +258,7 @@ async function loadBookingConfig() {
 
   generateDates(
     bookingConfig.booking_start_date,
+
     bookingConfig.booking_end_date,
   );
 
@@ -233,7 +271,9 @@ async function loadBookingConfig() {
 }
 
 /* =========================================================
+
    GENERAR TARJETAS DE FECHA
+
 ========================================================= */
 
 function generateDates(startDateString, endDateString) {
@@ -242,6 +282,7 @@ function generateDates(startDateString, endDateString) {
   dateSelector.innerHTML = "";
 
   const startDate = parseLocalDate(startDateString);
+
   const endDate = parseLocalDate(endDateString);
 
   const todayISO = formatDateToISO(new Date());
@@ -250,40 +291,54 @@ function generateDates(startDateString, endDateString) {
 
   while (current <= endDate) {
     const date = new Date(current);
+
     const dateISO = formatDateToISO(date);
 
     const button = document.createElement("button");
 
     button.type = "button";
+
     button.className = "date-card";
+
     button.dataset.date = dateISO;
 
     const weekday =
       dateISO === todayISO
         ? "HOY"
         : date
+
             .toLocaleDateString("es-AR", {
               weekday: "short",
             })
+
             .replace(".", "")
+
             .toUpperCase();
 
     const month = date
+
       .toLocaleDateString("es-AR", {
         month: "short",
       })
+
       .replace(".", "")
+
       .toUpperCase();
 
     button.setAttribute(
       "aria-label",
+
       `${formatSelectedDate(dateISO)}. Seleccionar fecha`,
     );
 
     button.innerHTML = `
+
       <span class="date-card__day">${weekday}</span>
+
       <span class="date-card__number">${date.getDate()}</span>
+
       <span class="date-card__month">${month}</span>
+
     `;
 
     button.addEventListener("click", async () => {
@@ -299,12 +354,16 @@ function generateDates(startDateString, endDateString) {
 }
 
 /* =========================================================
+
    SELECCIONAR FECHA
+
 ========================================================= */
 
 async function selectDate(button, dateISO) {
   document
+
     .querySelectorAll(".date-card")
+
     .forEach((card) => card.classList.remove("date-card--active"));
 
   button.classList.add("date-card--active");
@@ -327,7 +386,9 @@ async function selectDate(button, dateISO) {
 }
 
 /* =========================================================
+
    CONSULTAR HORARIOS DISPONIBLES
+
 ========================================================= */
 
 async function loadAvailableSlots(dateISO) {
@@ -355,7 +416,9 @@ async function loadAvailableSlots(dateISO) {
 }
 
 /* =========================================================
+
    MOSTRAR HORARIOS
+
 ========================================================= */
 
 function renderTimes(slots) {
@@ -369,7 +432,9 @@ function renderTimes(slots) {
     const button = document.createElement("button");
 
     button.type = "button";
+
     button.className = "time-slot";
+
     button.textContent = time;
 
     button.setAttribute("aria-label", `${time} hs, disponible`);
@@ -383,14 +448,18 @@ function renderTimes(slots) {
 }
 
 /* =========================================================
+
    SELECCIONAR HORARIO
+
 ========================================================= */
 
 function selectTime(button, slot) {
   if (!selectedDate) return;
 
   document
+
     .querySelectorAll(".time-slot")
+
     .forEach((item) => item.classList.remove("time-slot--active"));
 
   button.classList.add("time-slot--active");
@@ -400,6 +469,7 @@ function selectTime(button, slot) {
   detailsSection?.classList.remove("booking-step--disabled");
 
   const readableDate = formatSelectedDate(selectedDate);
+
   const readableTime = formatTime(slot.start_time);
 
   if (selectedBookingText) {
@@ -407,7 +477,9 @@ function selectTime(button, slot) {
   }
 
   if (summaryDate) summaryDate.textContent = readableDate;
+
   if (summaryTime) summaryTime.textContent = `${readableTime} hs`;
+
   if (summaryCourt) {
     summaryCourt.textContent = slot.court_name || "Cancha 1";
   }
@@ -416,7 +488,9 @@ function selectTime(button, slot) {
 }
 
 /* =========================================================
+
    DESPLAZAMIENTO DE FECHAS
+
 ========================================================= */
 
 function scrollDates(direction) {
@@ -426,6 +500,7 @@ function scrollDates(direction) {
 
   dateSelector.scrollBy({
     left: direction * amount,
+
     behavior: "smooth",
   });
 }
@@ -459,7 +534,9 @@ dateSelector?.addEventListener("scroll", () => {
 window.addEventListener("resize", updateDateArrowState);
 
 /* =========================================================
+
    CONFIRMAR RESERVA
+
 ========================================================= */
 
 bookingForm?.addEventListener("submit", async (event) => {
@@ -484,22 +561,38 @@ bookingForm?.addEventListener("submit", async (event) => {
   submitButton.textContent = "Confirmando...";
 
   try {
-    const { data, error } = await supabaseClient.rpc("create_booking", {
-      p_full_name: customerName,
-      p_phone: customerPhone,
-      p_starts_at: selectedSlot.starts_at,
-      p_notes: null,
-    });
+    const turnstileToken = document.querySelector(
+      '[name="cf-turnstile-response"]',
+    )?.value;
+
+    if (!turnstileToken) {
+      throw new Error("Completá la verificación de seguridad.");
+    }
+
+    const { data, error } = await supabaseClient.functions.invoke(
+      "create-booking-secure",
+      {
+        body: {
+          fullName: customerName,
+          phone: customerPhone,
+          startsAt: selectedSlot.starts_at,
+          notes: null,
+          turnstileToken,
+        },
+      },
+    );
 
     if (error) {
       throw error;
     }
 
-    if (!data || data.length === 0) {
-      throw new Error("No se recibió confirmación de la reserva.");
+    if (!data?.success || !data?.reservation || data.reservation.length === 0) {
+      throw new Error(
+        data?.error || "No se recibió confirmación de la reserva.",
+      );
     }
 
-    const reservation = data[0];
+    const reservation = data.reservation[0];
 
     if (confirmationCode) {
       confirmationCode.textContent = reservation.reservation_code;
@@ -522,7 +615,10 @@ bookingForm?.addEventListener("submit", async (event) => {
     });
 
     if (bookingIntro) bookingIntro.hidden = true;
-    if (bookingConfirmation) bookingConfirmation.hidden = false;
+
+    if (bookingConfirmation) {
+      bookingConfirmation.hidden = false;
+    }
 
     window.scrollTo({
       top: 0,
@@ -534,6 +630,14 @@ bookingForm?.addEventListener("submit", async (event) => {
     const errorText = error?.message || "";
 
     let message = "No fue posible confirmar la reserva. Intentá nuevamente.";
+
+    if (
+      errorText.includes("verificación de seguridad") ||
+      errorText.includes("Turnstile")
+    ) {
+      message =
+        "No pudimos validar la verificación de seguridad. Intentá nuevamente.";
+    }
 
     if (
       errorText.includes("acaba de ser reservado") ||
@@ -549,6 +653,10 @@ bookingForm?.addEventListener("submit", async (event) => {
       scrollToStep(timeSection);
     }
 
+    if (window.turnstile) {
+      window.turnstile.reset();
+    }
+
     alert(message);
   } finally {
     submitButton.disabled = false;
@@ -558,7 +666,9 @@ bookingForm?.addEventListener("submit", async (event) => {
 });
 
 /* =========================================================
+
    CONSULTAR / CANCELAR RESERVA
+
 ========================================================= */
 
 function setMainBookingVisibility(visible) {
@@ -578,18 +688,24 @@ function resetManageBookingView() {
 
   if (cancelBookingButton) {
     cancelBookingButton.hidden = true;
+
     cancelBookingButton.disabled = false;
+
     cancelBookingButton.textContent = "Cancelar turno";
   }
 
   if (manageBookingNotice) {
     manageBookingNotice.textContent = "";
+
     manageBookingNotice.className = "booking-manage__notice";
   }
 
   if (manageResultCode) manageResultCode.textContent = "—";
+
   if (manageResultStatus) manageResultStatus.textContent = "—";
+
   if (manageResultDate) manageResultDate.textContent = "—";
+
   if (manageResultTime) manageResultTime.textContent = "—";
 }
 
@@ -608,6 +724,7 @@ function openManageBooking() {
 
   window.scrollTo({
     top: 0,
+
     behavior: "smooth",
   });
 
@@ -625,6 +742,7 @@ function closeManageBooking() {
 
   window.scrollTo({
     top: 0,
+
     behavior: "smooth",
   });
 }
@@ -636,8 +754,11 @@ function normalizeBookingCode(value) {
 function bookingStatusLabel(status) {
   const labels = {
     confirmed: "Confirmada",
+
     cancelled: "Cancelada",
+
     completed: "Finalizada",
+
     no_show: "No asistió",
   };
 
@@ -651,17 +772,24 @@ function formatBookingDateTime(dateTimeString) {
     date: capitalize(
       date.toLocaleDateString("es-AR", {
         weekday: "long",
+
         day: "numeric",
+
         month: "long",
+
         year: "numeric",
+
         timeZone: "America/Argentina/Cordoba",
       }),
     ),
 
     time: date.toLocaleTimeString("es-AR", {
       hour: "2-digit",
+
       minute: "2-digit",
+
       hour12: false,
+
       timeZone: "America/Argentina/Cordoba",
     }),
   };
@@ -671,6 +799,7 @@ function renderManagedBooking(booking) {
   managedBooking = booking;
 
   const start = formatBookingDateTime(booking.starts_at);
+
   const end = formatBookingDateTime(booking.ends_at);
 
   if (manageResultCode) {
@@ -696,29 +825,38 @@ function renderManagedBooking(booking) {
   if (!manageBookingNotice || !cancelBookingButton) return;
 
   manageBookingNotice.className = "booking-manage__notice";
+
   cancelBookingButton.hidden = true;
 
   if (booking.status === "cancelled") {
     manageBookingNotice.textContent = "Esta reserva ya fue cancelada.";
+
     manageBookingNotice.classList.add("booking-manage__notice--warning");
+
     return;
   }
 
   if (booking.status !== "confirmed") {
     manageBookingNotice.textContent =
       "Esta reserva no puede cancelarse online.";
+
     manageBookingNotice.classList.add("booking-manage__notice--warning");
+
     return;
   }
 
   if (booking.can_cancel) {
     manageBookingNotice.textContent = `Podés cancelar este turno online hasta ${booking.cancellation_hours_before} horas antes del inicio.`;
+
     manageBookingNotice.classList.add("booking-manage__notice--success");
+
     cancelBookingButton.hidden = false;
+
     return;
   }
 
   manageBookingNotice.textContent = `Este turno ya no puede cancelarse online porque faltan menos de ${booking.cancellation_hours_before} horas para el inicio. Comunicate con Boulevard Pádel.`;
+
   manageBookingNotice.classList.add("booking-manage__notice--warning");
 }
 
@@ -743,7 +881,9 @@ manageBookingForm?.addEventListener("submit", async (event) => {
 
   if (submitButton) {
     submitButton.disabled = true;
+
     submitButton.classList.add("button--loading");
+
     submitButton.textContent = "Consultando...";
   }
 
@@ -764,6 +904,7 @@ manageBookingForm?.addEventListener("submit", async (event) => {
       if (manageBookingNotice) {
         manageBookingNotice.textContent =
           "No encontramos una reserva con ese código. Revisalo e intentá nuevamente.";
+
         manageBookingNotice.className =
           "booking-manage__notice booking-manage__notice--error";
       }
@@ -782,13 +923,16 @@ manageBookingForm?.addEventListener("submit", async (event) => {
     if (manageBookingNotice) {
       manageBookingNotice.textContent =
         "No fue posible consultar la reserva. Intentá nuevamente.";
+
       manageBookingNotice.className =
         "booking-manage__notice booking-manage__notice--error";
     }
   } finally {
     if (submitButton) {
       submitButton.disabled = false;
+
       submitButton.classList.remove("button--loading");
+
       submitButton.textContent = originalText;
     }
   }
@@ -852,6 +996,7 @@ cancelBookingModalConfirm?.addEventListener("click", async () => {
   const originalText = cancelBookingModalConfirm.textContent;
 
   cancelBookingModalConfirm.disabled = true;
+
   cancelBookingModalConfirm.textContent = "Cancelando...";
 
   try {
@@ -868,6 +1013,7 @@ cancelBookingModalConfirm?.addEventListener("click", async () => {
     }
 
     managedBooking.status = "cancelled";
+
     managedBooking.can_cancel = false;
 
     if (manageResultStatus) {
@@ -877,6 +1023,7 @@ cancelBookingModalConfirm?.addEventListener("click", async () => {
     if (manageBookingNotice) {
       manageBookingNotice.textContent =
         "Reserva cancelada correctamente. El horario ya volvió a quedar disponible.";
+
       manageBookingNotice.className =
         "booking-manage__notice booking-manage__notice--success";
     }
@@ -910,12 +1057,15 @@ cancelBookingModalConfirm?.addEventListener("click", async () => {
     }
   } finally {
     cancelBookingModalConfirm.disabled = false;
+
     cancelBookingModalConfirm.textContent = originalText;
   }
 });
 
 /* =========================================================
+
    COPIAR Y COMPARTIR CÓDIGO
+
 ========================================================= */
 
 async function copyBookingCode() {
@@ -956,6 +1106,7 @@ async function shareBookingCode() {
     try {
       await navigator.share({
         title: "Reserva Boulevard Pádel",
+
         text: shareText,
       });
 
@@ -991,11 +1142,14 @@ copyBookingCodeButton?.addEventListener("click", copyBookingCode);
 shareBookingCodeButton?.addEventListener("click", shareBookingCode);
 
 /* =========================================================
+
    NUEVA RESERVA
+
 ========================================================= */
 
 newBookingButton?.addEventListener("click", () => {
   selectedDate = null;
+
   selectedSlot = null;
 
   bookingForm?.reset();
@@ -1021,10 +1175,13 @@ newBookingButton?.addEventListener("click", () => {
   }
 
   if (summaryDate) summaryDate.textContent = "—";
+
   if (summaryTime) summaryTime.textContent = "—";
+
   if (summaryCourt) summaryCourt.textContent = "Cancha 1";
 
   timeSection?.classList.add("booking-step--disabled");
+
   detailsSection?.classList.add("booking-step--disabled");
 
   document.querySelectorAll(".booking-step").forEach((section) => {
@@ -1039,15 +1196,23 @@ newBookingButton?.addEventListener("click", () => {
     bookingConfirmation.hidden = true;
   }
 
+  if (window.turnstile) {
+    window.turnstile.reset();
+  }
+
   window.scrollTo({
     top: 0,
+
     left: 0,
+
     behavior: "smooth",
   });
 });
 
 /* =========================================================
+
    INICIAR
+
 ========================================================= */
 
 loadBookingConfig();
