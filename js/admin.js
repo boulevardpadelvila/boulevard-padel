@@ -20,6 +20,302 @@
     if (!data || data.role !== 'admin' || data.active !== true) return null;
     return data;
   }
+  const ARGENTINA_TZ = 'America/Argentina/Cordoba';
+  const dateFormatter = new Intl.DateTimeFormat('en-CA', {
+    timeZone: ARGENTINA_TZ, year: 'numeric', month: '2-digit', day: '2-digit'
+  });
+  const timeFormatter = new Intl.DateTimeFormat('es-AR', {
+    timeZone: ARGENTINA_TZ, hour: '2-digit', minute: '2-digit', hourCycle: 'h23'
+  });
+  let reservationsRequest = 0;
+  let loadedReservations = [];
+  const argentinaDay = (date) => {
+    const parts = Object.fromEntries(dateFormatter.formatToParts(date)
+      .filter((part) => part.type !== 'literal').map((part) => [part.type, part.value]));
+    return `${parts.year}-${parts.month}-${parts.day}`;
+  };
+  // Argentina no utiliza horario de verano actualmente (UTC-03:00).
+  const dateBounds = (day) => {
+    const start = new Date(`${day}T03:00:00.000Z`);
+    const end = new Date(start.getTime() + 86400000);
+    if (Number.isNaN(start.getTime())) throw new Error('Seleccioná una fecha válida.');
+    return [start.toISOString(), end.toISOString()];
+  };
+  function safeText(element, value) { element.textContent = String(value ?? ''); }
+  function renderReservations(rows) {
+    const list = $('reservations-list');
+    list.replaceChildren();
+    safeText($('reservations-count'), `${rows.length} ${rows.length === 1 ? 'reserva encontrada' : 'reservas encontradas'}`);
+    if (!rows.length) {
+      const empty = document.createElement('p');
+      empty.className = 'empty-state'; empty.textContent = 'No hay reservas registradas para esta fecha.';
+      list.append(empty); return;
+    }
+    for (const item of rows) {
+      const card = document.createElement('article'); card.className = 'reservation-card';
+      const top = document.createElement('div'); top.className = 'reservation-card__top';
+      const schedule = document.createElement('strong');
+      safeText(schedule, `${timeFormatter.format(new Date(item.starts_at))} a ${timeFormatter.format(new Date(item.ends_at))}`);
+      const status = document.createElement('span'); status.className = 'reservation-status';
+      const statuses = { confirmed: 'Confirmada', cancelled: 'Cancelada', completed: 'Completada', no_show: 'No asistió' };
+      safeText(status, statuses[item.status] || item.status || 'Sin estado');
+      top.append(schedule, status);
+      const name = document.createElement('h3'); safeText(name, item.customers?.full_name || 'Cliente sin nombre');
+      const court = document.createElement('p'); court.className = 'reservation-muted';
+      safeText(court, item.courts?.name || item.courts?.court_name || 'Cancha');
+      const phone = document.createElement('p'); phone.className = 'reservation-muted';
+      safeText(phone, `Teléfono: ${item.customers?.phone || 'No registrado'}`);
+      const code = document.createElement('p'); code.className = 'reservation-code';
+      safeText(code, `Código: ${item.reservation_code}`);
+      card.append(top, name, court, phone, code);
+      if (item.notes) {
+        const notes = document.createElement('p'); notes.className = 'reservation-muted';
+        safeText(notes, `Observaciones: ${item.notes}`); card.append(notes);
+      }
+      // Acciones visibles, deshabilitadas hasta implementar las operaciones
+      // administrativas seguras. No simular una edición ni una cancelación.
+      const actions = document.createElement('div');
+      actions.className = 'reservation-card__actions';
+      for (const [label, modifier] of [['Editar', 'edit'], ['Cancelar', 'cancel']]) {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = `reservation-action reservation-action--${modifier}`;
+        button.textContent = label;
+        button.disabled = modifier !== 'edit' || item.status !== 'confirmed';
+        button.title = modifier === 'cancel' ? 'Disponible en una próxima etapa' : (item.status !== 'confirmed' ? 'Solo reservas confirmadas' : 'Editar esta reserva');
+        if (modifier === 'edit' && !button.disabled) button.addEventListener('click', () => openEditBooking(item));
+        actions.append(button);
+      }
+      card.append(actions);
+      list.append(card);
+    }
+  }
+  async function loadReservations() {
+    const requestId = ++reservationsRequest;
+    const day = $('reservations-date').value;
+    if (!day) return;
+    $('refresh-reservations').disabled = true;
+    display('reservations-message', 'Cargando reservas…', true);
+    try {
+      const [from, until] = dateBounds(day);
+      const { data, error } = await supabaseClient.from('reservations')
+        .select('id, reservation_code, starts_at, ends_at, status, notes, customers(full_name,phone), courts(*)')
+        .gte('starts_at', from).lt('starts_at', until).order('starts_at', { ascending: true });
+      if (error) throw error;
+      if (requestId !== reservationsRequest) return;
+      loadedReservations = data || [];
+      renderReservations(loadedReservations);
+      display('reservations-message', '');
+    } catch (error) {
+      if (requestId !== reservationsRequest) return;
+      $('reservations-list').replaceChildren();
+      safeText($('reservations-count'), '');
+      display('reservations-message', 'No se pudieron consultar las reservas. Revisaremos el acceso a Supabase.');
+      console.error('Error de lectura de reservas:', error);
+    } finally {
+      if (requestId === reservationsRequest) $('refresh-reservations').disabled = false;
+    }
+  }
+  // Edición: la opción original permanece disponible para no forzar un cambio de turno.
+  const editPanel = $('edit-booking-panel');
+  let editing = null;
+  let editSlots = [];
+  let editSlotsRequest = 0;
+  let editSaving = false;
+  const isoMillis = (value) => new Date(value).getTime();
+  function closeEditBooking() {
+    if (editSaving) return;
+    ++editSlotsRequest;
+    editPanel.hidden = true;
+    editing = null;
+    editSlots = [];
+    display('edit-booking-message', '');
+  }
+  async function loadEditSlots() {
+    const req = ++editSlotsRequest;
+    const day = $('edit-booking-date').value;
+    const select = $('edit-booking-slot');
+    editSlots = [];
+    select.replaceChildren(new Option('Consultando horarios…', ''));
+    select.disabled = true;
+    display('edit-booking-message', '');
+    if (!day || !editing) return;
+    try {
+      const { data, error } = await supabaseClient.rpc('get_available_slots', { p_date: day });
+      if (error) throw error;
+      if (req !== editSlotsRequest || !editing || editPanel.hidden) return;
+      const slots = (data || []).filter((v) => v.starts_at && Number.isFinite(isoMillis(v.starts_at)));
+      if (day === argentinaDay(new Date(editing.starts_at))) {
+        // La reserva actual no aparece en los slots libres: incluirla una sola vez.
+        if (!slots.some((v) => isoMillis(v.starts_at) === isoMillis(editing.starts_at))) {
+          slots.push({ starts_at: editing.starts_at });
+        }
+      }
+      slots.sort((a,b) => isoMillis(a.starts_at) - isoMillis(b.starts_at));
+      editSlots = slots;
+      select.replaceChildren(new Option(slots.length ? 'Seleccioná un horario' : 'No hay horarios disponibles', ''));
+      slots.forEach((slot, i) => {
+        const isCurrent = isoMillis(slot.starts_at) === isoMillis(editing.starts_at);
+        select.add(new Option(`${timeFormatter.format(new Date(slot.starts_at))}${isCurrent ? ' (horario actual)' : ''}`, String(i)));
+        if (isCurrent) select.value = String(i);
+      });
+      select.disabled = !slots.length;
+    } catch (error) {
+      if (req !== editSlotsRequest) return;
+      select.replaceChildren(new Option('No se pudieron cargar los horarios', ''));
+      display('edit-booking-message', 'No se pudo consultar la disponibilidad. Intentá cambiar la fecha y volver.');
+      console.error('Error cargando horarios de edición:', error);
+    }
+  }
+  function openEditBooking(item) {
+    if (item.status !== 'confirmed') return;
+    closeBookingEditor();
+    editing = { ...item };
+    editPanel.hidden = false;
+    safeText($('edit-booking-code'), `Código: ${item.reservation_code}`);
+    $('edit-booking-date').value = argentinaDay(new Date(item.starts_at));
+    $('edit-booking-name').value = item.customers?.full_name || '';
+    $('edit-booking-phone').value = item.customers?.phone || '';
+    $('edit-booking-notes').value = item.notes || '';
+    loadEditSlots();
+    editPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+  $('edit-booking-close').addEventListener('click', closeEditBooking);
+  $('edit-booking-cancel').addEventListener('click', closeEditBooking);
+  $('edit-booking-date').addEventListener('change', loadEditSlots);
+  $('edit-booking-form').addEventListener('submit', async (event) => {
+    event.preventDefault();
+    if (!editing || editSaving) return;
+    const indexText = $('edit-booking-slot').value;
+    const slot = indexText === '' ? null : editSlots[Number(indexText)];
+    if (!slot) { display('edit-booking-message', 'Elegí un horario válido.'); return; }
+    const name = $('edit-booking-name').value.trim();
+    const phone = $('edit-booking-phone').value.trim();
+    if (!name || !phone) { display('edit-booking-message', 'Completá nombre y teléfono.'); return; }
+    editSaving = true;
+    $('edit-booking-save').disabled = true;
+    display('edit-booking-message', 'Guardando cambios…', true);
+    try {
+      const { data, error } = await supabaseClient.rpc('update_admin_booking', {
+        p_reservation_id: editing.id,
+        p_full_name: name,
+        p_phone: phone,
+        p_starts_at: slot.starts_at,
+        p_notes: $('edit-booking-notes').value.trim() || null
+      });
+      if (error) throw error;
+      if (!data || !data.length) throw new Error('No recibimos confirmación de los cambios.');
+      const day = $('edit-booking-date').value;
+      editSaving = false;
+      closeEditBooking();
+      $('reservations-date').value = day;
+      await loadReservations();
+      display('reservations-message', `Reserva actualizada. Código: ${data[0].reservation_code}`, true);
+    } catch (error) {
+      console.error('Error editando reserva:', error);
+      display('edit-booking-message', error.message || 'No se pudo editar la reserva.');
+    } finally {
+      editSaving = false;
+      $('edit-booking-save').disabled = false;
+    }
+  });
+  // Nueva reserva: mismas franjas que el turnero público, sin horarios hardcodeados.
+  let availableSlots = [];
+  let slotsRequest = 0;
+  let bookingSaving = false;
+  const editor = $('new-booking-panel');
+  const setSlotPlaceholder = (message) => {
+    const select = $('new-booking-slot');
+    select.replaceChildren(new Option(message, ''));
+    select.disabled = true;
+  };
+  function closeBookingEditor() {
+    ++slotsRequest;
+    editor.hidden = true;
+    display('new-booking-message', '');
+  }
+  async function loadAdminSlots() {
+    const request = ++slotsRequest;
+    const day = $('new-booking-date').value;
+    availableSlots = [];
+    setSlotPlaceholder(day ? 'Consultando horarios…' : 'Elegí primero una fecha');
+    display('new-booking-message', '');
+    if (!day) return;
+    try {
+      const { data, error } = await supabaseClient.rpc('get_available_slots', { p_date: day });
+      if (error) throw error;
+      if (request !== slotsRequest || editor.hidden) return;
+      const select = $('new-booking-slot');
+      availableSlots = (data || []).filter((slot) => slot.starts_at && !Number.isNaN(new Date(slot.starts_at).getTime()));
+      select.replaceChildren(new Option(availableSlots.length ? 'Seleccioná un horario' : 'No hay horarios disponibles', ''));
+      availableSlots.forEach((slot, i) => {
+        const time = timeFormatter.format(new Date(slot.starts_at));
+        select.add(new Option(time, String(i)));
+      });
+      select.disabled = !availableSlots.length;
+    } catch (error) {
+      if (request !== slotsRequest) return;
+      setSlotPlaceholder('No se pudieron cargar horarios');
+      display('new-booking-message', 'No se pudo consultar la disponibilidad. Intentá otra vez.');
+      console.error('Error consultando horarios del Admin:', error);
+    }
+  }
+  $('new-booking-open').addEventListener('click', () => {
+    closeEditBooking();
+    editor.hidden = false;
+    $('new-booking-date').value = $('reservations-date').value || argentinaDay(new Date());
+    $('new-booking-name').value = '';
+    $('new-booking-phone').value = '';
+    $('new-booking-notes').value = '';
+    loadAdminSlots();
+    editor.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  });
+  $('new-booking-close').addEventListener('click', closeBookingEditor);
+  $('new-booking-cancel').addEventListener('click', closeBookingEditor);
+  $('new-booking-date').addEventListener('change', loadAdminSlots);
+  $('new-booking-form').addEventListener('submit', async (event) => {
+    event.preventDefault();
+    if (bookingSaving) return;
+    const slotIndex = $('new-booking-slot').value;
+    const slot = availableSlots[Number(slotIndex)];
+    if (slotIndex === '' || !slot) {
+      display('new-booking-message', 'Elegí un horario disponible.');
+      return;
+    }
+    const fullName = $('new-booking-name').value.trim();
+    const phone = $('new-booking-phone').value.trim();
+    if (!fullName || !phone) {
+      display('new-booking-message', 'Completá el nombre y el teléfono.');
+      return;
+    }
+    bookingSaving = true;
+    $('new-booking-save').disabled = true;
+    display('new-booking-message', 'Guardando reserva…', true);
+    try {
+      const { data, error } = await supabaseClient.rpc('create_admin_booking', {
+        p_full_name: fullName, p_phone: phone,
+        p_starts_at: slot.starts_at,
+        p_notes: $('new-booking-notes').value.trim() || null
+      });
+      if (error) throw error;
+      if (!data || !data.length) throw new Error('No recibimos confirmación de la reserva.');
+      const bookedDate = $('new-booking-date').value;
+      closeBookingEditor();
+      $('reservations-date').value = bookedDate;
+      await loadReservations();
+      display('reservations-message', `Reserva creada correctamente. Código: ${data[0].reservation_code}`, true);
+    } catch (error) {
+      console.error('Error creando reserva administrativa:', error);
+      await loadAdminSlots();
+      display('new-booking-message', error.message || 'No se pudo crear la reserva.');
+    } finally {
+      bookingSaving = false;
+      $('new-booking-save').disabled = false;
+    }
+  });
+  $('reservations-date').value = argentinaDay(new Date());
+  $('reservations-date').addEventListener('change', loadReservations);
+  $('refresh-reservations').addEventListener('click', loadReservations);
   async function verifySession() {
     if (recoveryMode) { show('recovery-panel'); return; }
     show('loading-panel');
@@ -36,6 +332,7 @@
       }
       $('admin-name').textContent = profile.full_name || user.email || 'Acceso autorizado';
       show('dashboard-panel');
+      await loadReservations();
     } catch (error) {
       display('login-message', error.message || 'No se pudo verificar el acceso.');
       show('login-panel');
@@ -116,7 +413,7 @@
   $('logout-button').addEventListener('click', async () => {
     if (operation) return;
     operation = true; $('logout-button').disabled = true;
-    try { await supabaseClient.auth.signOut(); display('login-message', ''); show('login-panel'); }
+    try { closeBookingEditor(); ++reservationsRequest; await supabaseClient.auth.signOut(); $('reservations-list').replaceChildren(); display('login-message', ''); show('login-panel'); }
     finally { $('logout-button').disabled = false; operation = false; }
   });
 

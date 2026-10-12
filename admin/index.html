@@ -66,15 +66,61 @@
       </form>
     </section>
     <section class="admin-card dashboard" id="dashboard-panel" hidden>
-      <div class="brand">
-        <img src="../assets/img/logo-boulevard-padel.jpg" alt="Logo Boulevard Pádel" width="64" height="64">
-        <div><strong>BOULEVARD</strong><span>PÁDEL</span></div>
+      <header class="dashboard-header">
+        <div class="dashboard-identity">
+          <img src="../assets/img/logo-boulevard-padel.jpg" alt="Logo Boulevard Pádel" width="52" height="52">
+          <div><strong>BOULEVARD PÁDEL</strong><span>Administración</span></div>
+        </div>
+        <button class="secondary logout-compact" id="logout-button" type="button">Cerrar sesión</button>
+      </header>
+      <div class="dashboard-title-row">
+        <div>
+          <p class="eyebrow">GESTIÓN DIARIA</p>
+          <h1>Reservas</h1>
+          <p id="admin-name" class="dashboard-greeting muted">Acceso autorizado.</p>
+        </div>
+        <div class="dashboard-actions"><button type="button" id="new-booking-open" class="primary new-reservation">+ Nueva reserva</button></div>
       </div>
-      <p class="eyebrow">PORTAL ADMIN</p>
-      <h1>¡Bienvenido!</h1>
-      <p id="admin-name" class="muted">Acceso autorizado.</p>
-      <div class="notice"><strong>Acceso habilitado</strong><p>El inicio de sesión ya funciona. La gestión de reservas y horarios se incorporará en los próximos pasos.</p></div>
-      <button class="primary" id="logout-button" type="button">Cerrar sesión</button>
+      <section id="new-booking-panel" class="booking-editor" aria-labelledby="new-booking-title" hidden>
+        <div class="booking-editor__heading"><h2 id="new-booking-title">Nueva reserva</h2><button type="button" id="new-booking-close" class="secondary">Cerrar</button></div>
+        <form id="new-booking-form">
+          <div class="booking-editor__fields">
+            <div><label for="new-booking-date">Fecha</label><input id="new-booking-date" type="date" required></div>
+            <div><label for="new-booking-slot">Horario disponible</label><select id="new-booking-slot" required disabled><option value="">Elegí primero una fecha</option></select></div>
+            <div><label for="new-booking-name">Nombre del cliente</label><input id="new-booking-name" type="text" maxlength="120" autocomplete="off" required></div>
+            <div><label for="new-booking-phone">Teléfono</label><input id="new-booking-phone" type="tel" maxlength="40" autocomplete="off" required></div>
+          </div>
+          <label for="new-booking-notes">Observaciones (opcional)</label>
+          <textarea id="new-booking-notes" rows="2" maxlength="500"></textarea>
+          <p class="message" id="new-booking-message" role="status" aria-live="polite" hidden></p>
+          <div class="booking-editor__actions"><button type="button" class="secondary" id="new-booking-cancel">Volver</button><button type="submit" class="primary" id="new-booking-save">Confirmar reserva</button></div>
+        </form>
+      </section>
+      <section id="edit-booking-panel" class="booking-editor" aria-labelledby="edit-booking-title" hidden>
+        <div class="booking-editor__heading"><h2 id="edit-booking-title">Editar reserva</h2><button type="button" id="edit-booking-close" class="secondary">Cerrar</button></div>
+        <p id="edit-booking-code" class="reservation-code"></p>
+        <form id="edit-booking-form">
+          <div class="booking-editor__fields">
+            <div><label for="edit-booking-date">Fecha</label><input id="edit-booking-date" type="date" required></div>
+            <div><label for="edit-booking-slot">Horario</label><select id="edit-booking-slot" required disabled><option value="">Consultando horarios…</option></select></div>
+            <div><label for="edit-booking-name">Nombre del cliente</label><input id="edit-booking-name" type="text" maxlength="120" autocomplete="off" required></div>
+            <div><label for="edit-booking-phone">Teléfono</label><input id="edit-booking-phone" type="tel" maxlength="40" autocomplete="off" required></div>
+          </div>
+          <label for="edit-booking-notes">Observaciones (opcional)</label>
+          <textarea id="edit-booking-notes" rows="2" maxlength="500"></textarea>
+          <p class="message" id="edit-booking-message" role="status" aria-live="polite" hidden></p>
+          <div class="booking-editor__actions"><button type="button" class="secondary" id="edit-booking-cancel">Volver</button><button type="submit" class="primary" id="edit-booking-save">Guardar cambios</button></div>
+        </form>
+      </section>
+      <div class="admin-reservations">
+        <div class="date-tools">
+          <label for="reservations-date">Fecha</label>
+          <div class="date-row"><input type="date" id="reservations-date" aria-label="Fecha de las reservas"><button id="refresh-reservations" type="button" class="secondary">Actualizar</button></div>
+        </div>
+        <p id="reservations-message" class="message" role="status" aria-live="polite" hidden></p>
+        <p id="reservations-count" class="results-count"></p>
+        <div id="reservations-list" class="reservations-list" aria-live="polite"></div>
+      </div>
     </section>
     <section class="loading" id="loading-panel" aria-live="polite">Verificando acceso…</section>
   </main>
