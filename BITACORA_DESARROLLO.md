@@ -15,7 +15,7 @@
 **Rama:** `main`  
 **URL de producción actual:** `https://boulevard-padel.pages.dev`  
 **Dominio propio previsto:** `boulevardpadel.com.ar`  
-**Estado general al 11/10/2026:** turnero público terminado, probado en producción y protegido con Cloudflare Turnstile. Base de datos limpia de datos de prueba. Próxima etapa: portal `/admin`.
+**Estado general al 12/10/2026:** turnero público terminado y probado en producción; responsive del logo principal corregido. Base de datos limpia de datos de prueba. Antes de iniciar `/admin`, queda un endurecimiento de seguridad pendiente: revocar el acceso directo de `anon/authenticated` a `create_booking()` para que toda reserva pública pase obligatoriamente por Turnstile + Edge Function.
 
 > Esta es la bitácora maestra. Debe conservarse y actualizarse siempre sobre el mismo archivo `BITACORA_DESARROLLO.md`. No crear copias paralelas con otros nombres. Su objetivo es permitir retomar el proyecto en cualquier momento, incluso desde un chat nuevo, sin perder decisiones, arquitectura, cambios, pruebas, errores ni pendientes.
 
@@ -1370,6 +1370,59 @@ La query de limpieza era temporal y puede eliminarse del SQL Editor.
 
 ---
 
+# 12/10/2026 — Corrección responsive del logo principal
+
+## Problema detectado
+
+En `index.html`, el logo grande del hero se veía correctamente circular en escritorio, pero en celular aparecía deformado verticalmente, con aspecto ovalado.
+
+El HTML ya definía la imagen con proporción cuadrada:
+
+```html
+<div class="hero__logo">
+  <img
+    src="assets/img/logo-boulevard-padel.jpg"
+    alt="Logo Boulevard Pádel"
+    width="360"
+    height="360"
+    fetchpriority="high"
+  />
+</div>
+```
+
+La deformación se producía al reducir el ancho desde las reglas responsive sin forzar que el alto se recalculara proporcionalmente.
+
+## Corrección aplicada
+
+En `css/styles.css`, dentro de la regla base:
+
+```css
+.hero__logo img {
+  width: min(100%, 360px);
+  height: auto;
+  aspect-ratio: 1 / 1;
+
+  object-fit: cover;
+  border-radius: 50%;
+
+  box-shadow: 0 24px 70px rgba(11, 12, 10, 0.18);
+}
+```
+
+Se agregó específicamente:
+
+```css
+height: auto;
+```
+
+## Resultado
+
+Se probó el sitio en distintos tamaños responsive y el logo conserva correctamente su forma circular.
+
+**Estado del pendiente: RESUELTO.**
+
+---
+
 # Estado definitivo del turnero público al cierre del 11/10/2026
 
 ## Funciones terminadas
@@ -1455,12 +1508,55 @@ Las queries puramente temporales de prueba o limpieza no necesitan conservarse.
 - Public key en frontend: permitido.
 - Secret/service-role: solo servidor.
 - Las reservas públicas no requieren login.
-- Turnstile protege creación de reservas.
+- El frontend productivo crea reservas mediante Turnstile + Edge Function `create-booking-secure`.
 - El código de reserva funciona como credencial para consultar/cancelar.
 - No borrar reservas reales al cancelar: cambiar estado.
 - Preparar arquitectura para múltiples canchas aunque hoy exista una.
 - Mantener GitHub + Cloudflare Pages separados de Supabase.
 - Evitar complejidad innecesaria para el usuario y para el Admin.
+
+---
+
+# Pendiente de seguridad antes de iniciar `/admin`
+
+Aunque el frontend productivo ya utiliza:
+
+```text
+Turnstile
+→ Edge Function create-booking-secure
+→ create_booking()
+```
+
+durante la etapa inicial se otorgó permiso de ejecución de `create_booking(...)` a `anon` y `authenticated`.
+
+Si ese permiso sigue activo, un cliente que conozca la Publishable Key podría intentar llamar directamente a la RPC y evitar Turnstile. Por lo tanto, antes de considerar cerrada la protección anti-bot, ejecutar y probar:
+
+```sql
+revoke execute
+on function public.create_booking(
+  text,
+  text,
+  timestamptz,
+  text
+)
+from anon, authenticated;
+```
+
+Mantener:
+
+```text
+service_role → EXECUTE permitido
+```
+
+Después:
+
+1. crear una reserva desde la web productiva;
+2. confirmar que Turnstile + Edge Function siguen funcionando;
+3. verificar que una llamada directa anónima a `create_booking()` ya no tenga permiso.
+
+También conviene revisar si `generate_booking_code()` necesita seguir teniendo `EXECUTE` para `anon/authenticated`; en principio el navegador no la necesita directamente.
+
+Este endurecimiento es el **primer pendiente técnico de la próxima etapa**, antes o inmediatamente al comenzar `/admin`.
 
 ---
 
@@ -1557,20 +1653,21 @@ Luego:
 
 Al iniciar un nuevo chat, adjuntar o proporcionar este archivo y solicitar:
 
-> “Continuemos el proyecto Boulevard Pádel desde la bitácora. El turnero público está terminado y probado en producción. Debemos comenzar el portal Admin.”
+> “Continuemos el proyecto Boulevard Pádel desde la bitácora. El turnero público está terminado y probado en producción. Primero revisemos el endurecimiento pendiente de `create_booking()` y después comencemos el portal Admin.”
 
 El nuevo chat debe asumir como válidas estas decisiones y no volver a rediseñar lo ya cerrado salvo que se detecte un problema.
 
 ## Punto exacto de reanudación
 
 ```text
-Construcción del portal /admin
+1. Revocar acceso directo anon/authenticated a create_booking() y probar.
+2. Construcción del portal /admin.
 ```
 
 Primer trabajo:
 
 ```text
-Login Admin con Supabase Auth
+Después del hardening: Login Admin con Supabase Auth
 ```
 
 ---
