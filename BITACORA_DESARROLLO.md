@@ -1686,3 +1686,87 @@ Después de cada sesión importante:
 - actualizar estado actual y próximo paso.
 
 **Archivo único:** `BITACORA_DESARROLLO.md`
+
+12/10/2026 13:41
+
+# Boulevard Pádel — Bitácora de desarrollo
+
+**Fecha:** 12/10/2026  
+**Estado:** Pausa solicitada antes del almuerzo  
+**Punto exacto de reanudación:** finalizada la validación de permisos `SELECT` para `reservations`, `customers` y `courts` (los tres `true`). Empezar a implementar el panel principal del Admin, solo lectura, sin repetir consultas de diagnóstico.
+
+## Objetivo de la sesión
+
+Iniciar el portal de administración de Boulevard Pádel, manteniendo el sitio y turnero público operativos. Priorizar simplicidad, claridad, uso móvil y seguridad; trabajar paso a paso.
+
+## Arquitectura de referencia
+
+- Frontend HTML/CSS/JS; alojamiento previsto en Cloudflare Pages.
+- Supabase Auth, PostgreSQL con RLS, Edge Functions para las reservas públicas.
+- Protección pública mediante Cloudflare Turnstile y Edge Function `create-booking-secure`.
+- Desarrollo local desde Live Server en `http://127.0.0.1:5500/admin/index.html`.
+
+## 1. Seguridad de creación de reservas — Completada y probada
+
+- Se comprobó que `public.create_booking(text,text,timestamptz,text)` tenía `EXECUTE` para `anon`, `authenticated` y `service_role`.
+- Se ejecutó la modificación definitiva `REVOKE EXECUTE ON FUNCTION public.create_booking(text,text,timestamptz,text) FROM anon, authenticated;`.
+- Comprobación posterior: `anon=false`, `authenticated=false`, `service_role=true`.
+- Se hizo una reserva desde el turnero público con Turnstile después del cambio, confirmada correctamente.
+- Reserva conservada para desarrollo: `PRUEBA_ADMIN`, martes 13/10/2026, 16:30.
+- Nota de seguridad: que la reserva funcione no equivale por sí solo a una auditoría de bypass de Turnstile; verificar integralmente el flujo antes de producción.
+
+## 2. Portal Admin — Etapa 1 finalizada
+
+- Archivos nuevos/actualizados en el proyecto local: `admin/index.html`, `css/admin.css`, `js/admin.js`.
+- Inicio de sesión Supabase Auth, validación de perfil, pantalla de bienvenida y cierre de sesión, comprobados funcionalmente.
+- Recuperación de contraseña y nueva contraseña probadas; no almacenar ni compartir credenciales en la bitácora.
+- Cuenta administradora: `boulevardpadelvila@gmail.com`.
+- Auth -> URL Configuration: se agregó `http://127.0.0.1:5500/admin/index.html` como URL de redirección; no se modificó Site URL (`http://localhost:3000` al momento de la consulta).
+- Perfil en `public.profiles`: `full_name='Administrador Boulevard Pádel'`, `role='admin'`, `active=true`.
+- Falló inicialmente la verificación de perfil con `permission denied for table profiles` (42501). Se solucionó mediante `GRANT SELECT ON TABLE public.profiles TO authenticated;`.
+- Se revisaron políticas RLS: `Users can read own profile` y `Admins manage profiles`; función `public.is_admin()` SECURITY DEFINER. Se verificó acceso correcto con la cuenta administradora.
+- El cierre de sesión y permanencia fuera de sesión tras recarga fueron probados.
+
+## 3. Portal Admin — Etapa 2: diagnóstico terminado
+
+### Estructura
+
+- `public.reservations`: id, reservation_code, customer_id, court_id, starts_at, ends_at, status, source, fixed_turn_request_id, notes, created_at, updated_at.
+- `public.customers`: id, full_name, phone, email, notes, created_at, updated_at.
+- Reservas vinculadas por FK a `customers(id)`, `courts(id)` y opcionalmente `fixed_turn_requests(id)`.
+
+### Seguridad y permisos
+
+- Las tablas `courts`, `customers` y `reservations` tienen RLS activo y política `Admins manage ...`, aplicada a `authenticated`, con condición `is_admin()`.
+- La primera comprobación de privilegios SQL `SELECT` devolvió `false` en las tres tablas.
+- Se ejecutó `GRANT SELECT ON TABLE public.reservations, public.customers, public.courts TO authenticated;`.
+- **Última comprobación confirmada**: `reservas=true`, `clientes=true`, `canchas=true`.
+- No se concedieron permisos administrativos de escritura en esta etapa.
+
+## 4. Consultas SQL — Criterio de organización
+
+- Guardar solo cambios definitivos útiles; cerrar consultas temporales y de diagnóstico sin guardar.
+- Modificaciones definitivas de esta sesión: `12_seguridad_create_booking`, `13_permiso_lectura_profiles`, `14_permiso_lectura_admin_reservas`.
+- No es necesario volver a ejecutar diagnósticos ya resueltos al retomar.
+
+## 5. Estado de cambios y pruebas
+
+- Archivos Admin incorporados en el proyecto local. No se hizo commit ni push de los cambios del Admin durante la sesión, según instrucciones.
+- La reserva `PRUEBA_ADMIN` permanece cargada, para probar consultas, detalles, edición y cancelación más adelante.
+- Toda la información actual del turnero es de prueba. Acordado: conservar datos necesarios durante el desarrollo y limpiar al concluir el Admin y antes de entregar a producción; no borrar estructura ni configuración.
+
+## 6. Próximo paso EXACTO
+
+1. Preparar una primera actualización aislada del Admin para mostrar reservas por fecha desde Supabase, con datos relacionados de cliente y cancha, **solo lectura**.
+2. Reutilizar `admin/index.html`, `css/admin.css` y `js/admin.js`, manteniendo el login y cierre de sesión existentes.
+3. Mostrar `PRUEBA_ADMIN` seleccionando 13/10/2026; cuidar zona horaria de Argentina al filtrar fechas y formatear horas.
+4. Probar interfaz en escritorio y teléfono y verificar que usuarios no administradores no puedan consultar datos; comprobar si aparecen errores de privilegios sin abrir permisos indiscriminadamente.
+5. Después, implementar operaciones administrativas de reservas, horarios/bloqueos, turnos fijos y torneos por etapas.
+
+## 7. Otros pendientes conocidos
+
+- Revisar logo circular del hero en vista móvil de `index.html`: se deforma verticalmente; conservar proporción circular con dimensiones, `aspect-ratio` y `object-fit` correctos.
+- Completar panel de configuración del complejo y módulo de torneos en fases posteriores.
+- Al finalizar: limpieza controlada de registros de prueba; pruebas de seguridad y funcionalidad completas; publicación y commits cuando se autorice.
+
+**Frase para retomar:** «Continuemos Boulevard Pádel desde la bitácora del 12/10/2026. Ya verificamos SELECT=true en las tres tablas. Empecemos el panel Admin de reservas, solo lectura».
