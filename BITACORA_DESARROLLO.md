@@ -1862,3 +1862,34 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 **Próximo paso exacto al retomar:** aplicar `reservar.html` y `css/turnero.css`, probar confirmación de reserva en pantalla grande y móvil; luego hacer commit/push aprobado del estado local, verificar despliegue y continuar con Horarios y disponibilidad. No repetir las consultas SQL de diagnóstico ya resueltas.
 
 **Regla inalterable:** este documento es el único `BITACORA_DESARROLLO.md`; toda actualización futura conservará íntegro lo anterior e incorporará cambios cronológicamente. No crear versiones paralelas.
+
+---
+
+# 12/10/2026 — Cierre de jornada: calendario Admin y diseño de configuración
+
+## Confirmación del turnero público
+
+- Se publicó y comprobó en Cloudflare Pages la disposición de los tres botones **Copiar código**, **Compartir** y **Hacer otra reserva** en una sola fila, con igual ancho y texto en una sola línea.
+- Se solicitó compactar verticalmente la pantalla de confirmación para mostrar también los datos del turno sin desplazamiento en escritorio con zoom del navegador al 100 %. Se retiró el texto redundante «Tu turno quedó reservado correctamente».
+- Se entregó la actualización `BoulevardPadel_Confirmacion_Compacta.zip` (`reservar.html` y `css/turnero.css`). **Su resultado final en producción y en móvil requiere todavía confirmación**; no se debe dar por comprobado solo por haber preparado el archivo.
+
+## Admin — Calendario de reservas
+
+- El botón **Actualizar** se trasladó junto a **+ Nueva reserva** y **Ver canceladas** en el encabezado de acciones. Se conserva porque nuevas reservas públicas no aparecen solas mientras el Admin mantiene abierta una fecha.
+- Se reemplazó el selector de fecha grande por tarjetas horizontales de día/mes con flechas, siguiendo el lenguaje visual del turnero público. Se mantuvo un campo reducido «Ir a una fecha» para consultar fechas distantes y pasadas.
+- El usuario confirmó que el nuevo diseño del calendario se ve excelente.
+
+## Admin — Horarios y disponibilidad: primera versión únicamente visual
+
+- Se agregó acceso a **Horarios y disponibilidad** desde el panel Admin; se mantiene la sección **Reservas**.
+- Se diseñaron los controles de apertura/cierre de lunes a domingo, hora de inicio y finalización, duración de turnos, anticipación máxima de reserva y cierres/bloqueos excepcionales.
+- El usuario aprobó visualmente la nueva sección y solicitó que **Duración de turnos**, **Período de reservas** y **Cierres y bloqueos excepcionales** queden como tres tarjetas en una sola fila en computadora. Se preparó el ajuste visual con una grilla de tres columnas de igual ancho en escritorio; dos o una columna en pantallas intermedias y una columna en móvil.
+- **La configuración continúa como maqueta:** no lee ni persiste cambios en Supabase. Los horarios mostrados son provisionales y el botón Guardar permanece deshabilitado. **No asumir que los controles ya cambian la disponibilidad real.**
+- Próxima fase: diseñar operaciones administrativas autorizadas para `weekly_hours`, `booking_settings` y `blockouts`, respetando la fuente única de disponibilidad de ambos turneros y validando impactos sobre reservas existentes.
+
+## Estado de publicación y pasos de continuación
+
+- La publicación del Admin y del último ajuste visual de Configuración debe hacerse por GitHub (`main`) y posterior despliegue de Cloudflare Pages. No consignar un push como exitoso hasta verificar su salida.
+- La recuperación de contraseña en producción requiere revisar `https://boulevard-padel.pages.dev/admin/index.html` entre las redirecciones autorizadas de Supabase Auth; la URL local de pruebas se conserva.
+- La bitácora maestra sigue siendo **exclusivamente** `BITACORA_DESARROLLO.md`. Los avances nuevos se añaden al documento íntegro, sin crear otras bitácoras.
+- **Próximo paso al retomar:** confirmar visualmente las tres tarjetas alineadas y el responsive; verificar el commit/push y despliegue; luego comenzar la conexión segura de configuración con Supabase. También se deben probar los accesos y cambios desde producción antes de la entrega.

@@ -512,6 +512,32 @@
    CONFIRMACIÓN
 ========================================================= */
 
+/* Vista de reserva confirmada: aprovechar el alto visible sin cambiar
+   la distribución ni los espacios del resto del turnero. */
+.booking-page:has(#bookingConfirmation:not([hidden])) .booking-app {
+  padding-top: calc(var(--header-height) + 12px);
+  padding-bottom: 32px;
+}
+
+.booking-page:has(#bookingConfirmation:not([hidden])) .booking-confirmation {
+  padding: 10px 0 24px;
+}
+
+.booking-page:has(#bookingConfirmation:not([hidden])) .booking-confirmation__icon {
+  margin-bottom: 16px;
+}
+
+.booking-page:has(#bookingConfirmation:not([hidden])) .booking-code-box {
+  margin-top: 20px;
+  margin-bottom: 18px;
+}
+
+.booking-page:has(#bookingConfirmation:not([hidden])) .confirmation-card {
+  margin-top: 20px;
+  margin-bottom: 12px;
+}
+
+
 .booking-confirmation {
   width: 100%;
   max-width: 1100px;

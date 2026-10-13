@@ -93,6 +93,7 @@
     const requestId = ++reservationsRequest;
     const day = $('reservations-date').value;
     if (!day) return;
+    syncDateCards();
     $('refresh-reservations').disabled = true;
     display('reservations-message', 'Cargando reservas…', true);
     try {
@@ -378,14 +379,91 @@
       $('new-booking-save').disabled = false;
     }
   });
+  // Tarjetas de fechas; navegación semanal con acceso también a fechas históricas.
+  const dateCardsHost = $('admin-date-cards');
+  const dateDisplay = new Intl.DateTimeFormat('es-AR', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
+  const weekLabels = ['DOM','LUN','MAR','MIÉ','JUE','VIE','SÁB'];
+  const monthLabels = ['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
+  const parseDay = (day) => new Date(`${day}T12:00:00Z`);
+  const formatDay = (date) => date.toISOString().slice(0,10);
+  const mondayOf = (date) => {
+    const result = new Date(date);
+    const offset = (result.getUTCDay() + 6) % 7;
+    result.setUTCDate(result.getUTCDate() - offset);
+    return result;
+  };
+  let firstVisibleDate = mondayOf(parseDay(argentinaDay(new Date())));
+  function drawAdminDates() {
+    const selected = $('reservations-date').value;
+    dateCardsHost.replaceChildren();
+    const today = argentinaDay(new Date());
+    for (let i = 0; i < 21; i++) {
+      const day = new Date(firstVisibleDate);
+      day.setUTCDate(day.getUTCDate() + i);
+      const iso = formatDay(day);
+      const card = document.createElement('button');
+      card.type = 'button';
+      card.className = 'admin-date-card';
+      card.setAttribute('aria-pressed', String(selected === iso));
+      card.setAttribute('aria-label', dateDisplay.format(day) + (iso === today ? ', hoy' : ''));
+      const weekday = document.createElement('span');
+      weekday.className = 'admin-date-card__weekday';
+      weekday.textContent = iso === today ? 'HOY' : weekLabels[day.getUTCDay()];
+      const number = document.createElement('span');
+      number.className = 'admin-date-card__number';
+      number.textContent = day.getUTCDate();
+      const month = document.createElement('span');
+      month.className = 'admin-date-card__month';
+      month.textContent = monthLabels[day.getUTCMonth()];
+      card.append(weekday, number, month);
+      card.addEventListener('click', () => {
+        $('reservations-date').value = iso;
+        drawAdminDates();
+        loadReservations();
+      });
+      dateCardsHost.append(card);
+    }
+    $('admin-selected-date').textContent = selected ? dateDisplay.format(parseDay(selected)) : '';
+  }
+  const moveCalendar = (weeks) => {
+    firstVisibleDate.setUTCDate(firstVisibleDate.getUTCDate() + weeks * 7);
+    drawAdminDates();
+    dateCardsHost.scrollLeft = 0;
+  };
+  $('admin-dates-prev').addEventListener('click', () => moveCalendar(-1));
+  $('admin-dates-next').addEventListener('click', () => moveCalendar(1));
+  function syncDateCards() {
+    const selected = $('reservations-date').value;
+    if (!selected) return;
+    const selectedDate = parseDay(selected);
+    const end = new Date(firstVisibleDate);
+    end.setUTCDate(end.getUTCDate() + 21);
+    if (selectedDate < firstVisibleDate || selectedDate >= end) firstVisibleDate = mondayOf(selectedDate);
+    drawAdminDates();
+  }
+
+  // Cambio de secciones visual: Configuración es solo una maqueta, sin persistencia.
+  const setAdminSection = (section) => {
+    const config = section === 'config';
+    $('admin-reservas-view').hidden = config;
+    $('admin-config-view').hidden = !config;
+    for (const [id, selected] of [['admin-tab-reservas', !config], ['admin-tab-config', config]]) {
+      const button = $(id);
+      button.classList.toggle('is-current', selected);
+      button.setAttribute('aria-pressed', String(selected));
+    }
+  };
+  $('admin-tab-reservas').addEventListener('click', () => setAdminSection('reservas'));
+  $('admin-tab-config').addEventListener('click', () => setAdminSection('config'));
   $('reservations-date').value = argentinaDay(new Date());
+  syncDateCards();
   $('show-cancelled').addEventListener('click', async () => {
     viewingCancelled = !viewingCancelled;
     $('show-cancelled').textContent = viewingCancelled ? 'Ver activas' : 'Ver canceladas';
     $('show-cancelled').setAttribute('aria-pressed', String(viewingCancelled));
     await loadReservations();
   });
-  $('reservations-date').addEventListener('change', loadReservations);
+  $('reservations-date').addEventListener('change', () => { syncDateCards(); loadReservations(); });
   $('refresh-reservations').addEventListener('click', loadReservations);
   async function verifySession() {
     if (recoveryMode) { show('recovery-panel'); return; }

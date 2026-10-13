@@ -170,3 +170,78 @@
  .dashboard .dashboard-title-row{flex-wrap:wrap}
  .dashboard .dashboard-actions{width:100%;justify-content:flex-start}
 }
+
+
+/* Calendario en tarjetas: el mismo lenguaje visual del turnero público. */
+.dashboard .admin-date-heading{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:13px 0 8px}
+.dashboard .admin-date-heading strong{font-size:13px}
+.dashboard .admin-date-heading span{color:var(--muted);font-size:12px}
+.dashboard .admin-date-picker{display:grid;grid-template-columns:40px minmax(0,1fr) 40px;align-items:center;gap:8px;max-width:100%}
+.dashboard .admin-date-arrow{width:40px;height:40px;border-radius:50%;border:1px solid var(--border);background:#fff;font-size:26px;cursor:pointer;color:var(--ink)}
+.dashboard .admin-date-arrow:hover{border-color:var(--olive)}
+.dashboard .admin-date-cards{display:flex;align-items:stretch;gap:9px;overflow-x:auto;scrollbar-width:none;padding:4px 1px 9px;scroll-snap-type:x proximity}
+.dashboard .admin-date-cards::-webkit-scrollbar{display:none}
+.dashboard .admin-date-card{flex:0 0 81px;min-height:85px;border:1px solid var(--border);border-radius:12px;background:#fbfbf8;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;scroll-snap-align:start;color:var(--ink)}
+.dashboard .admin-date-card:hover{border-color:var(--olive)}
+.dashboard .admin-date-card:focus-visible,.dashboard .admin-date-arrow:focus-visible{outline:3px solid #7d825870;outline-offset:2px}
+.dashboard .admin-date-card[aria-pressed="true"]{background:var(--olive);border-color:var(--olive);color:white}
+.dashboard .admin-date-card__weekday{font-size:10px;letter-spacing:.04em;font-weight:700}
+.dashboard .admin-date-card__number{font:700 28px/1 "Barlow Condensed",sans-serif}
+.dashboard .admin-date-card__month{font-size:10px;text-transform:uppercase}
+.dashboard .admin-date-jump{display:flex;align-items:center;justify-content:flex-end;gap:8px;font-size:11px;color:var(--muted);margin:2px 0 5px;font-weight:500}
+.dashboard .admin-date-jump input{width:155px;font-size:12px;padding:5px 8px;min-height:32px}
+.dashboard .dashboard-actions #refresh-reservations{height:40px;min-height:40px;padding:0 16px;font-size:12px;white-space:nowrap}
+@media(max-width:620px){
+ .dashboard .admin-date-picker{grid-template-columns:31px minmax(0,1fr) 31px;gap:5px}
+ .dashboard .admin-date-arrow{width:31px;height:35px;font-size:23px}
+ .dashboard .admin-date-card{flex-basis:68px;min-height:77px}
+ .dashboard .dashboard-actions #refresh-reservations{height:38px;min-height:38px;padding:0 10px;font-size:11px}
+}
+
+/* Configuración visual del Admin — sin conexión ni guardado en Supabase. */
+.admin-work-nav{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+.admin-work-nav__button{background:#f3f3ed;color:var(--ink);border:1px solid var(--border);border-radius:9px;padding:10px 17px;font-size:13px;font-weight:700;cursor:pointer}
+.admin-work-nav__button.is-current{background:#191c17;color:white;border-color:#191c17}
+.admin-config[hidden],#admin-reservas-view[hidden]{display:none!important}
+.admin-config__heading{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:22px 0 18px}
+.admin-config__heading h1{font-size:clamp(30px,4vw,43px)}
+.admin-config__intro{margin:7px 0 0;color:var(--muted);font-size:13px;line-height:1.5}
+.admin-config__preview{font-size:11px;font-weight:700;color:#777c53;background:#eef0e5;border:1px solid var(--border);border-radius:20px;padding:8px 12px}
+.admin-config__panel{padding:20px;border:1px solid var(--border);border-radius:14px;background:#fdfdfa;margin-bottom:14px;min-width:0}
+.admin-config__panel h2{font:800 26px/1.1 'Barlow Condensed',sans-serif;margin:0 0 5px;text-transform:uppercase}
+.admin-config__panel p{margin:3px 0 15px;color:var(--muted);font-size:12px;line-height:1.5}
+.admin-config__panel-heading{display:flex;justify-content:space-between;gap:10px;align-items:start}
+.admin-config__court{font-weight:700;font-size:11px;color:var(--olive);border:1px solid var(--border);border-radius:20px;padding:6px 10px;white-space:nowrap}
+.admin-weekly-head,.admin-weekly-day{display:grid;grid-template-columns:minmax(105px,1fr) 70px minmax(100px,140px) minmax(100px,140px);align-items:center;gap:14px}
+.admin-weekly-head{font-size:11px;font-weight:700;color:var(--muted);margin-bottom:4px;padding:4px 12px}
+.admin-weekly-day{border-top:1px solid var(--border);padding:10px 12px;min-height:55px}
+.admin-weekly-day strong{font-size:13px}
+.admin-weekly-day input[type=time]{width:100%;min-width:0;padding:8px;font-size:13px;border:1px solid var(--border);border-radius:8px;background:white}
+.admin-switch{display:inline-flex;align-items:center;cursor:pointer;margin:0;width:44px;height:25px;position:relative}
+.admin-switch input{position:absolute;opacity:0;width:100%;height:100%;inset:0;cursor:pointer}
+.admin-switch__track{width:43px;height:25px;border-radius:20px;background:#ddd;position:relative;transition:background .2s}
+.admin-switch__track:after{content:'';position:absolute;top:3px;left:3px;background:white;width:19px;height:19px;border-radius:50%;box-shadow:0 1px 3px #0002;transition:transform .2s}
+.admin-switch input:checked+.admin-switch__track{background:#79865c}
+.admin-switch input:checked+.admin-switch__track:after{transform:translateX(18px)}
+.admin-switch input:focus-visible+.admin-switch__track{outline:3px solid #81906380;outline-offset:2px}
+.admin-weekly-day:has(.admin-switch input:not(:checked)) input[type=time]{opacity:.4;pointer-events:none}
+.admin-config__two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.admin-config__two label{margin:14px 0 6px;font-size:12px}
+.admin-config__two select{border:1px solid var(--border);padding:10px;border-radius:8px;background:white;max-width:100%;width:100%;color:var(--ink);font-size:13px}
+.admin-config__blocked{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.admin-config__blocked p{margin-bottom:0}
+.admin-config__blocked button:disabled{opacity:.6;cursor:not-allowed}
+.admin-config__footer{display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap;padding:6px 0 0}
+.admin-config__footer span{font-size:12px;color:var(--muted);max-width:470px}
+.admin-config__footer button{margin:0;width:auto;min-height:40px;padding:0 18px;cursor:not-allowed;opacity:.55}
+@media(max-width:700px){.admin-weekly-head{display:none}.admin-weekly-day{grid-template-columns:1fr 52px 1fr 1fr;gap:6px;padding:11px 0}.admin-weekly-day input[type=time]{font-size:12px;padding:6px 3px}.admin-config__panel{padding:13px}.admin-config__two{grid-template-columns:1fr}}
+@media(max-width:390px){.admin-weekly-day{grid-template-columns:90px 45px minmax(0,1fr) minmax(0,1fr)}.admin-weekly-day strong{font-size:11px}.admin-weekly-day input[type=time]{font-size:11px}}
+
+/* Tres tarjetas de configuración alineadas en escritorio. */
+.admin-config__two{grid-template-columns:repeat(3,minmax(0,1fr));align-items:stretch}
+.admin-config__two>.admin-config__panel{margin-bottom:0;min-width:0}
+.admin-config__two .admin-config__blocked{display:flex;flex-direction:column;align-items:stretch;justify-content:space-between;gap:12px}
+.admin-config__two .admin-config__blocked p{margin-bottom:12px}
+.admin-config__two .admin-config__blocked button{align-self:stretch;min-height:38px;margin:0;white-space:normal}
+@media(max-width:1050px) and (min-width:701px){.admin-config__two{grid-template-columns:repeat(2,minmax(0,1fr))}.admin-config__two .admin-config__blocked{grid-column:1/-1}}
+@media(max-width:700px){.admin-config__two{grid-template-columns:minmax(0,1fr)}}

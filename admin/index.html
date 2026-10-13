@@ -73,13 +73,18 @@
         </div>
         <button class="secondary logout-compact" id="logout-button" type="button">Cerrar sesión</button>
       </header>
+      <nav class="admin-work-nav" aria-label="Secciones del portal">
+        <button type="button" class="admin-work-nav__button is-current" id="admin-tab-reservas" aria-pressed="true">Reservas</button>
+        <button type="button" class="admin-work-nav__button" id="admin-tab-config" aria-pressed="false">Horarios y disponibilidad</button>
+      </nav>
+      <div id="admin-reservas-view">
       <div class="dashboard-title-row">
         <div>
           <p class="eyebrow">GESTIÓN DIARIA</p>
           <h1>Reservas</h1>
           <p id="admin-name" class="dashboard-greeting muted">Acceso autorizado.</p>
         </div>
-        <div class="dashboard-actions"><button type="button" id="new-booking-open" class="primary new-reservation">+ Nueva reserva</button><button type="button" id="show-cancelled" class="secondary cancelled-toggle" aria-pressed="false">Ver canceladas</button></div>
+        <div class="dashboard-actions"><button type="button" id="new-booking-open" class="primary new-reservation">+ Nueva reserva</button><button type="button" id="show-cancelled" class="secondary cancelled-toggle" aria-pressed="false">Ver canceladas</button><button id="refresh-reservations" type="button" class="secondary">Actualizar</button></div>
       </div>
       <section id="new-booking-panel" class="booking-editor" aria-labelledby="new-booking-title" hidden>
         <div class="booking-editor__heading"><h2 id="new-booking-title">Nueva reserva</h2><button type="button" id="new-booking-close" class="secondary">Cerrar</button></div>
@@ -133,13 +138,44 @@
       </section>
       <div class="admin-reservations">
         <div class="date-tools">
-          <label for="reservations-date">Fecha</label>
-          <div class="date-row"><input type="date" id="reservations-date" aria-label="Fecha de las reservas"><button id="refresh-reservations" type="button" class="secondary">Actualizar</button></div>
+          <div class="admin-date-heading"><strong>Elegí el día</strong><span id="admin-selected-date" aria-live="polite"></span></div>
+          <div class="admin-date-picker" aria-label="Seleccionar día de reservas">
+            <button id="admin-dates-prev" class="admin-date-arrow" type="button" aria-label="Semana anterior">‹</button>
+            <div id="admin-date-cards" class="admin-date-cards"></div>
+            <button id="admin-dates-next" class="admin-date-arrow" type="button" aria-label="Semana siguiente">›</button>
+          </div>
+          <label class="admin-date-jump" for="reservations-date">Ir a una fecha <input type="date" id="reservations-date" aria-label="Ir a una fecha específica"></label>
         </div>
         <p id="reservations-message" class="message" role="status" aria-live="polite" hidden></p>
         <div class="reservations-summary"><p id="reservations-count" class="results-count"></p></div>
         <div id="reservations-list" class="reservations-list" aria-live="polite"></div>
       </div>
+      </div><!-- /admin-reservas-view -->
+      <section id="admin-config-view" class="admin-config" aria-labelledby="admin-config-title" hidden>
+        <div class="admin-config__heading">
+          <div><p class="eyebrow">CONFIGURACIÓN DEL COMPLEJO</p><h1 id="admin-config-title">Horarios y disponibilidad</h1><p class="admin-config__intro">Definí cuándo se podrá reservar la cancha desde el sitio público y desde Administración.</p></div>
+          <span class="admin-config__preview">Vista de diseño · No guarda cambios</span>
+        </div>
+        <section class="admin-config__panel" aria-labelledby="admin-weekly-title">
+          <div class="admin-config__panel-heading"><div><h2 id="admin-weekly-title">Horarios semanales</h2><p>Activá los días de apertura y elegí el horario de cada uno.</p></div><span class="admin-config__court">Cancha 1</span></div>
+          <div class="admin-weekly-list">
+            <div class="admin-weekly-head"><span>Día</span><span>Abre</span><span>Desde</span><span>Hasta</span></div>
+            <div class="admin-weekly-day"><strong>Lunes</strong><label class="admin-switch"><input type="checkbox" checked aria-label="Abrir Lunes"><span class="admin-switch__track"></span></label><input type="time" value="09:00" aria-label="Apertura Lunes"><input type="time" value="22:30" aria-label="Cierre Lunes"></div>
+            <div class="admin-weekly-day"><strong>Martes</strong><label class="admin-switch"><input type="checkbox" checked aria-label="Abrir Martes"><span class="admin-switch__track"></span></label><input type="time" value="09:00" aria-label="Apertura Martes"><input type="time" value="22:30" aria-label="Cierre Martes"></div>
+            <div class="admin-weekly-day"><strong>Miércoles</strong><label class="admin-switch"><input type="checkbox" checked aria-label="Abrir Miércoles"><span class="admin-switch__track"></span></label><input type="time" value="09:00" aria-label="Apertura Miércoles"><input type="time" value="22:30" aria-label="Cierre Miércoles"></div>
+            <div class="admin-weekly-day"><strong>Jueves</strong><label class="admin-switch"><input type="checkbox" checked aria-label="Abrir Jueves"><span class="admin-switch__track"></span></label><input type="time" value="09:00" aria-label="Apertura Jueves"><input type="time" value="22:30" aria-label="Cierre Jueves"></div>
+            <div class="admin-weekly-day"><strong>Viernes</strong><label class="admin-switch"><input type="checkbox" checked aria-label="Abrir Viernes"><span class="admin-switch__track"></span></label><input type="time" value="09:00" aria-label="Apertura Viernes"><input type="time" value="22:30" aria-label="Cierre Viernes"></div>
+            <div class="admin-weekly-day"><strong>Sábado</strong><label class="admin-switch"><input type="checkbox" checked aria-label="Abrir Sábado"><span class="admin-switch__track"></span></label><input type="time" value="09:00" aria-label="Apertura Sábado"><input type="time" value="22:30" aria-label="Cierre Sábado"></div>
+            <div class="admin-weekly-day"><strong>Domingo</strong><label class="admin-switch"><input type="checkbox" checked aria-label="Abrir Domingo"><span class="admin-switch__track"></span></label><input type="time" value="09:00" aria-label="Apertura Domingo"><input type="time" value="22:30" aria-label="Cierre Domingo"></div>
+          </div>
+        </section>
+        <div class="admin-config__two">
+          <section class="admin-config__panel" aria-labelledby="admin-duration-title"><h2 id="admin-duration-title">Duración de turnos</h2><p>Tiempo que ocupa cada reserva.</p><label for="admin-preview-duration">Duración</label><select id="admin-preview-duration"><option>60 minutos</option><option selected>90 minutos</option><option>120 minutos</option></select></section>
+          <section class="admin-config__panel" aria-labelledby="admin-window-title"><h2 id="admin-window-title">Período de reservas</h2><p>Hasta cuándo pueden reservar los jugadores.</p><label for="admin-preview-window">Anticipación máxima</label><select id="admin-preview-window"><option>1 mes</option><option selected>2 meses</option><option>3 meses</option><option>Personalizado</option></select></section>
+          <section class="admin-config__panel admin-config__blocked" aria-labelledby="admin-block-title"><div><h2 id="admin-block-title">Cierres y bloqueos excepcionales</h2><p>Para mantenimiento, torneos, feriados o vacaciones.</p></div><button type="button" class="secondary" disabled title="Se habilitará en la siguiente etapa">+ Agregar bloqueo</button></section>
+        </div>
+        <div class="admin-config__footer"><span>Vista visual de ejemplo. Los horarios mostrados no se leen ni se guardan en Supabase.</span><button type="button" class="primary" disabled>Guardar configuración (próximamente)</button></div>
+      </section>
     </section>
     <section class="loading" id="loading-panel" aria-live="polite">Verificando acceso…</section>
   </main>
