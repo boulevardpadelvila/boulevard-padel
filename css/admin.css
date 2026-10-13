@@ -269,3 +269,8 @@
  .admin-card.dashboard .dashboard-actions{gap:4px}
  .admin-card.dashboard .dashboard-actions>button{font-size:10px}
 }
+
+
+/* En todas las pantallas, navegar fechas exclusivamente mediante tarjetas y flechas.
+   Se conserva el input en el DOM porque admin.js lo usa como estado de selección. */
+.admin-card.dashboard .admin-date-jump { display: none !important; }
