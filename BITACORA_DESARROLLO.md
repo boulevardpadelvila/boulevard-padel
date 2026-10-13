@@ -1,5 +1,7 @@
 # Bitácora de Desarrollo — Boulevard Pádel
 
+> **Estado vigente (12/10/2026, cierre de esta sesión):** gestión de reservas del portal Admin implementada y probada (consulta, alta, edición, reprogramación, cancelación, vistas activas/canceladas e independencia por reserva). Se preparó una mejora visual de los tres botones de confirmación pública, pendiente de validación en navegador. Próximo módulo: Horarios y disponibilidad. Las referencias anteriores a tareas pendientes reflejan el estado histórico de cada fecha, no el estado vigente.
+
 ## Documento maestro del proyecto
 
 **Proyecto:** Boulevard Pádel — Sitio web, turnero, portal Admin y torneos  
@@ -1770,3 +1772,93 @@ Iniciar el portal de administración de Boulevard Pádel, manteniendo el sitio y
 - Al finalizar: limpieza controlada de registros de prueba; pruebas de seguridad y funcionalidad completas; publicación y commits cuando se autorice.
 
 **Frase para retomar:** «Continuemos Boulevard Pádel desde la bitácora del 12/10/2026. Ya verificamos SELECT=true en las tres tablas. Empecemos el panel Admin de reservas, solo lectura».
+
+
+---
+
+# 12/10/2026 — Continuación: panel Admin de reservas y cierre funcional
+
+## Objetivo
+
+Convertir el acceso administrativo en una herramienta de gestión cotidiana con diseño sencillo, amplio en escritorio y usable en teléfono. No rehacer el turnero público terminado ni introducir configuraciones duplicadas de horarios.
+
+## Respaldo Git
+
+- Se confirmó `git commit -m "Iniciamos portal Admin con etapas 1 y 2 finalizadas"` y `git push` exitosos a `main`.
+- Commit confirmado: `65d9704` (desde `b24d6a6`). El respaldo incluyó el primer portal Admin y los archivos presentes en ese momento; **no significa que los desarrollos posteriores de reservas ya estén publicados**.
+- Como Cloudflare Pages despliega desde `main`, comprobar los despliegues cuando se publique el resto. La interfaz de inicio de sesión puede ser accesible, pero datos y operaciones requieren Auth y RLS.
+- **Pendiente:** hacer un nuevo commit/push del código local actualizado únicamente después de probar las últimas mejoras.
+
+## Lectura de reservas y diseño del panel
+
+- Consulta real de reservas desde Supabase por fecha, enlazando cliente y cancha; prueba con `PRUEBA_ADMIN` del 13/10 a las 16:30.
+- Cambio de fecha actualiza automáticamente; el botón **Actualizar** se conserva porque permite ver reservas nuevas creadas desde otra pestaña sin cambiar de fecha. Se probó con `PRUEBA_ADMIN_2`.
+- Se eliminó el ancho excesivamente limitado del panel autenticado: aprovecha el escritorio con márgenes moderados. Formulario de login permanece compacto.
+- Encabezado reducido; tarjetas compactas en orden cronológico: **3 por fila en PC, 2 en tablet y 1 en móvil**. Acciones principales al alcance, sin scroll innecesario ni amontonamiento.
+- Botones en el encabezado: **+ Nueva reserva** y **Ver canceladas**; misma altura y alineación. **No** se utiliza un filtro múltiple.
+- Vista habitual: únicamente reservas activas/confirmadas de la fecha elegida. Al pulsar **Ver canceladas**, lista solo las canceladas de esa fecha; pasa a **Ver activas** para regresar.
+- El diseño y comportamiento de estos botones fueron aprobados y probados en navegador.
+
+## Consulta SQL definitiva 15 — `15_crear_reserva_admin`
+
+- Se creó `public.create_admin_booking(p_full_name text, p_phone text, p_starts_at timestamptz, p_notes text DEFAULT NULL)`.
+- Requiere usuario autenticado y `public.is_admin() = true`; revoca EXECUTE para `PUBLIC` y `anon`, concede a `authenticated` (con validación interna de administrador).
+- Reutiliza `public.create_booking()` para validar nombre, teléfono, configuración, fecha, slots, bloqueos y superposición; cambia a `source = 'admin'` por UUID en la misma transacción.
+- Prueba de permisos: `anon=false`, `authenticated=true`.
+- Se implementó formulario **+ Nueva reserva** dentro del Admin, consultando `get_available_slots(p_date)`; **no hay horarios hardcodeados**.
+- Reserva manual probada: `ADMIN_PRUEBA3`, 14/10/2026 a las 09:00; guardada con `status=confirmed` y `source=admin`. El horario dejó de ofrecerse para otra reserva.
+- El turnero público sigue empleando Turnstile + Edge Function y `source=web`.
+
+## Consulta SQL definitiva 16 — `16_editar_reserva_admin`
+
+- Se creó `public.update_admin_booking(...)` con guardas `auth.uid()` + `is_admin()` y permiso EXECUTE limitado a `authenticated`.
+- Edición de nombre, teléfono, notas y fecha/hora; conserva código y origen. Se comprueba disponibilidad real para reprogramar y se controla superposición en base de datos.
+- UI de edición preserva el turno actual como opción aunque ya no aparezca entre los libres.
+- Pruebas: `ADMIN_PRUEBA3` pasó de 09:00 a 10:30; se liberó el horario anterior y se conservó el código. Edición de nombre también funcionó.
+- **Problema detectado:** el UPSERT original en `customers` por teléfono podía cambiar la ficha compartida y mostrar nombres alterados en otras reservas; no se consideró cerrado hasta corregirlo.
+
+## Consulta SQL definitiva 17 — `17_cancelar_reserva_admin`
+
+- Se creó `public.cancel_admin_booking(p_reservation_id uuid)` con verificación de administrador activo y bloqueo de la reserva concreta para actualizarla.
+- Solo cambia `status` a `cancelled` y `updated_at`; no borra reserva, cliente, código ni origen. La franja queda libre para futuras reservas.
+- No se aplica al administrador el límite de 12 horas de la cancelación pública.
+- Se conectó **Cancelar** en cada tarjeta confirmada con modal de confirmación. El modal presenta en filas separadas **Nombre, Fecha, Hora, Código** y advierte que queda historial.
+- Incidencia corregida: `Uncaught ReferenceError: ZONE is not defined` en `openCancelBooking()`; se sustituyó por la constante real `ARGENTINA_TZ`.
+- Prueba real: `ADMIN_PRUEBA_EDITADA`, 14/10/2026 de 10:30 a 12:00, pasó a **Cancelada**, se mostró el mensaje de éxito, los botones quedaron deshabilitados y el horario volvió a estar disponible.
+
+## Consulta SQL definitiva 18 — `18_independencia_y_vista_canceladas`
+
+- Se incorporaron a cada reserva valores propios de nombre y teléfono para evitar que editar una ficha de cliente por teléfono altere los datos visibles de otras reservas.
+- Se actualizó la operación de edición y el Admin para utilizar los datos propios de la reserva; se conservaron reservas, clientes e historial existentes.
+- Prueba final **superada**: reservas del 15/10/2026 con el mismo teléfono y nombres diferentes; al editar una, las otras conservaron exactamente sus nombres originales.
+- Captura final mostró tres tarjetas activas del 15/10/2026, a las 09:00, 10:30 y 13:30, todas con el mismo teléfono y nombres independientes.
+- La vista de canceladas de la fecha se probó correctamente con botón para regresar a activas.
+- Criterio definitivo: **editar una reserva afecta exclusivamente esa reserva**. Reprogramación y cancelación son operaciones habituales; cambios de nombre son excepcionales.
+
+## Decisiones de producto y almacenamiento
+
+- La configuración centralizada del complejo (`booking_settings`, `weekly_hours`, `blockouts` y la consulta `get_available_slots`) determina días, horarios, duración, período y bloqueos tanto para público como Admin. **No duplicar reglas ni fijar horarios en JavaScript**.
+- Al cancelar, conservar el registro y excluirlo de la ocupación activa; no crear tablas extra de historial. Puede servir para estadísticas futuras.
+- Se midió `pg_database_size(current_database()) = 11 MB` al 12/10/2026; presupuesto de referencia del plan Free: 500 MB. Controlar crecimiento antes de considerar exportación/depuración o un plan pago. La medición incluye base e índices y no constituye un consumo exclusivo de reservas.
+- Los datos actuales son pruebas. Mantener los necesarios para desarrollo; realizar limpieza controlada al terminar Admin antes de la entrega, sin borrar tablas, funciones ni configuración.
+- Mantener en Supabase SQL Editor solo consultas permanentes de cambios (01–18, según sean pertinentes). Cerrar consultas temporales sin guardar.
+
+## 12/10/2026 — Ajuste visual preparado del turnero público
+
+- En `reservar.html`, se colocó **Hacer otra reserva** junto a **Copiar código** y **Compartir**, dentro de `.booking-code-box__actions`.
+- En `css/turnero.css`, los tres botones ocupan columnas de igual ancho y altura, con texto en una sola línea mediante tipografía condensada responsive. Los eventos y `id` de los botones no se alteraron.
+- **Estado: archivos preparados, pendientes de validación visual y funcional en navegador, escritorio y celular.** No marcar como probado hasta recibir confirmación del usuario.
+
+## Estado al cierre de la sesión
+
+**Completado y probado:** autenticación y recuperación Admin; listado por fecha; diseño de tarjetas; actualización manual; creación manual; edición y reprogramación; cancelación; historial; botón de canceladas por fecha; independencia de datos entre reservas con teléfono compartido.
+
+**Preparado, pendiente de probar:** tres botones juntos en la confirmación pública, igual tamaño y textos en una línea.
+
+**Siguiente módulo principal:** **Horarios y disponibilidad** en el Admin: administrar apertura/cierre por día, horarios, períodos habilitados y bloqueos, reflejados automáticamente en ambas interfaces.
+
+**Posteriormente:** solicitudes de turnos fijos, configuraciones restantes, clientes, torneos, pruebas de seguridad completas y eventual dominio propio.
+
+**Próximo paso exacto al retomar:** aplicar `reservar.html` y `css/turnero.css`, probar confirmación de reserva en pantalla grande y móvil; luego hacer commit/push aprobado del estado local, verificar despliegue y continuar con Horarios y disponibilidad. No repetir las consultas SQL de diagnóstico ya resueltas.
+
+**Regla inalterable:** este documento es el único `BITACORA_DESARROLLO.md`; toda actualización futura conservará íntegro lo anterior e incorporará cambios cronológicamente. No crear versiones paralelas.

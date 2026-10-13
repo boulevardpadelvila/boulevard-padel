@@ -79,7 +79,7 @@
           <h1>Reservas</h1>
           <p id="admin-name" class="dashboard-greeting muted">Acceso autorizado.</p>
         </div>
-        <div class="dashboard-actions"><button type="button" id="new-booking-open" class="primary new-reservation">+ Nueva reserva</button></div>
+        <div class="dashboard-actions"><button type="button" id="new-booking-open" class="primary new-reservation">+ Nueva reserva</button><button type="button" id="show-cancelled" class="secondary cancelled-toggle" aria-pressed="false">Ver canceladas</button></div>
       </div>
       <section id="new-booking-panel" class="booking-editor" aria-labelledby="new-booking-title" hidden>
         <div class="booking-editor__heading"><h2 id="new-booking-title">Nueva reserva</h2><button type="button" id="new-booking-close" class="secondary">Cerrar</button></div>
@@ -112,13 +112,32 @@
           <div class="booking-editor__actions"><button type="button" class="secondary" id="edit-booking-cancel">Volver</button><button type="submit" class="primary" id="edit-booking-save">Guardar cambios</button></div>
         </form>
       </section>
+      <section class="cancel-dialog" id="cancel-booking-dialog" role="dialog" aria-modal="true" aria-labelledby="cancel-booking-title" hidden>
+        <div class="cancel-dialog__backdrop" id="cancel-booking-backdrop"></div>
+        <div class="cancel-dialog__content" tabindex="-1" id="cancel-booking-content">
+          <h2 id="cancel-booking-title">Cancelar reserva</h2>
+          <p>¿Confirmás la cancelación de este turno?</p>
+          <dl id="cancel-booking-details" class="cancel-dialog__details">
+            <div class="cancel-dialog__field"><dt>Nombre:</dt><dd id="cancel-detail-name"></dd></div>
+            <div class="cancel-dialog__field"><dt>Fecha:</dt><dd id="cancel-detail-date"></dd></div>
+            <div class="cancel-dialog__field"><dt>Hora:</dt><dd id="cancel-detail-time"></dd></div>
+            <div class="cancel-dialog__field"><dt>Código:</dt><dd id="cancel-detail-code"></dd></div>
+          </dl>
+          <p class="cancel-dialog__notice">El horario quedará disponible nuevamente. La reserva permanecerá en el historial.</p>
+          <p id="cancel-booking-message" class="message" role="alert" aria-live="polite" hidden></p>
+          <div class="cancel-dialog__actions">
+            <button type="button" class="secondary" id="cancel-booking-back">Volver</button>
+            <button type="button" class="cancel-dialog__danger" id="cancel-booking-confirm">Confirmar cancelación</button>
+          </div>
+        </div>
+      </section>
       <div class="admin-reservations">
         <div class="date-tools">
           <label for="reservations-date">Fecha</label>
           <div class="date-row"><input type="date" id="reservations-date" aria-label="Fecha de las reservas"><button id="refresh-reservations" type="button" class="secondary">Actualizar</button></div>
         </div>
         <p id="reservations-message" class="message" role="status" aria-live="polite" hidden></p>
-        <p id="reservations-count" class="results-count"></p>
+        <div class="reservations-summary"><p id="reservations-count" class="results-count"></p></div>
         <div id="reservations-list" class="reservations-list" aria-live="polite"></div>
       </div>
     </section>

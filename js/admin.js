@@ -29,6 +29,7 @@
   });
   let reservationsRequest = 0;
   let loadedReservations = [];
+  let viewingCancelled = false;
   const argentinaDay = (date) => {
     const parts = Object.fromEntries(dateFormatter.formatToParts(date)
       .filter((part) => part.type !== 'literal').map((part) => [part.type, part.value]));
@@ -45,10 +46,10 @@
   function renderReservations(rows) {
     const list = $('reservations-list');
     list.replaceChildren();
-    safeText($('reservations-count'), `${rows.length} ${rows.length === 1 ? 'reserva encontrada' : 'reservas encontradas'}`);
+    safeText($('reservations-count'), `${rows.length} ${rows.length === 1 ? 'reserva encontrada' : 'reservas encontradas'}${viewingCancelled ? ' · Canceladas' : ' · Activas'}`);
     if (!rows.length) {
       const empty = document.createElement('p');
-      empty.className = 'empty-state'; empty.textContent = 'No hay reservas registradas para esta fecha.';
+      empty.className = 'empty-state'; empty.textContent = viewingCancelled ? 'No hay reservas canceladas para esta fecha.' : 'No hay reservas activas para esta fecha.';
       list.append(empty); return;
     }
     for (const item of rows) {
@@ -60,11 +61,11 @@
       const statuses = { confirmed: 'Confirmada', cancelled: 'Cancelada', completed: 'Completada', no_show: 'No asistió' };
       safeText(status, statuses[item.status] || item.status || 'Sin estado');
       top.append(schedule, status);
-      const name = document.createElement('h3'); safeText(name, item.customers?.full_name || 'Cliente sin nombre');
+      const name = document.createElement('h3'); safeText(name, item.booking_name || item.customers?.full_name || 'Cliente sin nombre');
       const court = document.createElement('p'); court.className = 'reservation-muted';
       safeText(court, item.courts?.name || item.courts?.court_name || 'Cancha');
       const phone = document.createElement('p'); phone.className = 'reservation-muted';
-      safeText(phone, `Teléfono: ${item.customers?.phone || 'No registrado'}`);
+      safeText(phone, `Teléfono: ${item.booking_phone || item.customers?.phone || 'No registrado'}`);
       const code = document.createElement('p'); code.className = 'reservation-code';
       safeText(code, `Código: ${item.reservation_code}`);
       card.append(top, name, court, phone, code);
@@ -72,8 +73,6 @@
         const notes = document.createElement('p'); notes.className = 'reservation-muted';
         safeText(notes, `Observaciones: ${item.notes}`); card.append(notes);
       }
-      // Acciones visibles, deshabilitadas hasta implementar las operaciones
-      // administrativas seguras. No simular una edición ni una cancelación.
       const actions = document.createElement('div');
       actions.className = 'reservation-card__actions';
       for (const [label, modifier] of [['Editar', 'edit'], ['Cancelar', 'cancel']]) {
@@ -81,9 +80,9 @@
         button.type = 'button';
         button.className = `reservation-action reservation-action--${modifier}`;
         button.textContent = label;
-        button.disabled = modifier !== 'edit' || item.status !== 'confirmed';
-        button.title = modifier === 'cancel' ? 'Disponible en una próxima etapa' : (item.status !== 'confirmed' ? 'Solo reservas confirmadas' : 'Editar esta reserva');
-        if (modifier === 'edit' && !button.disabled) button.addEventListener('click', () => openEditBooking(item));
+        button.disabled = item.status !== 'confirmed';
+        button.title = button.disabled ? 'Solo reservas confirmadas' : `${label} esta reserva`;
+        if (!button.disabled) button.addEventListener('click', () => modifier === 'edit' ? openEditBooking(item) : openCancelBooking(item));
         actions.append(button);
       }
       card.append(actions);
@@ -99,7 +98,8 @@
     try {
       const [from, until] = dateBounds(day);
       const { data, error } = await supabaseClient.from('reservations')
-        .select('id, reservation_code, starts_at, ends_at, status, notes, customers(full_name,phone), courts(*)')
+        .select('id, reservation_code, starts_at, ends_at, status, notes, booking_name, booking_phone, customers(full_name,phone), courts(*)')
+        .eq('status', viewingCancelled ? 'cancelled' : 'confirmed')
         .gte('starts_at', from).lt('starts_at', until).order('starts_at', { ascending: true });
       if (error) throw error;
       if (requestId !== reservationsRequest) return;
@@ -116,6 +116,71 @@
       if (requestId === reservationsRequest) $('refresh-reservations').disabled = false;
     }
   }
+  // Cancelación administrativa: confirmación explícita, conserva el historial.
+  const cancelDialog = $('cancel-booking-dialog');
+  let cancelTarget = null;
+  let cancelInProgress = false;
+  let cancelReturnFocus = null;
+  const cancelContent = $('cancel-booking-content');
+  function closeCancelBooking() {
+    if (cancelInProgress) return;
+    cancelDialog.hidden = true;
+    cancelTarget = null;
+    display('cancel-booking-message', '');
+    document.body.classList.remove('admin-dialog-open');
+    if (cancelReturnFocus?.isConnected) cancelReturnFocus.focus();
+    cancelReturnFocus = null;
+  }
+  function openCancelBooking(item) {
+    if (item.status !== 'confirmed' || cancelInProgress) return;
+    cancelReturnFocus = document.activeElement;
+    cancelTarget = { id: item.id, reservation_code: item.reservation_code };
+    const date = new Intl.DateTimeFormat('es-AR', { timeZone: ARGENTINA_TZ, dateStyle: 'full' }).format(new Date(item.starts_at));
+    safeText($('cancel-detail-name'), item.booking_name || item.customers?.full_name || 'Cliente');
+    safeText($('cancel-detail-date'), date);
+    safeText($('cancel-detail-time'), `${timeFormatter.format(new Date(item.starts_at))} a ${timeFormatter.format(new Date(item.ends_at))}`);
+    safeText($('cancel-detail-code'), item.reservation_code);
+    display('cancel-booking-message', '');
+    cancelDialog.hidden = false;
+    document.body.classList.add('admin-dialog-open');
+    cancelContent.focus();
+  }
+  $('cancel-booking-back').addEventListener('click', closeCancelBooking);
+  $('cancel-booking-backdrop').addEventListener('click', closeCancelBooking);
+  document.addEventListener('keydown', (event) => {
+    if (cancelDialog.hidden) return;
+    if (event.key === 'Escape') { event.preventDefault(); closeCancelBooking(); }
+    if (event.key === 'Tab') {
+      const controls = [$('cancel-booking-back'), $('cancel-booking-confirm')];
+      if (event.shiftKey && document.activeElement === controls[0]) { event.preventDefault(); controls[1].focus(); }
+      else if (!event.shiftKey && document.activeElement === controls[1]) { event.preventDefault(); controls[0].focus(); }
+    }
+  });
+  $('cancel-booking-confirm').addEventListener('click', async () => {
+    if (!cancelTarget || cancelInProgress) return;
+    cancelInProgress = true;
+    const id = cancelTarget.id;
+    const confirm = $('cancel-booking-confirm');
+    confirm.disabled = true;
+    $('cancel-booking-back').disabled = true;
+    display('cancel-booking-message', 'Cancelando reserva…', true);
+    try {
+      const { data, error } = await supabaseClient.rpc('cancel_admin_booking', { p_reservation_id: id });
+      if (error) throw error;
+      if (!data?.length || data[0].status !== 'cancelled') throw new Error('No se recibió confirmación de la cancelación.');
+      cancelInProgress = false;
+      closeCancelBooking();
+      await loadReservations();
+      display('reservations-message', `Reserva ${data[0].reservation_code} cancelada correctamente. El horario está disponible.`, true);
+    } catch (error) {
+      console.error('Error cancelando reserva:', error);
+      display('cancel-booking-message', error.message || 'No se pudo cancelar la reserva.');
+    } finally {
+      cancelInProgress = false;
+      confirm.disabled = false;
+      $('cancel-booking-back').disabled = false;
+    }
+  });
   // Edición: la opción original permanece disponible para no forzar un cambio de turno.
   const editPanel = $('edit-booking-panel');
   let editing = null;
@@ -174,8 +239,8 @@
     editPanel.hidden = false;
     safeText($('edit-booking-code'), `Código: ${item.reservation_code}`);
     $('edit-booking-date').value = argentinaDay(new Date(item.starts_at));
-    $('edit-booking-name').value = item.customers?.full_name || '';
-    $('edit-booking-phone').value = item.customers?.phone || '';
+    $('edit-booking-name').value = item.booking_name || item.customers?.full_name || '';
+    $('edit-booking-phone').value = item.booking_phone || item.customers?.phone || '';
     $('edit-booking-notes').value = item.notes || '';
     loadEditSlots();
     editPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -314,6 +379,12 @@
     }
   });
   $('reservations-date').value = argentinaDay(new Date());
+  $('show-cancelled').addEventListener('click', async () => {
+    viewingCancelled = !viewingCancelled;
+    $('show-cancelled').textContent = viewingCancelled ? 'Ver activas' : 'Ver canceladas';
+    $('show-cancelled').setAttribute('aria-pressed', String(viewingCancelled));
+    await loadReservations();
+  });
   $('reservations-date').addEventListener('change', loadReservations);
   $('refresh-reservations').addEventListener('click', loadReservations);
   async function verifySession() {
@@ -413,7 +484,7 @@
   $('logout-button').addEventListener('click', async () => {
     if (operation) return;
     operation = true; $('logout-button').disabled = true;
-    try { closeBookingEditor(); ++reservationsRequest; await supabaseClient.auth.signOut(); $('reservations-list').replaceChildren(); display('login-message', ''); show('login-panel'); }
+    try { closeBookingEditor(); closeCancelBooking(); ++reservationsRequest; await supabaseClient.auth.signOut(); $('reservations-list').replaceChildren(); display('login-message', ''); show('login-panel'); }
     finally { $('logout-button').disabled = false; operation = false; }
   });
 
