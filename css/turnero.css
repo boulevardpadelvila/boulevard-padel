@@ -1237,3 +1237,14 @@ body.booking-modal-open {
     overflow-x: auto;
   }
 }
+
+/* 12/10/2026 — legibilidad de acciones en confirmación móvil */
+@media(max-width:640px){
+ .booking-code-box__actions .booking-code-action{
+   font-size:clamp(0.68rem,2.75vw,0.82rem);
+   font-weight:700;
+   letter-spacing:-0.025em;
+   white-space:nowrap;
+   padding-inline:1px;
+ }
+}
