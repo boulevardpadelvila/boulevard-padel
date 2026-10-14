@@ -558,6 +558,35 @@ bookingModeRadios.forEach(r => r.addEventListener('change', syncBookingMode));
 fixedDurationType?.addEventListener('change', syncBookingMode);
 syncBookingMode();
 
+function confirmFixedRequest() {
+  const dialog = document.getElementById('fixedRequestDialog');
+  if (!dialog || !selectedDate || !selectedSlot) return Promise.resolve(false);
+  const dayName = formatSelectedDate(selectedDate).split(',')[0];
+  document.getElementById('fixedDialogDay').textContent = dayName.charAt(0).toUpperCase() + dayName.slice(1);
+  document.getElementById('fixedDialogTime').textContent = `${formatTime(selectedSlot.start_time)} a ${formatTime(selectedSlot.end_time)} hs`;
+  document.getElementById('fixedDialogStart').textContent = formatShortDate(selectedDate);
+  document.getElementById('fixedDialogEnd').textContent = fixedDurationType.value === 'indefinite' ? 'Por tiempo indeterminado' : formatShortDate(fixedEndDate.value);
+  return new Promise((resolve) => {
+    const back = document.getElementById('fixedDialogBack');
+    const confirm = document.getElementById('fixedDialogConfirm');
+    const done = (accepted) => {
+      dialog.removeEventListener('cancel', onCancel);
+      back.removeEventListener('click', onBack);
+      confirm.removeEventListener('click', onConfirm);
+      if (dialog.open) dialog.close();
+      resolve(accepted);
+    };
+    const onCancel = (event) => { event.preventDefault(); done(false); };
+    const onBack = () => done(false);
+    const onConfirm = () => done(true);
+    dialog.addEventListener('cancel', onCancel);
+    back.addEventListener('click', onBack);
+    confirm.addEventListener('click', onConfirm);
+    dialog.showModal();
+    back.focus();
+  });
+}
+
 /* =========================================================
 
    CONFIRMAR RESERVA
@@ -578,6 +607,16 @@ bookingForm?.addEventListener("submit", async (event) => {
   const submitButton = bookingForm.querySelector(".booking-submit");
 
   if (!submitButton) return;
+
+  // Solo turnos fijos: confirmación previa sin modificar el flujo normal.
+  if (isFixedMode()) {
+    if (fixedDurationType.value === 'defined' && (!fixedEndDate.value || fixedEndDate.value < selectedDate)) {
+      fixedResult.textContent = 'Elegí una fecha final igual o posterior al primer turno.';
+      fixedResult.hidden = false;
+      return;
+    }
+    if (!(await confirmFixedRequest())) return;
+  }
 
   const originalText = submitButton.textContent;
 
@@ -610,10 +649,15 @@ bookingForm?.addEventListener("submit", async (event) => {
         },
       });
       if (fixedError || !fixedData?.success) throw new Error(fixedData?.error || fixedError?.message || 'No pudimos enviar la solicitud.');
-      fixedResult.textContent = 'Solicitud recibida. Queda pendiente de aprobación por el administrador. No es una reserva confirmada.';
-      fixedResult.hidden = false;
-      bookingModeNote.textContent = '';
-      scrollToStep(detailsSection);
+      // Reiniciar por completo el turno fijo, sin dejar datos ni un horario activo.
+      // El reinicio reutiliza el botón existente de Nueva reserva.
+      newBookingButton?.click();
+      syncBookingMode();
+      const toast = document.getElementById('fixedRequestSuccess');
+      if (toast) {
+        toast.hidden = false;
+        window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+      }
       return;
     }
 
@@ -1201,11 +1245,17 @@ shareBookingCodeButton?.addEventListener("click", shareBookingCode);
 ========================================================= */
 
 newBookingButton?.addEventListener("click", () => {
+  const fixedSuccess = document.getElementById('fixedRequestSuccess');
+  if (fixedSuccess) fixedSuccess.hidden = true;
   selectedDate = null;
 
   selectedSlot = null;
 
   bookingForm?.reset();
+  // Los radios están fuera del formulario: restaurar modo común de forma explícita.
+  const single = document.querySelector('input[name="bookingMode"][value="single"]');
+  if (single) single.checked = true;
+  syncBookingMode();
 
   document.querySelectorAll(".date-card").forEach((card) => {
     card.classList.remove("date-card--active");

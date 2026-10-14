@@ -87,6 +87,9 @@
     ====================================================== -->
     <main class="booking-app">
       <div class="booking-app__container">
+        <div class="fixed-request-toast" id="fixedRequestSuccess" role="status" aria-live="polite" hidden>
+          <strong>Solicitud enviada correctamente.</strong> Quedó pendiente de aprobación. El administrador recibió un aviso para revisarla.
+        </div>
         <!-- ENCABEZADO DEL TURNERO -->
         <section class="booking-intro">
           <span class="section-heading__eyebrow">RESERVAS</span>
@@ -286,6 +289,27 @@
             <div class="fixed-result" id="fixedResult" role="status" aria-live="polite" hidden></div>
           </form>
         </section>
+
+        <!-- Confirmación de solicitud fija; reserva común sin cambios -->
+        <dialog id="fixedRequestDialog" class="fixed-request-dialog" aria-labelledby="fixedRequestTitle" aria-describedby="fixedRequestDescription">
+          <div class="fixed-request-dialog__body">
+            <span class="fixed-request-dialog__symbol" aria-hidden="true">📅</span>
+            <p class="fixed-request-dialog__eyebrow">BOULEVARD PÁDEL</p>
+            <h2 id="fixedRequestTitle">Confirmar solicitud de turno fijo</h2>
+            <p id="fixedRequestDescription">Revisá los datos antes de enviarla. La solicitud requiere aprobación del administrador.</p>
+            <dl class="fixed-request-dialog__details">
+              <div><dt>Día semanal</dt><dd id="fixedDialogDay">—</dd></div>
+              <div><dt>Horario</dt><dd id="fixedDialogTime">—</dd></div>
+              <div><dt>Desde</dt><dd id="fixedDialogStart">—</dd></div>
+              <div><dt>Hasta</dt><dd id="fixedDialogEnd">—</dd></div>
+            </dl>
+            <p class="fixed-request-dialog__note">Enviar esta solicitud no confirma ni reserva la cancha.</p>
+            <div class="fixed-request-dialog__actions">
+              <button type="button" class="fixed-request-dialog__back" id="fixedDialogBack">Volver</button>
+              <button type="button" class="fixed-request-dialog__confirm" id="fixedDialogConfirm">Confirmar</button>
+            </div>
+          </div>
+        </dialog>
 
         <!-- =================================================
              CONSULTAR / CANCELAR RESERVA

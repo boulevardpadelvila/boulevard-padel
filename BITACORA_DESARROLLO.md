@@ -2008,3 +2008,10 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 - **Admin:** nuevas opciones «Liberar una fecha» (selector modal) y «Finalizar turno fijo» (confirmación modal) para turnos aprobados. No se toca el sistema de reservas comunes ni sus funciones.
 - **Pendiente de probar:** SQL 25 en Supabase; liberación de una fecha de prueba con confirmación de que el resto sigue ocupado; finalización anticipada, verificación de disponibilidad y responsive. No publicar antes de aprobar estas pruebas.
 - **Nota:** la aprobación de turnos indeterminados continúa deshabilitada hasta implementar renovación de reservas automática. Liberar una fecha no finaliza el turno fijo.
+
+## 14/10/2026 — Modal previo y reinicio del turnero al solicitar un turno fijo
+- **Solicitud pública:** antes de enviar un turno fijo se muestra un modal con día semanal, horario, fecha inicial y fecha final o duración indeterminada. Opciones Volver y Confirmar; cancelar no envía.
+- **Tras éxito del servidor:** se reutiliza el reinicio existente de «Nueva reserva», borrando la selección y los datos del formulario, restaurando «Una sola vez» como predeterminado y mostrando un aviso de éxito al inicio. Un error no reinicia nada.
+- **Archivos:** `reservar.html`, `css/turnero.css`, `js/reservas.js`. Sin cambios SQL, Edge Functions ni en el flujo de reserva única.
+- **Incidencia de despliegue observada:** en producción solo se ven tres tarjetas de Admin, mientras que local muestra cuatro. Pendiente verificar commit efectivo, estado del despliegue Cloudflare y caché antes de tocar CSS.
+- **Verificación técnica:** sintaxis JS y ZIP correctos. Pendiente prueba del modal y reinicio desde producción, incluyendo tablet/celular.
