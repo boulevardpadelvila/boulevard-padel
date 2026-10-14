@@ -11,6 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../css/admin.css">
   <link rel="stylesheet" href="../css/admin-torneos.css">
+  <link rel="stylesheet" href="../css/admin-fixed.css">
 </head>
 <body>
   <main class="admin-shell">
@@ -74,6 +75,20 @@
         </div>
         <button class="secondary logout-compact" id="logout-button" type="button">Cerrar sesión</button>
       </header>
+      <dialog id="admin-fixed-release-dialog" class="admin-save-dialog" aria-labelledby="admin-fixed-release-title">
+        <div class="admin-save-dialog__body">
+          <span class="admin-save-dialog__icon" aria-hidden="true">📅</span>
+          <h2 id="admin-fixed-release-title">Liberar una fecha</h2>
+          <p>Elegí la reserva semanal de <strong id="admin-fixed-release-name"></strong> que querés liberar.</p>
+          <label for="admin-fixed-release-select">Fecha y horario</label>
+          <select id="admin-fixed-release-select" class="admin-fixed__release-select"></select>
+          <p class="admin-save-dialog__hint">Solo esta fecha volverá a estar disponible. Las próximas semanas no se modifican.</p>
+          <div class="admin-save-dialog__actions">
+            <button type="button" class="secondary" id="admin-fixed-release-cancel">Volver</button>
+            <button type="button" class="primary" id="admin-fixed-release-accept">Sí, liberar fecha</button>
+          </div>
+        </div>
+      </dialog>
       <nav class="admin-work-nav" aria-label="Secciones del portal">
         <button type="button" class="admin-work-nav__button is-current" id="admin-tab-reservas" aria-pressed="true">
           <span class="admin-work-nav__icon" aria-hidden="true">📅</span>
@@ -86,6 +101,10 @@
         <button type="button" class="admin-work-nav__button" id="admin-tab-torneos" aria-pressed="false">
           <span class="admin-work-nav__icon" aria-hidden="true">🏆</span>
           <span class="admin-work-nav__label">Torneos</span>
+        </button>
+        <button type="button" class="admin-work-nav__button" id="admin-tab-fijos" aria-pressed="false">
+          <span class="admin-work-nav__icon" aria-hidden="true">🔁</span>
+          <span class="admin-work-nav__label">Turnos fijos</span>
         </button>
       </nav>
       <div id="admin-reservas-view">
@@ -210,6 +229,15 @@
           <p id="bp-block-list-message" class="message" role="status" aria-live="polite" hidden></p>
         </section>
         <div class="admin-config__footer"><span>Los cambios se aplicarán al turnero al guardar. No se modifican las reservas existentes.</span><button type="button" class="primary" id="admin-config-save" disabled>Guardar configuración</button></div><p class="message" id="admin-config-message" role="status" aria-live="polite" hidden></p>
+      </section>
+      <section id="admin-fijos-view" class="admin-fixed" hidden aria-labelledby="admin-fixed-title">
+        <div class="admin-fixed__head">
+          <div><p class="eyebrow">GESTIÓN SEMANAL</p><h1 id="admin-fixed-title">Turnos fijos</h1>
+            <p class="muted">Revisá las solicitudes. Ningún turno queda reservado hasta que sea aprobado.</p></div>
+          <button id="admin-fixed-refresh" type="button" class="secondary">Actualizar</button>
+        </div>
+        <p id="admin-fixed-message" class="message" role="status" aria-live="polite" hidden></p>
+        <div id="admin-fixed-list" class="admin-fixed__list"><p class="muted">Abrí esta sección para cargar las solicitudes.</p></div>
       </section>
       <section id="admin-torneos-view" class="admin-torneos" aria-labelledby="admin-torneos-title" hidden>
         <header class="torneos-heading">

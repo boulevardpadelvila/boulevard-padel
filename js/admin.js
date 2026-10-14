@@ -775,12 +775,140 @@
     }finally{blockBusy=false;$('bp-block-save').disabled=false;}
   });
 
+  // Módulo aislado de solicitudes fijas. La aprobación la valida íntegramente PostgreSQL.
+  const fixedDays = ['','lunes','martes','miércoles','jueves','viernes','sábado','domingo'];
+  const fixedDate = (iso) => iso ? iso.split('-').reverse().join('/') : 'Sin fecha final';
+  const fixedHour = (value) => String(value || '').slice(0,5);
+  const fixedStatus = { pending:'Pendiente',approved:'Aprobado',rejected:'Rechazado',suspended:'Suspendido',cancelled:'Cancelado',ended:'Finalizado' };
+  const fixedList = $('admin-fixed-list');
+  function fixedCell(label,value) {
+    const d=document.createElement('div'),dt=document.createElement('dt'),dd=document.createElement('dd');
+    dt.textContent=label;dd.textContent=value;d.append(dt,dd);return d;
+  }
+  function fixedWhatsapp(item) {
+    // Normalizar celulares argentinos: 3492664153, 03492..., 15..., 54..., 549...
+    // WhatsApp Web para Argentina espera 549 + 10 dígitos (sin 0 ni 15).
+    let raw=String(item.customers?.phone || '').replace(/\D/g,'');
+    if(raw.startsWith('00')) raw=raw.slice(2);
+    if(raw.startsWith('549')) raw=raw.slice(3);
+    else if(raw.startsWith('54')) raw=raw.slice(2);
+    raw=raw.replace(/^0+/,'');
+    // En el formato local argentino «15» puede anteceder al número móvil.
+    if(raw.length===12 && raw.slice(2,4)==='15') raw=raw.slice(0,2)+raw.slice(4);
+    if(raw.length===12 && raw.slice(3,5)==='15') raw=raw.slice(0,3)+raw.slice(5);
+    if(raw.length===12 && raw.slice(4,6)==='15') raw=raw.slice(0,4)+raw.slice(6);
+    const phone=raw.length===10 ? '549'+raw : '';
+    const dateRange=item.duration_type==='indefinite' ? `desde el ${fixedDate(item.start_date)}, sin fecha final` : `del ${fixedDate(item.start_date)} al ${fixedDate(item.end_date)}`;
+    const text=item.status==='approved'
+      ? `¡Hola! Te escribimos de Boulevard Pádel. Tu turno fijo fue aprobado: todos los ${fixedDays[item.weekday]} a las ${fixedHour(item.start_time)} (${item.duration_minutes} minutos), ${dateRange}. ¡Te esperamos! 🎾`
+      : `¡Hola! Te escribimos de Boulevard Pádel por tu solicitud de turno fijo para los ${fixedDays[item.weekday]} a las ${fixedHour(item.start_time)}. Queremos coordinar algunos detalles. 🎾`;
+    return phone
+      ? `https://web.whatsapp.com/send?phone=${encodeURIComponent(phone)}&text=${encodeURIComponent(text)}`
+      : `https://web.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+  }
+  async function loadFixedRequests() {
+    display('admin-fixed-message','Consultando solicitudes…',true);
+    fixedList.replaceChildren();
+    const {data,error}=await supabaseClient.rpc('bp_admin_list_fixed_requests');
+    if(error){display('admin-fixed-message','No se pudieron consultar los turnos fijos. Verificá que el SQL 24 esté instalado.');console.error('Turnos fijos:',error);return;}
+    display('admin-fixed-message','');
+    if(!data?.length){const empty=document.createElement('p');empty.className='admin-fixed__empty';empty.textContent='Todavía no hay solicitudes de turnos fijos.';fixedList.append(empty);return;}
+    for(const item of data){
+      const card=document.createElement('article');card.className='admin-fixed__item';
+      const head=document.createElement('div');head.className='admin-fixed__item-header';
+      const tag=document.createElement('span');tag.className='admin-fixed__status'+(item.status==='pending'?' admin-fixed__status--pending':'');tag.textContent=fixedStatus[item.status]||item.status;
+      const when=document.createElement('strong');when.textContent=`${fixedDays[item.weekday]} · ${fixedHour(item.start_time)}`;head.append(when,tag);
+      const name=document.createElement('h2');name.textContent=item.customer_name||'Cliente';
+      const details=document.createElement('dl');details.className='admin-fixed__details';
+      details.append(fixedCell('Teléfono',item.customer_phone||'—'),fixedCell('Duración',`${item.duration_minutes} minutos`),fixedCell('Comienza',fixedDate(item.start_date)),fixedCell('Finaliza',item.duration_type==='indefinite'?'Indeterminado':fixedDate(item.end_date)));
+      const actions=document.createElement('div');actions.className='admin-fixed__actions';
+      const whatsapp=document.createElement('a');whatsapp.className='admin-fixed__whatsapp';whatsapp.href=fixedWhatsapp({ ...item, customers:{phone:item.customer_phone} });whatsapp.target='_blank';whatsapp.rel='noopener noreferrer';whatsapp.textContent=item.status==='approved'?'Avisar por WhatsApp':'Contactar por WhatsApp';actions.append(whatsapp);
+      if(item.status==='approved') {
+        const release=document.createElement('button');release.type='button';release.className='secondary';release.textContent='Liberar una fecha';
+        release.addEventListener('click',()=>fixedReleaseOne(item));
+        const end=document.createElement('button');end.type='button';end.className='secondary';end.textContent='Finalizar turno fijo';
+        end.addEventListener('click',()=>fixedEndEarly(item));
+        actions.append(release,end);
+      }
+      if(item.status==='pending') {
+        const approve=document.createElement('button');approve.className='primary';approve.textContent='Aprobar';
+        const reject=document.createElement('button');reject.className='secondary';reject.textContent='Rechazar';
+        if(item.duration_type==='indefinite'){approve.disabled=true;approve.title='La aprobación indeterminada se habilitará al completar la renovación automática';}
+        approve.addEventListener('click',()=>fixedAction(item,'approve'));
+        reject.addEventListener('click',()=>fixedAction(item,'reject'));
+        actions.append(approve,reject);
+      }
+      card.append(head,name,details);
+      if(item.customer_notes){const note=document.createElement('p');note.className='admin-fixed__note';note.textContent=`Observaciones: ${item.customer_notes}`;card.append(note);}
+      if(item.duration_type==='indefinite' && item.status==='pending'){const n=document.createElement('p');n.className='admin-fixed__note';n.textContent='Aprobación indeterminada pendiente de activar: requiere renovación automática segura de horarios.';card.append(n);}
+      card.append(actions);fixedList.append(card);
+    }
+  }
+  async function fixedAction(item,action){
+    const isApprove=action==='approve';
+    const proceed=await confirmBlockAction({
+      title:isApprove?'Aprobar turno fijo':'Rechazar solicitud',
+      description:isApprove?'¿Aprobar y reservar todas las fechas semanales de este período?':'¿Confirmás el rechazo de esta solicitud?',
+      hint:isApprove?'Si hay reservas o bloqueos incompatibles, no se guardará ningún turno.':'La solicitud no ocupará horarios de la cancha.',
+      actionLabel:isApprove?'Sí, aprobar':'Sí, rechazar',
+      icon:isApprove?'🔁':'↩'
+    });
+    if(!proceed)return;
+    display('admin-fixed-message',isApprove?'Comprobando disponibilidad y aprobando…':'Rechazando solicitud…',true);
+    try{
+      const {error}=await supabaseClient.rpc(isApprove?'bp_admin_approve_fixed_request':'bp_admin_reject_fixed_request',{p_id:item.id});
+      if(error)throw error;
+      await loadFixedRequests();display('admin-fixed-message',isApprove?'Solicitud aprobada y horarios reservados. Podés avisarle al jugador por WhatsApp.':'Solicitud rechazada.',true);
+    }catch(e){display('admin-fixed-message',e.message||'No se pudo completar la operación.');console.error(e);}
+  }
+  // Liberación puntual o definitiva. Solo RPC administrativa; no editar reservas desde JS.
+  async function fixedReleaseOne(item) {
+    display('admin-fixed-message','Consultando fechas futuras…',true);
+    const {data,error}=await supabaseClient.rpc('bp_admin_fixed_future_dates',{p_id:item.id});
+    if(error){display('admin-fixed-message',error.message||'No se pudieron consultar las fechas.');return;}
+    if(!data?.length){display('admin-fixed-message','Este turno fijo no tiene reservas futuras confirmadas para liberar.');return;}
+    display('admin-fixed-message','');
+    const choices=data.map(v=>({id:v.reservation_id,label:new Intl.DateTimeFormat('es-AR',{timeZone:ARGENTINA_TZ,weekday:'long',day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date(v.starts_at))}));
+    const select=$('admin-fixed-release-select');select.replaceChildren();
+    for(const choice of choices)select.add(new Option(choice.label,choice.id));
+    $('admin-fixed-release-name').textContent=item.customer_name||'Jugador';
+    const dialog=$('admin-fixed-release-dialog');dialog.showModal();
+    $('admin-fixed-release-cancel').focus();
+    const accepted=await new Promise(resolve=>{
+      const yes=$('admin-fixed-release-accept'),no=$('admin-fixed-release-cancel');
+      const finish=value=>{dialog.removeEventListener('close',closed);yes.removeEventListener('click',approve);no.removeEventListener('click',cancel);if(dialog.open)dialog.close();resolve(value);};
+      const closed=()=>finish(null),approve=()=>finish(select.value),cancel=()=>finish(null);
+      dialog.addEventListener('close',closed);yes.addEventListener('click',approve);no.addEventListener('click',cancel);
+    });
+    if(!accepted)return;
+    display('admin-fixed-message','Liberando la fecha seleccionada…',true);
+    const result=await supabaseClient.rpc('bp_admin_release_fixed_date',{p_id:item.id,p_reservation_id:accepted});
+    if(result.error){display('admin-fixed-message',result.error.message||'No se pudo liberar la fecha.');return;}
+    await loadFixedRequests();display('admin-fixed-message','La fecha fue liberada. Las demás semanas siguen reservadas.',true);
+  }
+  async function fixedEndEarly(item) {
+    const proceed=await confirmBlockAction({
+      title:'Finalizar turno fijo',
+      description:`¿Finalizar definitivamente el turno fijo de ${item.customer_name||'este jugador'}?`,
+      hint:'Se liberarán todas sus reservas futuras. Las fechas anteriores quedarán en el historial. Esta acción no se puede deshacer automáticamente.',
+      actionLabel:'Sí, finalizar',icon:'📅'
+    });
+    if(!proceed)return;
+    display('admin-fixed-message','Finalizando turno fijo y liberando fechas futuras…',true);
+    const {data,error}=await supabaseClient.rpc('bp_admin_end_fixed_request',{p_id:item.id});
+    if(error){display('admin-fixed-message',error.message||'No se pudo finalizar el turno fijo.');return;}
+    await loadFixedRequests();display('admin-fixed-message',`Turno fijo finalizado. Se liberaron ${data} reservas futuras.`,true);
+  }
+
+  $('admin-fixed-refresh').addEventListener('click',loadFixedRequests);
+
   // Navegación entre reservas y maquetas visuales; no realiza escrituras.
   const setAdminSection = (section) => {
     const sections = {
       reservas: ['admin-reservas-view', 'admin-tab-reservas'],
       config: ['admin-config-view', 'admin-tab-config'],
-      torneos: ['admin-torneos-view', 'admin-tab-torneos']
+      torneos: ['admin-torneos-view', 'admin-tab-torneos'],
+      fijos: ['admin-fijos-view', 'admin-tab-fijos']
     };
     for (const [name, [viewId, tabId]] of Object.entries(sections)) {
       const selected = name === section;
@@ -793,6 +921,7 @@
   $('admin-tab-reservas').addEventListener('click', () => setAdminSection('reservas'));
   $('admin-tab-config').addEventListener('click', () => { setAdminSection('config'); loadConfig(); loadBlockouts(); });
   $('admin-tab-torneos').addEventListener('click', () => setAdminSection('torneos'));
+  $('admin-tab-fijos').addEventListener('click', () => { setAdminSection('fijos'); loadFixedRequests(); });
   $('reservations-date').value = argentinaDay(new Date());
   syncDateCards();
   $('show-cancelled').addEventListener('click', async () => {

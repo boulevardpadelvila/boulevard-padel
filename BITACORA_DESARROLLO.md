@@ -1984,3 +1984,27 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 - **Backend:** nueva Edge Function `supabase/functions/request-fixed-turn/index.ts` verifica Cloudflare Turnstile, valida datos, registra cliente y solicitud `pending` en `fixed_turn_requests`; intenta notificar al administrador por Resend si están configuradas las variables secretas de email. Un fallo del correo no cancela la solicitud.
 - **Pendiente necesario antes de activar en producción:** desplegar función, configurar y probar secrets de Turnstile/Resend y remitente autorizado; validar recepción real del correo. Agregar gestión de aprobación/rechazo del Admin y materialización segura de turnos semanales para aprobados; no ofrecer el módulo como terminado hasta ello.
 - **Pruebas:** sintaxis de JS y estructura del ZIP comprobadas; no se ejecutaron solicitudes reales a Supabase desde aquí.
+
+## 14/10/2026 — Admin de Turnos fijos y WhatsApp Web (etapa controlada)
+- Se preparó una sección **Turnos fijos** con bandeja de solicitudes en `admin/index.html`, lógica aislada en `js/admin.js` y estilos independientes `css/admin-fixed.css`.
+- Se añadieron funciones SQL administrativas en `sql/24_admin_turnos_fijos.sql`: listar solicitudes, rechazar pendientes y aprobar solicitudes **de período definido** con generación atómica de reservas semanales y validaciones contra horarios, cierres excepcionales, reservas existentes, fechas pasadas y ventana actual. Requieren perfil administrador activo y no exponen escrituras al público.
+- Contacto **manual** mediante botón WhatsApp Web: abre el chat del teléfono solicitado con texto listo para enviar; nunca se envía automáticamente. Al aprobar aparece «Avisar por WhatsApp».
+- Confirmaciones de aprobar y rechazar utilizan el modal existente, no `window.confirm`.
+- **Límite explícito de seguridad:** solicitudes *por tiempo indeterminado* visibles, pero su aprobación permanece deshabilitada hasta implementar la renovación automática segura; no se deben aprobar sin ocupar el horizonte futuro correspondiente.
+- No se modificaron archivos del turnero público, funciones de reservas normales ni de bloqueos; no se generan registros de prueba desde el SQL.
+- **Pruebas pendientes:** ejecutar SQL en Supabase; verificar carga y rechazo de solicitudes de prueba; crear una solicitud definida futura sin conflictos y comprobar aprobación, ocupación en turnero, aviso por WhatsApp Web y protección ante conflictos; revisar versión móvil. No publicar ni considerar cerrado hasta verificaciones.
+
+
+## 14/10/2026 — Corrección puntual WhatsApp y criterios de liberación anticipada
+- **Probado por el usuario:** el Admin aprobó una solicitud de turno fijo definido y las reservas semanales se ocultaron del turnero público.
+- **Problema detectado:** el enlace a WhatsApp Web requería agregar 549 a celulares argentinos ingresados sin código internacional. Se normalizan los formatos nacionales habituales (sin prefijo, 0, 15, +54, +549) en `js/admin.js`. Si el número no puede convertirse con seguridad, se abre WhatsApp Web con el texto, sin destinatario precargado, en vez de apuntar a un contacto incorrecto. No se automatiza el envío.
+- **Pendiente funcional prioritario:** permitir al administrador (a) liberar una única ocurrencia semanal sin cancelar el turno fijo completo, y (b) finalizar anticipadamente un turno fijo aprobado, cancelando exclusivamente las reservas futuras vinculadas a `fixed_turn_request_id`; conservar las pasadas y toda la trazabilidad. Preparar RPC transaccionales con `is_admin()`, confirmación mediante modal y mensajes claros. Nunca cancelar manualmente las reservas de otro cliente ni eliminar la solicitud.
+- **Pendiente:** probar el enlace de WhatsApp Web con un número local real y ambas variantes de liberación tras implementar su SQL, sin modificar reservas normales ni bloqueos.
+
+## 14/10/2026 — Liberación de turnos fijos y navegación superior (etapa de prueba)
+- **Validado por el usuario:** aprobación de turno fijo por período determinado, ocupación semanal en el turnero y acceso a WhatsApp Web con normalización argentina.
+- **Interfaz:** cuatro tarjetas de navegación del Admin en una fila en escritorio; dos columnas para tablet/celular. Se conservan diseños y funcionalidades previas.
+- **SQL definitivo 25:** función de consulta de fechas futuras confirmadas de un turno fijo, función transaccional para liberar una fecha y función transaccional para finalizar anticipadamente el turno fijo y cancelar solo sus reservas futuras. Verifican administrador activo; las cancelaciones preservan historial.
+- **Admin:** nuevas opciones «Liberar una fecha» (selector modal) y «Finalizar turno fijo» (confirmación modal) para turnos aprobados. No se toca el sistema de reservas comunes ni sus funciones.
+- **Pendiente de probar:** SQL 25 en Supabase; liberación de una fecha de prueba con confirmación de que el resto sigue ocupado; finalización anticipada, verificación de disponibilidad y responsive. No publicar antes de aprobar estas pruebas.
+- **Nota:** la aprobación de turnos indeterminados continúa deshabilitada hasta implementar renovación de reservas automática. Liberar una fecha no finaliza el turno fijo.
