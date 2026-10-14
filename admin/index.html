@@ -165,7 +165,7 @@
       <section id="admin-config-view" class="admin-config" aria-labelledby="admin-config-title" hidden>
         <div class="admin-config__heading">
           <div><p class="eyebrow">CONFIGURACIÓN DEL COMPLEJO</p><h1 id="admin-config-title">Horarios y disponibilidad</h1><p class="admin-config__intro">Definí cuándo se podrá reservar la cancha desde el sitio público y desde Administración.</p></div>
-          <span class="admin-config__preview">Vista de diseño · No guarda cambios</span>
+          <span class="admin-config__preview">Configuración del complejo</span>
         </div>
         <section class="admin-config__panel" aria-labelledby="admin-weekly-title">
           <div class="admin-config__panel-heading"><div><h2 id="admin-weekly-title">Horarios semanales</h2><p>Activá los días de apertura y elegí el horario de cada uno.</p></div><span class="admin-config__court">Cancha 1</span></div>
@@ -181,11 +181,11 @@
           </div>
         </section>
         <div class="admin-config__two">
-          <section class="admin-config__panel" aria-labelledby="admin-duration-title"><h2 id="admin-duration-title">Duración de turnos</h2><p>Tiempo que ocupa cada reserva.</p><label for="admin-preview-duration">Duración</label><select id="admin-preview-duration"><option>60 minutos</option><option selected>90 minutos</option><option>120 minutos</option></select></section>
-          <section class="admin-config__panel" aria-labelledby="admin-window-title"><h2 id="admin-window-title">Período de reservas</h2><p>Hasta cuándo pueden reservar los jugadores.</p><label for="admin-preview-window">Anticipación máxima</label><select id="admin-preview-window"><option>1 mes</option><option selected>2 meses</option><option>3 meses</option><option>Personalizado</option></select></section>
+          <section class="admin-config__panel" aria-labelledby="admin-duration-title"><h2 id="admin-duration-title">Duración de turnos</h2><p>Tiempo que ocupa cada reserva.</p><label for="admin-preview-duration">Duración</label><select id="admin-preview-duration"><option value="60">60 minutos</option><option value="90" selected>90 minutos</option><option value="120">120 minutos</option></select></section>
+          <section class="admin-config__panel" aria-labelledby="admin-window-title"><h2 id="admin-window-title">Período de reservas</h2><p>Hasta cuándo pueden reservar los jugadores.</p><label for="admin-preview-window">Anticipación máxima</label><select id="admin-preview-window"><option value="1">1 mes</option><option value="2" selected>2 meses</option><option value="3">3 meses</option></select></section>
           <section class="admin-config__panel admin-config__blocked" aria-labelledby="admin-block-title"><div><h2 id="admin-block-title">Cierres y bloqueos excepcionales</h2><p>Para mantenimiento, torneos, feriados o vacaciones.</p></div><button type="button" class="secondary" disabled title="Se habilitará en la siguiente etapa">+ Agregar bloqueo</button></section>
         </div>
-        <div class="admin-config__footer"><span>Vista visual de ejemplo. Los horarios mostrados no se leen ni se guardan en Supabase.</span><button type="button" class="primary" disabled>Guardar configuración (próximamente)</button></div>
+        <div class="admin-config__footer"><span>Los cambios se aplicarán al turnero al guardar. No se modifican las reservas existentes.</span><button type="button" class="primary" id="admin-config-save" disabled>Guardar configuración</button></div><p class="message" id="admin-config-message" role="status" aria-live="polite" hidden></p>
       </section>
       <section id="admin-torneos-view" class="admin-torneos" aria-labelledby="admin-torneos-title" hidden>
         <header class="torneos-heading">
@@ -223,6 +223,18 @@
         <p class="torneos-disclaimer">Esta sección es una vista preliminar. No crea torneos, no guarda inscripciones y no modifica reservas ni horarios reales.</p>
       </section>
     </section>
+    <dialog class="admin-save-dialog" id="admin-save-dialog" aria-labelledby="admin-save-dialog-title" aria-describedby="admin-save-dialog-description">
+      <div class="admin-save-dialog__body">
+        <span class="admin-save-dialog__icon" aria-hidden="true">✓</span>
+        <h2 id="admin-save-dialog-title">Guardar configuración</h2>
+        <p id="admin-save-dialog-description">¿Confirmás los cambios de días, horarios y opciones de reserva?</p>
+        <p class="admin-save-dialog__hint">Las reservas existentes no se cancelan automáticamente.</p>
+        <div class="admin-save-dialog__actions">
+          <button type="button" class="secondary" id="admin-save-dialog-cancel">Volver</button>
+          <button type="button" class="primary" id="admin-save-dialog-accept">Sí, guardar</button>
+        </div>
+      </div>
+    </dialog>
     <section class="loading" id="loading-panel" aria-live="polite">Verificando acceso…</section>
   </main>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>

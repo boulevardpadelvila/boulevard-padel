@@ -1932,3 +1932,32 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 - **Cambio:** `js/admin.js` calcula las tarjetas completas visibles a partir del ancho real del contenedor, el ancho de cada tarjeta y el espacio entre ellas. En escritorio (ancho de ventana superior a 1024 px) mantiene el avance semanal de 7 días; en tablet y celular desplaza entre 1 y 7 días según el espacio disponible.
 - **Sin alterar:** calendario, selección de fecha, lectura de reservas, Supabase ni diseño aprobado.
 - **Pruebas:** sintaxis del JavaScript y estructura ZIP verificadas; queda comprobar el desplazamiento en navegadores reales de escritorio, tablet y celular antes de cerrar el ajuste.
+
+## 14/10/2026 — Primera conexión real de «Horarios y disponibilidad» con Supabase
+- **Objetivo:** reemplazar los datos provisionales de la maqueta por la configuración existente, habilitando lectura y guardado únicamente desde la sesión Admin.
+- **Diagnóstico SQL confirmado:** `booking_settings` id 1, turnos de 90 min, ventana de 2 meses, zona `America/Argentina/Cordoba`, cancelación 12 h; `weekly_hours` con una cancha y siete días activos de 09:00 a 22:30. Las tres tablas tienen RLS y política `is_admin()`; se concedió a `authenticated` SELECT y UPDATE en `booking_settings` y `weekly_hours` mediante el script definitivo `19_permisos_configuracion_admin`.
+- **Frontend:** `admin/index.html` identifica botón de guardar y mensajes de estado; opciones de duración/ventana con valores numéricos. `js/admin.js` carga `booking_settings` y `weekly_hours` desde Supabase al abrir la sección, sincroniza interruptores/horas/selectores y habilita guardado únicamente tras lectura válida. Se comprueban siete días de una misma cancha, horarios válidos, duración 60/90/120 min y ventana 1/2/3 meses; se pide confirmación explícita antes de escribir. No se habilitaron inserción, eliminación ni modificaciones de `blockouts`.
+- **Importante:** la escritura por REST consta de una actualización de configuración general y siete actualizaciones de días; **no es transaccional**. Si falla durante el proceso pueden quedar algunos valores actualizados; se vuelve a leer la configuración, se informa del fallo y debe revisarse antes de reintentar. En una etapa posterior se recomienda RPC transaccional Admin para un guardado atómico.
+- **Estado y pruebas:** sintaxis JS comprobada localmente. Pendiente prueba de lectura, guardado y efecto sobre la disponibilidad pública con sesión Admin real; no se alteraron los datos del proyecto desde esta sesión.
+- **Siguientes pasos:** validar lectura y guardado con un cambio reversible sin reservas afectadas; implementar bloqueos excepcionales y la interfaz de turnos fijos; más adelante, planificar backend de Torneos.
+
+## 14/10/2026 — Preparación del guardado atómico de horarios
+- **Objetivo:** evitar cambios parciales al guardar la configuración general y los siete días de la cancha.
+- **Backend propuesto:** `sql/20_guardado_atomico_configuracion_admin.sql` crea `public.save_admin_booking_config(...)` con `SECURITY INVOKER`, comprobación `is_admin()`, validación de 7 días únicos, intervalos válidos y duración/período permitidos. La función actualiza ocho filas en una sola transacción PostgreSQL; cualquier error deshace toda la operación. Se restringe EXECUTE a `authenticated` y se conservan RLS y permisos anteriores.
+- **Frontend:** `js/admin.js` sustituye las ocho llamadas REST por una sola llamada RPC y conserva la lectura desde Supabase, el formulario, la confirmación y el mensaje final.
+- **Estado:** archivos preparados y sintaxis JavaScript validada. **No se ejecutó el SQL ni se probó la RPC contra Supabase**; primero el usuario debe ejecutar el script en SQL Editor y después incorporar el JS. No se tocaron reservas ni valores existentes.
+- **Pendientes prioritarios:** comprobar guardado real sin cambios y cambio reversible; verificar que el turnero público respete horarios modificados; implementar cierres parciales y completos con comprobación de conflictos con reservas; completar pruebas antes de entrega.
+
+## 14/10/2026 — Corrección visual del botón Guardar configuración
+- **Incidencia:** el botón aparecía gris incluso después del mensaje de carga exitosa desde Supabase.
+- **Causa:** una regla CSS heredada de la maqueta asignaba `opacity:.55` y `cursor:not-allowed` al botón independientemente de su atributo `disabled`.
+- **Corrección:** la apariencia ahora responde al estado real de `#admin-config-save:disabled`; cuando JavaScript habilita el botón se muestra opaco y clicable.
+- **Archivo modificado:** `css/admin.css`. No se modificó SQL ni JavaScript.
+- **Prueba pendiente:** revisar visualmente en Live Server, hacer guardado sin modificar valores y confirmar el mensaje de éxito.
+
+
+## 14/10/2026 — Restauración de tarjetas y diálogo de confirmación del Admin
+- Se detectó una regresión: la actualización de `css/admin.css` para habilitar Guardar había sobrescrito las reglas aprobadas para las tres tarjetas superiores; recuperadas exactamente del paquete de diseño aprobado, conservando el arreglo del botón Guardar.
+- Se sustituyó el cuadro nativo `confirm()` por un modal HTML `<dialog>` accesible, con cancelar, confirmar, cierre con Escape y fondo atenuado.
+- Archivos: `admin/index.html`, `css/admin.css`, `js/admin.js`. Se conserva la función RPC transaccional de guardado y la carga de configuración existente.
+- Pendiente: prueba visual en Live Server (escritorio y móvil) y prueba sin cambios contra Supabase antes de publicar.

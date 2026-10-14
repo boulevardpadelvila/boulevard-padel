@@ -454,6 +454,134 @@
     drawAdminDates();
   }
 
+  // Configuración real del complejo: se lee de Supabase y solo puede guardarse
+  // cuando las filas existentes se cargaron correctamente bajo RLS de Admin.
+  let configRows = [];
+  let currentSettings = null;
+  let configBusy = false;
+  let configLoadCounter = 0;
+  const configDays = [...document.querySelectorAll('.admin-weekly-day')];
+  const configSave = $('admin-config-save');
+  const configNote = (message, success = false) => display('admin-config-message', message, success);
+  const hhmm = (time) => String(time || '').slice(0, 5);
+  function fillConfig() {
+    const byDay = new Map(configRows.map(row => [Number(row.weekday), row]));
+    for (let day = 1; day <= 7; day++) {
+      const row = byDay.get(day);
+      const inputs = configDays[day - 1].querySelectorAll('input');
+      inputs[0].checked = Boolean(row.is_open);
+      inputs[1].value = hhmm(row.opening_time) || '09:00';
+      inputs[2].value = hhmm(row.closing_time) || '22:30';
+    }
+    const duration = $('admin-preview-duration');
+    const windowMonths = $('admin-preview-window');
+    // Conservar configuraciones preexistentes que no aparecen en las opciones iniciales.
+    for (const [select, number, unit] of [[duration, currentSettings.slot_duration_minutes, 'minutos'], [windowMonths, currentSettings.default_window_months, 'meses']]) {
+      const value = String(number);
+      if (![...select.options].some(o => o.value === value)) select.add(new Option(`${number} ${unit} (actual)`, value));
+      select.value = value;
+    }
+  }
+  async function loadConfig() {
+    const seq = ++configLoadCounter;
+    configSave.disabled = true;
+    configNote('Cargando configuración…', true);
+    try {
+      const [settingsResult, weeklyResult] = await Promise.all([
+        supabaseClient.from('booking_settings').select('id, slot_duration_minutes, default_window_months').eq('id', 1).single(),
+        supabaseClient.from('weekly_hours').select('id, court_id, weekday, is_open, opening_time, closing_time').order('weekday')
+      ]);
+      if (seq !== configLoadCounter) return;
+      if (settingsResult.error) throw settingsResult.error;
+      if (weeklyResult.error) throw weeklyResult.error;
+      const rows = weeklyResult.data || [];
+      if (rows.length !== 7 || new Set(rows.map(r => r.weekday)).size !== 7 || new Set(rows.map(r => r.court_id)).size !== 1) {
+        throw new Error('La configuración semanal no contiene exactamente los 7 días de una cancha.');
+      }
+      currentSettings = settingsResult.data;
+      configRows = rows;
+      fillConfig();
+      configSave.disabled = false;
+      configNote('Configuración actual cargada desde Supabase.', true);
+    } catch (error) {
+      currentSettings = null; configRows = [];
+      configNote(error.message || 'No se pudo cargar la configuración.');
+      console.error('Error cargando configuración del Admin:', error);
+    }
+  }
+  function requestConfigConfirmation() {
+    const dialog = $('admin-save-dialog');
+    return new Promise((resolve) => {
+      const cancel = $('admin-save-dialog-cancel');
+      const accept = $('admin-save-dialog-accept');
+      let finished = false;
+      function finish(confirmed) {
+        if (finished) return;
+        finished = true;
+        dialog.removeEventListener('close', onClose);
+        cancel.removeEventListener('click', onCancel);
+        accept.removeEventListener('click', onAccept);
+        if (dialog.open) dialog.close();
+        resolve(confirmed);
+      }
+      const onClose = () => finish(false);
+      const onCancel = () => finish(false);
+      const onAccept = () => finish(true);
+      dialog.addEventListener('close', onClose);
+      cancel.addEventListener('click', onCancel);
+      accept.addEventListener('click', onAccept);
+      dialog.showModal();
+      cancel.focus();
+    });
+  }
+  configSave.addEventListener('click', async () => {
+    if (configBusy || !currentSettings || configRows.length !== 7) return;
+    const duration = Number($('admin-preview-duration').value);
+    const months = Number($('admin-preview-window').value);
+    if (![60, 90, 120].includes(duration) || ![1, 2, 3].includes(months)) {
+      configNote('Elegí una duración y un período de reservas válidos.'); return;
+    }
+    const changes = [];
+    for (let index = 0; index < configDays.length; index++) {
+      const [open, from, until] = configDays[index].querySelectorAll('input');
+      if (open.checked && (!from.value || !until.value || from.value >= until.value)) {
+        configNote(`Revisá las horas de ${configDays[index].querySelector('strong').textContent}: el cierre debe ser posterior a la apertura.`);
+        return;
+      }
+      const existing = configRows.find(row => Number(row.weekday) === index + 1);
+      changes.push({
+        id: existing.id, is_open: open.checked,
+        opening_time: from.value || null, closing_time: until.value || null
+      });
+    }
+    if (!await requestConfigConfirmation()) return;
+    configBusy = true; configSave.disabled = true;
+    configNote('Guardando cambios…', true);
+    try {
+      // Una sola RPC PostgreSQL: o se guardan todos los cambios, o ninguno.
+      const days = changes.map((change, index) => ({
+        weekday: index + 1,
+        is_open: change.is_open,
+        opening_time: change.opening_time,
+        closing_time: change.closing_time
+      }));
+      const { error } = await supabaseClient.rpc('save_admin_booking_config', {
+        p_duration_minutes: duration,
+        p_window_months: months,
+        p_days: days
+      });
+      if (error) throw error;
+      await loadConfig();
+      configNote('Configuración guardada correctamente.', true);
+    } catch (error) {
+      await loadConfig();
+      configNote('No se guardó la configuración. Ningún cambio de esta operación fue aplicado. Revisá los datos y reintentá.');
+      console.error('Error guardando configuración:', error);
+    } finally {
+      configBusy = false;
+    }
+  });
+
   // Navegación entre reservas y maquetas visuales; no realiza escrituras.
   const setAdminSection = (section) => {
     const sections = {
@@ -470,7 +598,7 @@
     }
   };
   $('admin-tab-reservas').addEventListener('click', () => setAdminSection('reservas'));
-  $('admin-tab-config').addEventListener('click', () => setAdminSection('config'));
+  $('admin-tab-config').addEventListener('click', () => { setAdminSection('config'); loadConfig(); });
   $('admin-tab-torneos').addEventListener('click', () => setAdminSection('torneos'));
   $('reservations-date').value = argentinaDay(new Date());
   syncDateCards();
