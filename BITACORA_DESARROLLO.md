@@ -1961,3 +1961,18 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 - Se sustituyó el cuadro nativo `confirm()` por un modal HTML `<dialog>` accesible, con cancelar, confirmar, cierre con Escape y fondo atenuado.
 - Archivos: `admin/index.html`, `css/admin.css`, `js/admin.js`. Se conserva la función RPC transaccional de guardado y la carga de configuración existente.
 - Pendiente: prueba visual en Live Server (escritorio y móvil) y prueba sin cambios contra Supabase antes de publicar.
+
+## 14/10/2026 — Confirmaciones de bloqueos con modal institucional
+- **Comprobado por el usuario:** un bloqueo parcial 23/10/2026 de 18:00 a 20:00 se creó y se mostró en «Bloqueos próximos»; el turnero público dejó de ofrecer los horarios afectados.
+- **Ajuste solicitado:** reemplazar las confirmaciones nativas del navegador al **crear** y **desactivar** bloqueos por modales visuales, consistentes con «Guardar configuración».
+- **Implementación:** se agregó `#bp-block-dialog` en `admin/index.html` y un confirmador reutilizable mediante `<dialog>` en `js/admin.js` (botones Volver/Confirmar, Escape, cierre accesible). **No se alteraron las RPC de Supabase, validación de conflictos, ni estilos existentes.**
+- **Estado:** sintaxis verificada. Queda pendiente probar ambos modales en navegador y volver a confirmar creación/desactivación sin datos reales.
+
+
+## 14/10/2026 — Mejora visual de reservas afectadas por bloqueos excepcionales
+- **Prueba confirmada por el usuario:** bloquear un día completo funciona; cuando existen tres reservas en la fecha seleccionada, el sistema impide crear el bloqueo y enumera las reservas afectadas.
+- **Ajuste:** el estado de conflicto presenta un encabezado claro y tarjetas individuales con horario, jugador, teléfono y código; se elimina el doble aviso rojo redundante.
+- **Acceso directo:** «Ver reservas del día» abre la sección Reservas en la fecha del intento de bloqueo y en vista de reservas activas, sin efectuar cambios en la base de datos.
+- **Prevención visual:** «Crear bloqueo» queda deshabilitado mientras no exista una comprobación satisfactoria para los parámetros actuales; toda modificación de fecha/franja obliga a comprobar de nuevo.
+- **Sin cambios:** SQL, RPC de bloqueos, validaciones existentes, guardado de configuración y otros módulos.
+- **Pendiente de validación:** revisar visualmente escritorio y celular y probar el salto a Reservas, la deshabilitación con conflictos y la creación cuando no hay conflictos.

@@ -582,6 +582,199 @@
     }
   });
 
+  // Confirmación visual reutilizable y accesible para crear/desactivar bloqueos.
+  // Conserva el comportamiento anterior: cancelar no ejecuta ninguna operación.
+  function confirmBlockAction({title,description,hint,actionLabel,icon='🗓'}) {
+    const dialog = $('bp-block-dialog');
+    $('bp-block-dialog-title').textContent = title;
+    $('bp-block-dialog-description').textContent = description;
+    $('bp-block-dialog-hint').textContent = hint;
+    $('bp-block-dialog-accept').textContent = actionLabel;
+    dialog.querySelector('.admin-save-dialog__icon').textContent = icon;
+    return new Promise((resolve) => {
+      const cancel = $('bp-block-dialog-cancel');
+      const accept = $('bp-block-dialog-accept');
+      const finish = (result) => {
+        dialog.removeEventListener('cancel', onCancel);
+        dialog.removeEventListener('close', onClose);
+        cancel.removeEventListener('click', onNo);
+        accept.removeEventListener('click', onYes);
+        if (dialog.open) dialog.close();
+        resolve(result);
+      };
+      const onCancel = (event) => { event.preventDefault(); finish(false); };
+      const onClose = () => finish(false);
+      const onNo = () => finish(false);
+      const onYes = () => finish(true);
+      dialog.addEventListener('cancel', onCancel);
+      dialog.addEventListener('close', onClose);
+      cancel.addEventListener('click', onNo);
+      accept.addEventListener('click', onYes);
+      dialog.showModal();
+      cancel.focus();
+    });
+  }
+
+  // Bloqueos excepcionales: interfaz aislada; lecturas y escrituras solo mediante RPC Admin.
+  const blockPanel = $('bp-block-panel');
+  const blockNote = (message, success = false) => display('bp-block-message', message, success);
+  const blockListNote = (message, success = false) => display('bp-block-list-message', message, success);
+  const blockConflicts = $('bp-block-conflicts');
+  let blockBusy = false;
+  let blockPreviewKey = '';
+  $('bp-block-save').disabled = true;
+  const blockFields = () => ({
+    p_day: $('bp-block-day').value,
+    p_full_day: $('bp-block-type').value === 'all',
+    p_from: $('bp-block-type').value === 'all' ? null : $('bp-block-from').value,
+    p_until: $('bp-block-type').value === 'all' ? null : $('bp-block-until').value
+  });
+  const blockKey = () => JSON.stringify(blockFields());
+  const blockTimeLabel = (stamp) => timeFormatter.format(new Date(stamp));
+  function blockInputsValid() {
+    const v = blockFields();
+    if (!v.p_day || v.p_day < argentinaDay(new Date())) throw new Error('Elegí una fecha actual o futura.');
+    if (!v.p_full_day && (!v.p_from || !v.p_until || v.p_from >= v.p_until)) throw new Error('Revisá las horas: el cierre debe ser posterior a la apertura.');
+    return v;
+  }
+  function blockInvalidatePreview() {
+    blockPreviewKey = '';
+    blockConflicts.hidden = true;
+    blockConflicts.replaceChildren();
+    blockNote('');
+    $('bp-block-save').disabled = true;
+  }
+  function blockToggleHours() {
+    const full = $('bp-block-type').value === 'all';
+    for (const el of document.querySelectorAll('.bp-block__time')) el.hidden = full;
+    $('bp-block-from').required = !full;
+    $('bp-block-until').required = !full;
+    blockInvalidatePreview();
+  }
+  $('bp-block-type').addEventListener('change', blockToggleHours);
+  for (const id of ['bp-block-day','bp-block-from','bp-block-until']) $(id).addEventListener('change', blockInvalidatePreview);
+  $('bp-block-open').addEventListener('click', () => {
+    blockPanel.hidden = false;
+    $('bp-block-day').min = argentinaDay(new Date());
+    if (!$('bp-block-day').value) $('bp-block-day').value = argentinaDay(new Date());
+    blockToggleHours();
+    blockPanel.scrollIntoView({behavior:'smooth',block:'nearest'});
+  });
+  $('bp-block-close').addEventListener('click', () => { if (!blockBusy) blockPanel.hidden=true; });
+  async function previewBlock() {
+    const params = blockInputsValid();
+    blockNote('Comprobando reservas…', true);
+    const {data,error} = await supabaseClient.rpc('bp_admin_blockout_conflicts',params);
+    if(error) throw error;
+    blockConflicts.replaceChildren();
+    const rows = data || [];
+    if(rows.length){
+      const heading=document.createElement('div');heading.className='bp-conflict__intro';
+      const title=document.createElement('h3');title.textContent='No se puede crear el bloqueo';
+      const explanation=document.createElement('p');explanation.textContent=`Hay ${rows.length} ${rows.length===1?'reserva vigente':'reservas vigentes'} en la fecha o franja seleccionada. Reprogramalas o cancelalas antes de crear este cierre.`;
+      heading.append(title,explanation);
+      const cards=document.createElement('div');cards.className='bp-conflict__cards';
+      for(const item of rows){
+        const card=document.createElement('article');card.className='bp-conflict__card';
+        const time=document.createElement('strong');time.className='bp-conflict__time';
+        time.textContent=`${blockTimeLabel(item.starts_at)} a ${blockTimeLabel(item.ends_at)}`;
+        const name=document.createElement('div');name.className='bp-conflict__name';name.textContent=item.booking_name || 'Cliente sin nombre';
+        const phone=document.createElement('div');phone.className='bp-conflict__detail';phone.textContent=`Teléfono: ${item.booking_phone || 'No registrado'}`;
+        const code=document.createElement('div');code.className='bp-conflict__detail';code.textContent=`Código: ${item.reservation_code || 'No disponible'}`;
+        card.append(time,name,phone,code);cards.append(card);
+      }
+      const footer=document.createElement('div');footer.className='bp-conflict__footer';
+      const go=document.createElement('button');go.type='button';go.className='secondary bp-conflict__go';go.textContent='Ver reservas del día';
+      go.addEventListener('click',()=>{
+        setAdminSection('reservas');
+        $('reservations-date').value=params.p_day;
+        syncDateCards();
+        viewingCancelled=false;
+        $('show-cancelled').textContent='Ver canceladas';
+        $('show-cancelled').setAttribute('aria-pressed','false');
+        loadReservations();
+        $('admin-reservas-view').scrollIntoView({behavior:'smooth',block:'start'});
+      });
+      footer.append(go);
+      blockConflicts.append(heading,cards,footer);
+      blockConflicts.hidden=false;
+      blockNote('');
+      $('bp-block-save').disabled=true;
+      blockPreviewKey='';
+    }else{
+      blockConflicts.hidden=true;
+      blockNote('No se encontraron reservas en conflicto. Podés crear el bloqueo.',true);
+      $('bp-block-save').disabled=false;
+      blockPreviewKey=blockKey();
+    }
+    return rows.length===0;
+  }
+  $('bp-block-preview').addEventListener('click', async () => {
+    if(blockBusy)return;
+    try{await previewBlock();}catch(error){blockInvalidatePreview();blockNote(error.message || 'No fue posible comprobar las reservas.');}
+  });
+  async function loadBlockouts(){
+    blockListNote('Consultando bloqueos…',true);
+    const container=$('bp-block-list-content');
+    try{
+      const {data,error}=await supabaseClient.rpc('bp_admin_list_blockouts');
+      if(error)throw error;
+      container.replaceChildren();
+      if(!data?.length){const p=document.createElement('p');p.className='muted';p.textContent='No hay bloqueos futuros activos.';container.append(p);}
+      for(const item of data||[]){
+        const entry=document.createElement('article');entry.className='bp-block-entry';
+        const info=document.createElement('div');
+        const title=document.createElement('strong');
+        title.textContent=`${new Intl.DateTimeFormat('es-AR',{timeZone:ARGENTINA_TZ,day:'2-digit',month:'2-digit',year:'numeric'}).format(new Date(item.starts_at))} · ${blockTimeLabel(item.starts_at)} a ${blockTimeLabel(item.ends_at)}`;
+        const note=document.createElement('p');note.textContent=item.reason||'Sin motivo registrado';
+        info.append(title,note);
+        const cancel=document.createElement('button');cancel.className='secondary';cancel.type='button';cancel.textContent='Desactivar';
+        cancel.addEventListener('click',async()=>{
+          if(!await confirmBlockAction({
+            title:'Desactivar bloqueo',
+            description:'¿Querés desactivar este cierre excepcional?',
+            hint:'Los horarios que estén libres volverán a aparecer en el turnero.',
+            actionLabel:'Sí, desactivar',
+            icon:'↺'
+          }))return;
+          cancel.disabled=true;
+          const {error:err}=await supabaseClient.rpc('bp_admin_disable_blockout',{p_id:item.id});
+          if(err){blockListNote(err.message||'No se pudo desactivar el bloqueo.');cancel.disabled=false;return;}
+          await loadBlockouts();blockListNote('Bloqueo desactivado correctamente.',true);
+        });
+        entry.append(info,cancel);container.append(entry);
+      }
+      blockListNote('');
+    }catch(error){blockListNote(error.message||'No se pudieron consultar los bloqueos.');}
+  }
+  $('bp-block-refresh').addEventListener('click',loadBlockouts);
+  $('bp-block-form').addEventListener('submit',async(event)=>{
+    event.preventDefault();
+    if(blockBusy)return;
+    let params;
+    try{params=blockInputsValid();}catch(error){blockNote(error.message);return;}
+    if(blockPreviewKey!==blockKey()){
+      blockNote('Primero comprobá las reservas para esta fecha y horario.');return;
+    }
+    if(!await confirmBlockAction({
+      title:'Crear bloqueo excepcional',
+      description:'¿Confirmás el cierre para la fecha y franja horaria seleccionadas?',
+      hint:'No se modificarán los horarios semanales ni se cancelarán reservas.',
+      actionLabel:'Sí, crear bloqueo'
+    }))return;
+    blockBusy=true;$('bp-block-save').disabled=true;
+    try{
+      const {error}=await supabaseClient.rpc('bp_admin_create_blockout',{...params,p_reason:$('bp-block-reason').value.trim()||null});
+      if(error)throw error;
+      blockInvalidatePreview();blockNote('Bloqueo creado correctamente.',true);
+      $('bp-block-form').reset();blockToggleHours();
+      await loadBlockouts();
+    }catch(error){
+      blockPreviewKey='';
+      blockNote(error.message || 'No se pudo crear el bloqueo. Verificá las reservas y reintentá.');
+    }finally{blockBusy=false;$('bp-block-save').disabled=false;}
+  });
+
   // Navegación entre reservas y maquetas visuales; no realiza escrituras.
   const setAdminSection = (section) => {
     const sections = {
@@ -598,7 +791,7 @@
     }
   };
   $('admin-tab-reservas').addEventListener('click', () => setAdminSection('reservas'));
-  $('admin-tab-config').addEventListener('click', () => { setAdminSection('config'); loadConfig(); });
+  $('admin-tab-config').addEventListener('click', () => { setAdminSection('config'); loadConfig(); loadBlockouts(); });
   $('admin-tab-torneos').addEventListener('click', () => setAdminSection('torneos'));
   $('reservations-date').value = argentinaDay(new Date());
   syncDateCards();

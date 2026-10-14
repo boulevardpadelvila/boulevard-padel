@@ -183,8 +183,32 @@
         <div class="admin-config__two">
           <section class="admin-config__panel" aria-labelledby="admin-duration-title"><h2 id="admin-duration-title">Duración de turnos</h2><p>Tiempo que ocupa cada reserva.</p><label for="admin-preview-duration">Duración</label><select id="admin-preview-duration"><option value="60">60 minutos</option><option value="90" selected>90 minutos</option><option value="120">120 minutos</option></select></section>
           <section class="admin-config__panel" aria-labelledby="admin-window-title"><h2 id="admin-window-title">Período de reservas</h2><p>Hasta cuándo pueden reservar los jugadores.</p><label for="admin-preview-window">Anticipación máxima</label><select id="admin-preview-window"><option value="1">1 mes</option><option value="2" selected>2 meses</option><option value="3">3 meses</option></select></section>
-          <section class="admin-config__panel admin-config__blocked" aria-labelledby="admin-block-title"><div><h2 id="admin-block-title">Cierres y bloqueos excepcionales</h2><p>Para mantenimiento, torneos, feriados o vacaciones.</p></div><button type="button" class="secondary" disabled title="Se habilitará en la siguiente etapa">+ Agregar bloqueo</button></section>
+          <section class="admin-config__panel admin-config__blocked" aria-labelledby="admin-block-title">
+            <div><h2 id="admin-block-title">Cierres y bloqueos excepcionales</h2><p>Bloqueá un día o una franja, sin cambiar los horarios habituales.</p></div>
+            <button type="button" id="bp-block-open" class="secondary">+ Agregar bloqueo</button>
+          </section>
         </div>
+        <section class="bp-block" id="bp-block-panel" hidden aria-labelledby="bp-block-form-title">
+          <div class="bp-block__head"><h2 id="bp-block-form-title">Nuevo bloqueo excepcional</h2><button type="button" class="secondary" id="bp-block-close">Cerrar</button></div>
+          <form id="bp-block-form">
+            <div class="bp-block__fields">
+              <div><label for="bp-block-day">Fecha del cierre</label><input id="bp-block-day" type="date" required></div>
+              <div><label for="bp-block-type">Duración del cierre</label><select id="bp-block-type"><option value="partial">Franja horaria</option><option value="all">Día completo</option></select></div>
+              <div class="bp-block__time"><label for="bp-block-from">Desde</label><input id="bp-block-from" type="time" value="15:00" required></div>
+              <div class="bp-block__time"><label for="bp-block-until">Hasta</label><input id="bp-block-until" type="time" value="22:30" required></div>
+            </div>
+            <label for="bp-block-reason">Motivo (opcional)</label><input id="bp-block-reason" maxlength="250" placeholder="Ej.: mantenimiento o evento">
+            <p class="bp-block__hint">Antes de crear el bloqueo, comprobaremos si hay reservas afectadas. No se cancela ninguna reserva automáticamente.</p>
+            <p id="bp-block-message" class="message" role="status" aria-live="polite" hidden></p>
+            <div id="bp-block-conflicts" class="bp-block__conflicts" hidden></div>
+            <div class="bp-block__actions"><button type="button" class="secondary" id="bp-block-preview">Comprobar reservas</button><button type="submit" class="primary" id="bp-block-save">Crear bloqueo</button></div>
+          </form>
+        </section>
+        <section class="bp-block-list" aria-labelledby="bp-block-list-title">
+          <div class="bp-block-list__head"><h2 id="bp-block-list-title">Bloqueos próximos</h2><button type="button" id="bp-block-refresh" class="secondary">Actualizar</button></div>
+          <div id="bp-block-list-content" class="bp-block-list__content"><p class="muted">Abrí la sección para consultar los bloqueos.</p></div>
+          <p id="bp-block-list-message" class="message" role="status" aria-live="polite" hidden></p>
+        </section>
         <div class="admin-config__footer"><span>Los cambios se aplicarán al turnero al guardar. No se modifican las reservas existentes.</span><button type="button" class="primary" id="admin-config-save" disabled>Guardar configuración</button></div><p class="message" id="admin-config-message" role="status" aria-live="polite" hidden></p>
       </section>
       <section id="admin-torneos-view" class="admin-torneos" aria-labelledby="admin-torneos-title" hidden>
@@ -232,6 +256,18 @@
         <div class="admin-save-dialog__actions">
           <button type="button" class="secondary" id="admin-save-dialog-cancel">Volver</button>
           <button type="button" class="primary" id="admin-save-dialog-accept">Sí, guardar</button>
+        </div>
+      </div>
+    </dialog>
+    <dialog class="admin-save-dialog" id="bp-block-dialog" aria-labelledby="bp-block-dialog-title" aria-describedby="bp-block-dialog-description">
+      <div class="admin-save-dialog__body">
+        <span class="admin-save-dialog__icon" aria-hidden="true">🗓</span>
+        <h2 id="bp-block-dialog-title">Confirmar cierre</h2>
+        <p id="bp-block-dialog-description">¿Confirmás esta acción?</p>
+        <p class="admin-save-dialog__hint" id="bp-block-dialog-hint">Los horarios semanales no se modificarán.</p>
+        <div class="admin-save-dialog__actions">
+          <button type="button" class="secondary" id="bp-block-dialog-cancel">Volver</button>
+          <button type="button" class="primary" id="bp-block-dialog-accept">Confirmar</button>
         </div>
       </div>
     </dialog>

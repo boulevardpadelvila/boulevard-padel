@@ -392,3 +392,40 @@
 .admin-save-dialog__actions button{min-height:46px!important;width:100%!important;margin:0!important;font-size:14px!important}
 .admin-save-dialog__actions .primary{cursor:pointer}
 @media(max-width:390px){.admin-save-dialog__body{padding:22px 18px}.admin-save-dialog__actions{gap:8px}}
+
+/* 14/10/2026 — Bloqueos excepcionales: controles aislados, sin tocar las tarjetas superiores. */
+.bp-block[hidden],.bp-block__conflicts[hidden]{display:none!important}
+.bp-block,.bp-block-list{border:1px solid var(--border);border-radius:14px;background:#fdfdfa;padding:20px;margin:14px 0}
+.bp-block__head,.bp-block-list__head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+.bp-block h2,.bp-block-list h2{font:800 25px/1.1 'Barlow Condensed',sans-serif;text-transform:uppercase;margin:0}
+.bp-block__head button,.bp-block-list__head button{min-height:39px}
+.bp-block__fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 16px}
+.bp-block label{margin:12px 0 6px;font-size:13px}
+.bp-block input,.bp-block select{display:block;width:100%;min-width:0;padding:11px;border:1px solid var(--border);border-radius:9px;background:#fff;color:var(--ink);font:inherit;font-size:15px}
+.bp-block__hint{font-size:12px;line-height:1.55;color:var(--muted)}
+.bp-block__actions{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;margin-top:16px}
+.bp-block__actions button{width:auto;min-height:43px;min-width:150px;margin:0;padding:0 15px}
+.bp-block__actions button:disabled{opacity:.55;cursor:wait}
+.bp-block__conflicts{background:#fff2ef;border:1px solid #e5ccc9;border-radius:10px;padding:14px;font-size:13px;line-height:1.6;color:#7e302b;margin-top:12px}
+.bp-block__conflicts p{margin:0 0 8px;font-weight:700}
+.bp-block__conflicts ul{margin:0;padding-left:20px}
+.bp-block-list__content{display:grid;gap:9px}
+.bp-block-entry{display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid var(--border);border-radius:10px;padding:12px;background:#fafaf6;min-width:0}
+.bp-block-entry strong{display:block;font-size:14px}
+.bp-block-entry p{font-size:12px;color:var(--muted);margin:5px 0 0;overflow-wrap:anywhere}
+.bp-block-entry button{min-height:38px;flex-shrink:0}
+@media(max-width:700px){.bp-block,.bp-block-list{padding:13px}.bp-block__fields{grid-template-columns:minmax(0,1fr)}.bp-block__actions{display:grid;grid-template-columns:minmax(0,1fr)}.bp-block__actions button{width:100%}.bp-block-entry{align-items:flex-start;flex-direction:column}}
+
+/* 14/10/2026 — Presentación legible de reservas afectadas por cierres excepcionales. */
+.bp-block__conflicts{background:#fff8f6;border:1px solid #e6ccc8;color:var(--ink);padding:18px}
+.bp-conflict__intro h3{font:800 24px/1.08 'Barlow Condensed',sans-serif;text-transform:uppercase;color:#913b32;margin:0 0 7px}
+.bp-conflict__intro p{margin:0 0 14px!important;font:400 13px/1.5 Inter,Arial,sans-serif;color:#634944}
+.bp-conflict__cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:10px}
+.bp-conflict__card{border:1px solid #eadbd6;border-radius:11px;background:#fff;padding:14px;min-width:0;overflow-wrap:anywhere}
+.bp-conflict__time{font-size:16px;display:block;color:#913b32;margin-bottom:8px}
+.bp-conflict__name{font-size:14px;font-weight:700;margin-bottom:7px}
+.bp-conflict__detail{font-size:12px;color:#62665c;line-height:1.6}
+.bp-conflict__footer{display:flex;justify-content:flex-end;margin-top:14px}
+.bp-conflict__go{min-height:42px;padding:0 16px;font-size:13px}
+.bp-block__actions #bp-block-save:disabled{opacity:.45;cursor:not-allowed}
+@media(max-width:620px){.bp-block__conflicts{padding:13px}.bp-conflict__cards{grid-template-columns:minmax(0,1fr)}.bp-conflict__go{width:100%}}
