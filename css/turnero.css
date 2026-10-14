@@ -1281,3 +1281,13 @@ body.booking-modal-open {
 .fixed-request-toast[hidden]{display:none!important}
 .fixed-request-toast{max-width:950px;margin:20px auto 12px;padding:15px 18px;background:#ebf3e9;border:1px solid #a8bea2;color:#274c2c;border-radius:12px;font-size:14px;line-height:1.55}
 @media(max-width:420px){.fixed-request-dialog__details{gap:7px}.fixed-request-dialog__details>div{padding:10px}.fixed-request-dialog__actions{gap:8px}}
+
+
+/* 14/10/2026 — Centrado del modal de solicitud de turno fijo.
+   Corrección exclusivamente visual: no modifica el envío ni la validación. */
+dialog.fixed-request-dialog:modal {
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  box-sizing: border-box;
+}

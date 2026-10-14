@@ -781,6 +781,8 @@
   const fixedHour = (value) => String(value || '').slice(0,5);
   const fixedStatus = { pending:'Pendiente',approved:'Aprobado',rejected:'Rechazado',suspended:'Suspendido',cancelled:'Cancelado',ended:'Finalizado' };
   const fixedList = $('admin-fixed-list');
+  let fixedHideInactive = false;
+  const fixedInactiveStatuses = new Set(['rejected','cancelled','ended']);
   function fixedCell(label,value) {
     const d=document.createElement('div'),dt=document.createElement('dt'),dd=document.createElement('dd');
     dt.textContent=label;dd.textContent=value;d.append(dt,dd);return d;
@@ -812,8 +814,9 @@
     const {data,error}=await supabaseClient.rpc('bp_admin_list_fixed_requests');
     if(error){display('admin-fixed-message','No se pudieron consultar los turnos fijos. Verificá que el SQL 24 esté instalado.');console.error('Turnos fijos:',error);return;}
     display('admin-fixed-message','');
-    if(!data?.length){const empty=document.createElement('p');empty.className='admin-fixed__empty';empty.textContent='Todavía no hay solicitudes de turnos fijos.';fixedList.append(empty);return;}
-    for(const item of data){
+    const visible = (data || []).filter(item => !fixedHideInactive || !fixedInactiveStatuses.has(item.status));
+    if(!visible.length){const empty=document.createElement('p');empty.className='admin-fixed__empty';empty.textContent=(data?.length && fixedHideInactive) ? 'No hay turnos activos ni pendientes. Podés volver a mostrar el historial.' : 'Todavía no hay solicitudes de turnos fijos.';fixedList.append(empty);return;}
+    for(const item of visible){
       const card=document.createElement('article');card.className='admin-fixed__item';
       const head=document.createElement('div');head.className='admin-fixed__item-header';
       const tag=document.createElement('span');tag.className='admin-fixed__status'+(item.status==='pending'?' admin-fixed__status--pending':'');tag.textContent=fixedStatus[item.status]||item.status;
@@ -900,6 +903,13 @@
     await loadFixedRequests();display('admin-fixed-message',`Turno fijo finalizado. Se liberaron ${data} reservas futuras.`,true);
   }
 
+  $('admin-fixed-clear').addEventListener('click', () => {
+    fixedHideInactive = !fixedHideInactive;
+    const button = $('admin-fixed-clear');
+    button.textContent = fixedHideInactive ? 'Mostrar historial' : 'Limpiar vista';
+    button.setAttribute('aria-pressed', String(fixedHideInactive));
+    loadFixedRequests();
+  });
   $('admin-fixed-refresh').addEventListener('click',loadFixedRequests);
 
   // Navegación entre reservas y maquetas visuales; no realiza escrituras.

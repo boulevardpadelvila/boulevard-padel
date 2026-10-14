@@ -2022,3 +2022,18 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 - **Supabase:** script definitivo `26_limite_dos_meses_turnos_fijos.sql` con trigger de validación para nuevas solicitudes; no modifica reservas ni solicitudes históricas.
 - **Admin:** no se modifica el módulo estable; las solicitudes antiguas por tiempo indeterminado que estén pendientes deberán rechazarse y solicitarse nuevamente como período determinado.
 - **Pendiente de prueba:** instalar SQL 26, aplicar archivos web, comprobar fecha máxima, modal, envío, reinicio y aviso por correo. No publicar sin validar.
+
+
+## 14/10/2026 — Corregir posición del modal de confirmación de turno fijo
+- **Incidencia:** el modal del turnero público aparecía en la esquina superior izquierda en lugar de centrado.
+- **Corrección:** se agregó una regla CSS acotada a `dialog.fixed-request-dialog:modal` con `position: fixed`, `inset: 0` y `margin: auto`, manteniendo sus dimensiones, estilos, contenido y comportamiento.
+- **Alcance:** exclusivamente `css/turnero.css`. No modifica HTML, JS, Supabase, solicitudes ni reservas.
+- **Pendiente de prueba:** abrir el modal en escritorio y celular, verificar centrado, desplazamiento y botones Volver/Confirmar antes de publicar.
+
+## 14/10/2026 — Turnos fijos: limpieza visual y regla de cancelación administrativa
+- **Decisión funcional:** los jugadores no podrán cancelar ni suspender turnos fijos desde la web pública. Para liberar una fecha o finalizar anticipadamente el período deberán contactar al administrador, quien realizará la acción desde el panel. Se conservan las funciones de liberación ya probadas.
+- **Ajuste visual:** junto a «Actualizar» se incorporó «Limpiar vista» para ocultar solicitudes rechazadas, canceladas y finalizadas. El mismo botón permite «Mostrar historial»; no elimina ni modifica datos en Supabase.
+- **Corrección incluida:** centrado del modal de confirmación del turnero desde el CSS, sin cambios en la lógica de solicitud.
+- **Decisión sobre eliminación:** no implementar borrado físico de solicitudes por ahora: preservamos trazabilidad y vínculos con reservas semanales; el ahorro de espacio sería marginal.
+- **Archivos:** `admin/index.html`, `js/admin.js`, `css/admin-fixed.css`, `css/turnero.css` y la bitácora maestra.
+- **Prueba pendiente:** verificar centrado del modal en móvil y PC; limpiar/mostrar historial en el Admin.

@@ -29,3 +29,8 @@
 @media(min-width:921px){.admin-card.dashboard .admin-work-nav{display:grid;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:10px}.admin-card.dashboard .admin-work-nav__button{min-width:0;min-height:74px;padding:12px 10px;gap:8px}.admin-card.dashboard .admin-work-nav__label{font-size:clamp(13px,1.12vw,17px)}.admin-card.dashboard .admin-work-nav__icon{flex-shrink:0}}
 /* Selector de fecha dentro del modal existente. */
 .admin-fixed__release-select{width:100%;max-width:100%;padding:12px;border:1px solid var(--border);border-radius:9px;background:#fff;font:500 14px Inter,Arial,sans-serif;color:var(--ink)}
+
+/* 14/10/2026 — botón de limpieza visual (sin borrado de historial). */
+.admin-fixed__toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.admin-fixed__toolbar .secondary{min-height:42px;white-space:nowrap}
+@media(max-width:620px){.admin-fixed__head{flex-wrap:wrap}.admin-fixed__toolbar{width:100%;justify-content:flex-end}}
