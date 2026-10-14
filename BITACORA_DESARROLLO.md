@@ -2015,3 +2015,10 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 - **Archivos:** `reservar.html`, `css/turnero.css`, `js/reservas.js`. Sin cambios SQL, Edge Functions ni en el flujo de reserva única.
 - **Incidencia de despliegue observada:** en producción solo se ven tres tarjetas de Admin, mientras que local muestra cuatro. Pendiente verificar commit efectivo, estado del despliegue Cloudflare y caché antes de tocar CSS.
 - **Verificación técnica:** sintaxis JS y ZIP correctos. Pendiente prueba del modal y reinicio desde producción, incluyendo tablet/celular.
+
+## 14/10/2026 — Política simple de turnos fijos: máximo dos meses
+- **Decisión del usuario:** no ofrecer solicitudes de tiempo indeterminado. Todo turno fijo tendrá inicio y fin, con duración máxima de dos meses calendario; al vencer, el jugador podrá hacer una solicitud nueva. Permite renegociar precios y evita renovaciones automáticas.
+- **Turnero público:** se retira la opción indeterminada, se aclara el máximo de dos meses, se limita el selector de fecha final al menor valor entre dos meses desde el primer turno y el fin de la ventana actual de reservas, y se valida antes de abrir el modal y antes de enviar. Se conserva el modal de confirmación y el reinicio del formulario al confirmar Supabase, con aviso de éxito arriba.
+- **Supabase:** script definitivo `26_limite_dos_meses_turnos_fijos.sql` con trigger de validación para nuevas solicitudes; no modifica reservas ni solicitudes históricas.
+- **Admin:** no se modifica el módulo estable; las solicitudes antiguas por tiempo indeterminado que estén pendientes deberán rechazarse y solicitarse nuevamente como período determinado.
+- **Pendiente de prueba:** instalar SQL 26, aplicar archivos web, comprobar fecha máxima, modal, envío, reinicio y aviso por correo. No publicar sin validar.

@@ -369,6 +369,7 @@ async function selectDate(button, dateISO) {
   button.classList.add("date-card--active");
 
   selectedDate = dateISO;
+  if (typeof updateFixedDateLimits === 'function') updateFixedDateLimits();
 
   resetDetailsStep();
 
@@ -544,9 +545,35 @@ const fixedResult = document.getElementById('fixedResult');
 const bookingModeNote = document.getElementById('bookingModeNote');
 const bookingModeRadios = document.querySelectorAll('input[name="bookingMode"]');
 function isFixedMode() { return document.querySelector('input[name="bookingMode"]:checked')?.value === 'fixed'; }
+
+// Límite de solicitudes fijas: dos meses calendario desde el primer turno.
+// Nunca superar tampoco el fin de la ventana de reservas vigente.
+function fixedLastAllowedDate() {
+  if (!selectedDate) return '';
+  const [year, month, day] = selectedDate.split('-').map(Number);
+  const endMonth = new Date(Date.UTC(year, month - 1 + 2, 1));
+  const lastDay = new Date(Date.UTC(endMonth.getUTCFullYear(), endMonth.getUTCMonth() + 1, 0)).getUTCDate();
+  const limit = new Date(Date.UTC(endMonth.getUTCFullYear(), endMonth.getUTCMonth(), Math.min(day, lastDay))).toISOString().slice(0, 10);
+  const bookingLimit = bookingConfig?.booking_end_date;
+  return bookingLimit && bookingLimit < limit ? bookingLimit : limit;
+}
+function updateFixedDateLimits() {
+  if (!fixedEndDate || !selectedDate) return;
+  fixedEndDate.min = selectedDate;
+  fixedEndDate.max = fixedLastAllowedDate();
+  if (fixedEndDate.value && (fixedEndDate.value < fixedEndDate.min || fixedEndDate.value > fixedEndDate.max)) {
+    fixedEndDate.value = '';
+  }
+}
+function validFixedPeriod() {
+  updateFixedDateLimits();
+  return !!fixedEndDate.value && fixedEndDate.value >= selectedDate && fixedEndDate.value <= fixedLastAllowedDate();
+}
+
 function syncBookingMode() {
   const fixed = isFixedMode();
   fixedOptions.hidden = !fixed;
+  if (fixed) updateFixedDateLimits();
   fixedEndDateField.hidden = !fixed || fixedDurationType.value === 'indefinite';
   fixedEndDate.required = fixed && fixedDurationType.value === 'defined';
   const submit = bookingForm?.querySelector('.booking-submit');
@@ -610,8 +637,8 @@ bookingForm?.addEventListener("submit", async (event) => {
 
   // Solo turnos fijos: confirmación previa sin modificar el flujo normal.
   if (isFixedMode()) {
-    if (fixedDurationType.value === 'defined' && (!fixedEndDate.value || fixedEndDate.value < selectedDate)) {
-      fixedResult.textContent = 'Elegí una fecha final igual o posterior al primer turno.';
+    if (fixedDurationType.value === 'defined' && !validFixedPeriod()) {
+      fixedResult.textContent = 'Elegí una fecha final dentro de los 2 meses permitidos y de la ventana de reservas.';
       fixedResult.hidden = false;
       return;
     }
@@ -634,8 +661,8 @@ bookingForm?.addEventListener("submit", async (event) => {
     }
 
     if (isFixedMode()) {
-      if (fixedDurationType.value === 'defined' && (!fixedEndDate.value || fixedEndDate.value < selectedDate)) {
-        throw new Error('Elegí una fecha final igual o posterior al primer turno.');
+      if (fixedDurationType.value === 'defined' && !validFixedPeriod()) {
+        throw new Error('Elegí una fecha final dentro de los 2 meses permitidos y de la ventana de reservas.');
       }
       const { data: fixedData, error: fixedError } = await supabaseClient.functions.invoke('request-fixed-turn', {
         body: {
