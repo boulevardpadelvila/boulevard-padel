@@ -534,6 +534,31 @@ dateSelector?.addEventListener("scroll", () => {
 window.addEventListener("resize", updateDateArrowState);
 
 /* =========================================================
+   SOLICITUD DE TURNO FIJO (flujo separado; reserva normal intacta)
+========================================================= */
+const fixedOptions = document.getElementById('fixedOptions');
+const fixedEndDate = document.getElementById('fixedEndDate');
+const fixedEndDateField = document.getElementById('fixedEndDateField');
+const fixedDurationType = document.getElementById('fixedDurationType');
+const fixedResult = document.getElementById('fixedResult');
+const bookingModeNote = document.getElementById('bookingModeNote');
+const bookingModeRadios = document.querySelectorAll('input[name="bookingMode"]');
+function isFixedMode() { return document.querySelector('input[name="bookingMode"]:checked')?.value === 'fixed'; }
+function syncBookingMode() {
+  const fixed = isFixedMode();
+  fixedOptions.hidden = !fixed;
+  fixedEndDateField.hidden = !fixed || fixedDurationType.value === 'indefinite';
+  fixedEndDate.required = fixed && fixedDurationType.value === 'defined';
+  const submit = bookingForm?.querySelector('.booking-submit');
+  if (submit) submit.textContent = fixed ? 'Enviar solicitud' : 'Confirmar reserva';
+  if (bookingModeNote) bookingModeNote.textContent = fixed ? 'Tu solicitud quedará pendiente de aprobación. No se reserva la cancha todavía.' : 'Al confirmar, tu turno quedará reservado en el sistema.';
+  if (fixedResult) fixedResult.hidden = true;
+}
+bookingModeRadios.forEach(r => r.addEventListener('change', syncBookingMode));
+fixedDurationType?.addEventListener('change', syncBookingMode);
+syncBookingMode();
+
+/* =========================================================
 
    CONFIRMAR RESERVA
 
@@ -567,6 +592,29 @@ bookingForm?.addEventListener("submit", async (event) => {
 
     if (!turnstileToken) {
       throw new Error("Completá la verificación de seguridad.");
+    }
+
+    if (isFixedMode()) {
+      if (fixedDurationType.value === 'defined' && (!fixedEndDate.value || fixedEndDate.value < selectedDate)) {
+        throw new Error('Elegí una fecha final igual o posterior al primer turno.');
+      }
+      const { data: fixedData, error: fixedError } = await supabaseClient.functions.invoke('request-fixed-turn', {
+        body: {
+          fullName: customerName,
+          phone: customerPhone,
+          startsAt: selectedSlot.starts_at,
+          durationType: fixedDurationType.value,
+          endDate: fixedDurationType.value === 'defined' ? fixedEndDate.value : null,
+          notes: document.getElementById('fixedNotes')?.value.trim() || null,
+          turnstileToken,
+        },
+      });
+      if (fixedError || !fixedData?.success) throw new Error(fixedData?.error || fixedError?.message || 'No pudimos enviar la solicitud.');
+      fixedResult.textContent = 'Solicitud recibida. Queda pendiente de aprobación por el administrador. No es una reserva confirmada.';
+      fixedResult.hidden = false;
+      bookingModeNote.textContent = '';
+      scrollToStep(detailsSection);
+      return;
     }
 
     const { data, error } = await supabaseClient.functions.invoke(
@@ -657,7 +705,12 @@ bookingForm?.addEventListener("submit", async (event) => {
       window.turnstile.reset();
     }
 
-    alert(message);
+    if (isFixedMode() && fixedResult) {
+      fixedResult.textContent = error?.message || message;
+      fixedResult.hidden = false;
+    } else {
+      alert(message);
+    }
   } finally {
     submitButton.disabled = false;
     submitButton.classList.remove("button--loading");

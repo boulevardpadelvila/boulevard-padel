@@ -197,6 +197,11 @@
             </div>
           </div>
 
+          <div class="fixed-choice" aria-label="Tipo de turno">
+            <p class="fixed-choice__title">¿Qué tipo de turno querés?</p>
+            <label class="fixed-choice__option"><input type="radio" name="bookingMode" value="single" checked> Una sola vez</label>
+            <label class="fixed-choice__option"><input type="radio" name="bookingMode" value="fixed"> Solicitar turno fijo semanal</label>
+          </div>
           <form class="booking-form" id="bookingForm">
             <div class="form-field">
               <label for="customerName">Nombre y Apellido</label>
@@ -227,6 +232,15 @@
               />
             </div>
 
+            <div class="fixed-options" id="fixedOptions" hidden>
+              <p class="fixed-options__note">Se repetirá cada semana el día y horario elegidos arriba. La solicitud <strong>no es una reserva confirmada</strong>: debe aprobarla el administrador.</p>
+              <div class="form-field">
+                <label for="fixedDurationType">¿Hasta cuándo?</label>
+                <select id="fixedDurationType"><option value="defined">Hasta una fecha determinada</option><option value="indefinite">Por tiempo indeterminado</option></select>
+              </div>
+              <div class="form-field" id="fixedEndDateField"><label for="fixedEndDate">Último día del turno fijo</label><input type="date" id="fixedEndDate"></div>
+              <div class="form-field"><label for="fixedNotes">Observaciones (opcional)</label><textarea id="fixedNotes" rows="2" maxlength="500" placeholder="Algo que necesitemos saber..."></textarea></div>
+            </div>
             <div class="booking-summary">
               <div>
                 <span>Día</span>
@@ -266,9 +280,10 @@
               Confirmar reserva
             </button>
 
-            <p class="booking-form__note">
+            <p class="booking-form__note" id="bookingModeNote">
               Al confirmar, tu turno quedará reservado en el sistema.
             </p>
+            <div class="fixed-result" id="fixedResult" role="status" aria-live="polite" hidden></div>
           </form>
         </section>
 

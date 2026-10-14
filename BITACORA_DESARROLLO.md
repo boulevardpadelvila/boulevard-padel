@@ -1976,3 +1976,11 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 - **Prevención visual:** «Crear bloqueo» queda deshabilitado mientras no exista una comprobación satisfactoria para los parámetros actuales; toda modificación de fecha/franja obliga a comprobar de nuevo.
 - **Sin cambios:** SQL, RPC de bloqueos, validaciones existentes, guardado de configuración y otros módulos.
 - **Pendiente de validación:** revisar visualmente escritorio y celular y probar el salto a Reservas, la deshabilitación con conflictos y la creación cuando no hay conflictos.
+
+
+## 14/10/2026 — Primera etapa Turnos fijos: solicitud pública y aviso de correo
+- **Objetivo:** mantener «Una sola vez» predeterminado e incorporar «Solicitar turno fijo semanal» sin tocar el código existente de creación de reservas comunes.
+- **Frontend:** `reservar.html`, `css/turnero.css` y `js/reservas.js` incluyen selector de modalidad, fecha final/indefinido, observaciones y envío diferenciado; las solicitudes pendientes NO bloquean horarios.
+- **Backend:** nueva Edge Function `supabase/functions/request-fixed-turn/index.ts` verifica Cloudflare Turnstile, valida datos, registra cliente y solicitud `pending` en `fixed_turn_requests`; intenta notificar al administrador por Resend si están configuradas las variables secretas de email. Un fallo del correo no cancela la solicitud.
+- **Pendiente necesario antes de activar en producción:** desplegar función, configurar y probar secrets de Turnstile/Resend y remitente autorizado; validar recepción real del correo. Agregar gestión de aprobación/rechazo del Admin y materialización segura de turnos semanales para aprobados; no ofrecer el módulo como terminado hasta ello.
+- **Pruebas:** sintaxis de JS y estructura del ZIP comprobadas; no se ejecutaron solicitudes reales a Supabase desde aquí.

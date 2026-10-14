@@ -1248,3 +1248,15 @@ body.booking-modal-open {
    padding-inline:1px;
  }
 }
+
+/* Turno fijo: opción adicional, conserva todo el diseño existente del turno único. */
+.fixed-choice{margin:0 0 20px;padding:16px 18px;border:1px solid #d4d7c8;border-radius:14px;background:#f7f8f2}
+.fixed-choice__title{font-weight:700;margin:0 0 10px;font-size:15px}
+.fixed-choice__option{display:flex;align-items:center;gap:10px;margin:8px 0;font-size:15px;cursor:pointer}
+.fixed-choice__option input{accent-color:#717b54;width:18px;height:18px;flex-shrink:0}
+.fixed-options{padding:16px 18px;margin:0 0 18px;background:#f7f8f2;border:1px solid #d4d7c8;border-radius:14px}
+.fixed-options[hidden],.fixed-result[hidden],#fixedEndDateField[hidden]{display:none!important}
+.fixed-options__note{line-height:1.55;font-size:14px;margin:0 0 14px;color:#43483b}
+.fixed-options select,.fixed-options textarea{display:block;width:100%;min-height:44px;padding:11px 12px;background:#fff;border:1px solid #ccd0c3;border-radius:9px;font:inherit;color:#242820}
+.fixed-options textarea{resize:vertical}
+.fixed-result{border:1px solid #91aa80;background:#eef5eb;color:#2f4931;border-radius:11px;padding:14px 16px;margin-top:12px;font-size:14px;line-height:1.5}
