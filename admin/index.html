@@ -10,6 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../css/admin.css">
+  <link rel="stylesheet" href="../css/admin-torneos.css">
 </head>
 <body>
   <main class="admin-shell">
@@ -74,8 +75,18 @@
         <button class="secondary logout-compact" id="logout-button" type="button">Cerrar sesión</button>
       </header>
       <nav class="admin-work-nav" aria-label="Secciones del portal">
-        <button type="button" class="admin-work-nav__button is-current" id="admin-tab-reservas" aria-pressed="true">Reservas</button>
-        <button type="button" class="admin-work-nav__button" id="admin-tab-config" aria-pressed="false">Horarios y disponibilidad</button>
+        <button type="button" class="admin-work-nav__button is-current" id="admin-tab-reservas" aria-pressed="true">
+          <span class="admin-work-nav__icon" aria-hidden="true">📅</span>
+          <span class="admin-work-nav__label">Reservas</span>
+        </button>
+        <button type="button" class="admin-work-nav__button" id="admin-tab-config" aria-pressed="false">
+          <span class="admin-work-nav__icon" aria-hidden="true">🕒</span>
+          <span class="admin-work-nav__label">Horarios y disponibilidad</span>
+        </button>
+        <button type="button" class="admin-work-nav__button" id="admin-tab-torneos" aria-pressed="false">
+          <span class="admin-work-nav__icon" aria-hidden="true">🏆</span>
+          <span class="admin-work-nav__label">Torneos</span>
+        </button>
       </nav>
       <div id="admin-reservas-view">
       <div class="dashboard-title-row">
@@ -175,6 +186,41 @@
           <section class="admin-config__panel admin-config__blocked" aria-labelledby="admin-block-title"><div><h2 id="admin-block-title">Cierres y bloqueos excepcionales</h2><p>Para mantenimiento, torneos, feriados o vacaciones.</p></div><button type="button" class="secondary" disabled title="Se habilitará en la siguiente etapa">+ Agregar bloqueo</button></section>
         </div>
         <div class="admin-config__footer"><span>Vista visual de ejemplo. Los horarios mostrados no se leen ni se guardan en Supabase.</span><button type="button" class="primary" disabled>Guardar configuración (próximamente)</button></div>
+      </section>
+      <section id="admin-torneos-view" class="admin-torneos" aria-labelledby="admin-torneos-title" hidden>
+        <header class="torneos-heading">
+          <div>
+            <p class="eyebrow">ORGANIZACIÓN DE COMPETENCIAS</p>
+            <h1 id="admin-torneos-title">Torneos</h1>
+            <p>Organizá torneos, inscripciones y partidos desde un solo lugar.</p>
+          </div>
+          <span class="torneos-preview">Vista de diseño · No guarda cambios</span>
+        </header>
+        <div class="torneos-overview" aria-label="Resumen de torneos">
+          <article class="torneos-stat"><span>Torneos activos</span><strong>—</strong><small>Sin conexión a datos</small></article>
+          <article class="torneos-stat"><span>Parejas inscriptas</span><strong>—</strong><small>Sin conexión a datos</small></article>
+          <article class="torneos-stat"><span>Partidos programados</span><strong>—</strong><small>Sin conexión a datos</small></article>
+        </div>
+        <div class="torneos-layout">
+          <section class="torneos-panel torneos-create" aria-labelledby="torneos-create-title">
+            <div class="torneos-panel__heading"><div><h2 id="torneos-create-title">Nuevo torneo</h2><p>Datos básicos para organizar una competencia.</p></div><span class="torneos-step">01</span></div>
+            <div class="torneos-fields">
+              <div class="torneos-field torneos-field--full"><label for="torneo-name">Nombre del torneo</label><input id="torneo-name" type="text" placeholder="Ej.: Torneo de Primavera" maxlength="100"></div>
+              <div class="torneos-field"><label for="torneo-category">Categoría</label><select id="torneo-category"><option selected>Seleccionar categoría</option><option>Principiantes</option><option>7° categoría</option><option>6° categoría</option><option>5° categoría</option><option>Libre</option></select></div>
+              <div class="torneos-field"><label for="torneo-format">Modalidad</label><select id="torneo-format"><option selected>Fase de grupos + eliminatorias</option><option>Eliminación directa</option><option>Todos contra todos</option></select></div>
+              <div class="torneos-field"><label for="torneo-start">Fecha de inicio</label><input id="torneo-start" type="date"></div>
+              <div class="torneos-field"><label for="torneo-end">Fecha de finalización</label><input id="torneo-end" type="date"></div>
+              <div class="torneos-field"><label for="torneo-pairs">Cupo de parejas</label><select id="torneo-pairs"><option>8 parejas</option><option selected>12 parejas</option><option>16 parejas</option><option>Personalizado</option></select></div>
+              <div class="torneos-field"><label for="torneo-state">Estado inicial</label><select id="torneo-state"><option selected>Borrador</option><option>Inscripciones abiertas</option></select></div>
+            </div>
+            <div class="torneos-panel__bottom"><span>Los datos ingresados son solo una muestra visual.</span><button type="button" disabled>Crear torneo (próximamente)</button></div>
+          </section>
+          <div class="torneos-side">
+            <section class="torneos-panel" aria-labelledby="torneos-pairs-title"><div class="torneos-panel__heading"><div><h2 id="torneos-pairs-title">Parejas e inscripciones</h2><p>Listado y control de participantes.</p></div><span class="torneos-step">02</span></div><div class="torneos-empty"><span class="torneos-empty__icon" aria-hidden="true">👥</span><strong>Sin parejas cargadas</strong><p>Al crear un torneo podrás registrar parejas y gestionar su inscripción.</p></div><button type="button" class="torneos-outline" disabled>+ Agregar pareja</button></section>
+            <section class="torneos-panel" aria-labelledby="torneos-fixture-title"><div class="torneos-panel__heading"><div><h2 id="torneos-fixture-title">Grupos y fixture</h2><p>Organización de partidos y resultados.</p></div><span class="torneos-step">03</span></div><div class="torneos-stage"><span>1. Inscripciones</span><span aria-hidden="true">›</span><span>2. Grupos</span><span aria-hidden="true">›</span><span>3. Eliminatorias</span></div><p class="torneos-hint">El fixture estará disponible cuando haya parejas y una modalidad definida.</p><button type="button" class="torneos-outline" disabled>Administrar fixture</button></section>
+          </div>
+        </div>
+        <p class="torneos-disclaimer">Esta sección es una vista preliminar. No crea torneos, no guarda inscripciones y no modifica reservas ni horarios reales.</p>
       </section>
     </section>
     <section class="loading" id="loading-panel" aria-live="polite">Verificando acceso…</section>

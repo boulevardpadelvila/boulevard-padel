@@ -425,8 +425,20 @@
     }
     $('admin-selected-date').textContent = selected ? dateDisplay.format(parseDay(selected)) : '';
   }
-  const moveCalendar = (weeks) => {
-    firstVisibleDate.setUTCDate(firstVisibleDate.getUTCDate() + weeks * 7);
+  // Escritorio: 7 días. Tablet y celular: tarjetas completas visibles.
+  function calendarStepDays() {
+    if (window.innerWidth > 1024) return 7;
+    const firstCard = dateCardsHost.querySelector('.admin-date-card');
+    if (!firstCard) return 1;
+    const cardWidth = firstCard.getBoundingClientRect().width;
+    const gap = parseFloat(getComputedStyle(dateCardsHost).gap) || 0;
+    const availableWidth = dateCardsHost.clientWidth;
+    const visibleCards = Math.floor((availableWidth + gap + 0.5) / (cardWidth + gap));
+    return Math.max(1, Math.min(7, visibleCards));
+  }
+  const moveCalendar = (direction) => {
+    const days = calendarStepDays();
+    firstVisibleDate.setUTCDate(firstVisibleDate.getUTCDate() + direction * days);
     drawAdminDates();
     dateCardsHost.scrollLeft = 0;
   };
@@ -442,19 +454,24 @@
     drawAdminDates();
   }
 
-  // Cambio de secciones visual: Configuración es solo una maqueta, sin persistencia.
+  // Navegación entre reservas y maquetas visuales; no realiza escrituras.
   const setAdminSection = (section) => {
-    const config = section === 'config';
-    $('admin-reservas-view').hidden = config;
-    $('admin-config-view').hidden = !config;
-    for (const [id, selected] of [['admin-tab-reservas', !config], ['admin-tab-config', config]]) {
-      const button = $(id);
+    const sections = {
+      reservas: ['admin-reservas-view', 'admin-tab-reservas'],
+      config: ['admin-config-view', 'admin-tab-config'],
+      torneos: ['admin-torneos-view', 'admin-tab-torneos']
+    };
+    for (const [name, [viewId, tabId]] of Object.entries(sections)) {
+      const selected = name === section;
+      $(viewId).hidden = !selected;
+      const button = $(tabId);
       button.classList.toggle('is-current', selected);
       button.setAttribute('aria-pressed', String(selected));
     }
   };
   $('admin-tab-reservas').addEventListener('click', () => setAdminSection('reservas'));
   $('admin-tab-config').addEventListener('click', () => setAdminSection('config'));
+  $('admin-tab-torneos').addEventListener('click', () => setAdminSection('torneos'));
   $('reservations-date').value = argentinaDay(new Date());
   syncDateCards();
   $('show-cancelled').addEventListener('click', async () => {

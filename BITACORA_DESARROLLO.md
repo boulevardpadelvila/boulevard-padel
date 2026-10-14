@@ -1893,3 +1893,42 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 - La recuperación de contraseña en producción requiere revisar `https://boulevard-padel.pages.dev/admin/index.html` entre las redirecciones autorizadas de Supabase Auth; la URL local de pruebas se conserva.
 - La bitácora maestra sigue siendo **exclusivamente** `BITACORA_DESARROLLO.md`. Los avances nuevos se añaden al documento íntegro, sin crear otras bitácoras.
 - **Próximo paso al retomar:** confirmar visualmente las tres tarjetas alineadas y el responsive; verificar el commit/push y despliegue; luego comenzar la conexión segura de configuración con Supabase. También se deben probar los accesos y cambios desde producción antes de la entrega.
+
+
+---
+
+## 14/10/2026 — Maqueta visual del módulo Torneos en el portal Admin
+
+**Objetivo:** adelantar el diseño administrable del futuro módulo de torneos sin implementar todavía backend ni persistencia. Se partió del ZIP actualizado `BoulevardPadel(4).zip` facilitado por el usuario.
+
+**Cambios realizados:**
+- Se agregó una tercera sección «Torneos» a la navegación del Admin, junto a «Reservas» y «Horarios y disponibilidad».
+- Se incorporó `#admin-torneos-view` al HTML existente del panel, con encabezado explícito de «Vista de diseño · No guarda cambios».
+- Se diseñaron tarjetas de resumen sin estadísticas ficticias, formulario preliminar de torneo (nombre, categoría, modalidad, fechas, cupo, estado), área de parejas/inscripciones y recorrido de grupos/fixture.
+- Se creó `css/admin-torneos.css` como hoja **exclusiva** para el módulo y su adaptación responsive. Se respetan paleta, fuentes, bordes y patrones del portal existente.
+- `js/admin.js` solo se ajustó para navegar entre tres vistas; no hay escrituras, consultas ni llamadas nuevas a Supabase.
+- Guardar, agregar pareja y administrar fixture permanecen deshabilitados. Los campos son solo demostrativos y no guardan datos.
+
+**Archivos modificados/añadidos:** `admin/index.html`, `js/admin.js`, `css/admin-torneos.css`, `BITACORA_DESARROLLO.md`.
+
+**Estado y comprobaciones pendientes:** verificar visualmente los tres accesos del menú y la distribución de Torneos en PC/tablet/celular mediante Live Server y en producción tras el push. No se implementaron competiciones, inscripciones, fixture, partidos, resultados, reservas/bloqueos automáticos ni esquema SQL.
+
+**Próxima etapa:** priorizar conexión real de Horarios y disponibilidad con Supabase, controles de cierres/bloqueos y turnos fijos; planificar backend de Torneos posteriormente. La navegación móvil del calendario Admin sigue pendiente de avance de un día por pulsación; no se modifica en esta entrega.
+
+## 14/10/2026 — Ajuste visual rápido del selector de secciones del Admin
+- **Objetivo:** mejorar la visual de las tres tarjetas superiores del portal Admin antes del commit/push.
+- **Cambios realizados:**
+  - Se rediseñaron las pestañas **Reservas**, **Horarios y disponibilidad** y **Torneos** para que funcionen visualmente como tarjetas más altas.
+  - Se aumentó el tamaño de la tipografía para aprovechar mejor el espacio disponible.
+  - Se agregaron iconos representativos a cada tarjeta para facilitar la identificación rápida de cada sección.
+  - Se mejoró la adaptación responsive para que, en pantallas angostas, las tres opciones se muestren con mejor jerarquía visual.
+- **Archivos modificados:**
+  - `admin/index.html`
+  - `css/admin.css`
+- **Estado:** ajuste visual aplicado. Pendiente revisión final del usuario en navegador antes de hacer commit/push.
+
+## 14/10/2026 — Navegación adaptable de fechas del Admin
+- **Objetivo:** que las flechas del calendario avancen según la cantidad de tarjetas que entran en pantalla.
+- **Cambio:** `js/admin.js` calcula las tarjetas completas visibles a partir del ancho real del contenedor, el ancho de cada tarjeta y el espacio entre ellas. En escritorio (ancho de ventana superior a 1024 px) mantiene el avance semanal de 7 días; en tablet y celular desplaza entre 1 y 7 días según el espacio disponible.
+- **Sin alterar:** calendario, selección de fecha, lectura de reservas, Supabase ni diseño aprobado.
+- **Pruebas:** sintaxis del JavaScript y estructura ZIP verificadas; queda comprobar el desplazamiento en navegadores reales de escritorio, tablet y celular antes de cerrar el ajuste.
