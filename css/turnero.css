@@ -523,7 +523,8 @@
   padding: 10px 0 24px;
 }
 
-.booking-page:has(#bookingConfirmation:not([hidden])) .booking-confirmation__icon {
+.booking-page:has(#bookingConfirmation:not([hidden]))
+  .booking-confirmation__icon {
   margin-bottom: 16px;
 }
 
@@ -536,7 +537,6 @@
   margin-top: 20px;
   margin-bottom: 12px;
 }
-
 
 .booking-confirmation {
   width: 100%;
@@ -1239,49 +1239,214 @@ body.booking-modal-open {
 }
 
 /* 12/10/2026 — legibilidad de acciones en confirmación móvil */
-@media(max-width:640px){
- .booking-code-box__actions .booking-code-action{
-   font-size:clamp(0.68rem,2.75vw,0.82rem);
-   font-weight:700;
-   letter-spacing:-0.025em;
-   white-space:nowrap;
-   padding-inline:1px;
- }
+@media (max-width: 640px) {
+  .booking-code-box__actions .booking-code-action {
+    font-size: clamp(0.68rem, 2.75vw, 0.82rem);
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    white-space: nowrap;
+    padding-inline: 1px;
+  }
 }
 
 /* Turno fijo: opción adicional, conserva todo el diseño existente del turno único. */
-.fixed-choice{margin:0 0 20px;padding:16px 18px;border:1px solid #d4d7c8;border-radius:14px;background:#f7f8f2}
-.fixed-choice__title{font-weight:700;margin:0 0 10px;font-size:15px}
-.fixed-choice__option{display:flex;align-items:center;gap:10px;margin:8px 0;font-size:15px;cursor:pointer}
-.fixed-choice__option input{accent-color:#717b54;width:18px;height:18px;flex-shrink:0}
-.fixed-options{padding:16px 18px;margin:0 0 18px;background:#f7f8f2;border:1px solid #d4d7c8;border-radius:14px}
-.fixed-options[hidden],.fixed-result[hidden],#fixedEndDateField[hidden]{display:none!important}
-.fixed-options__note{line-height:1.55;font-size:14px;margin:0 0 14px;color:#43483b}
-.fixed-options select,.fixed-options textarea{display:block;width:100%;min-height:44px;padding:11px 12px;background:#fff;border:1px solid #ccd0c3;border-radius:9px;font:inherit;color:#242820}
-.fixed-options textarea{resize:vertical}
-.fixed-result{border:1px solid #91aa80;background:#eef5eb;color:#2f4931;border-radius:11px;padding:14px 16px;margin-top:12px;font-size:14px;line-height:1.5}
+.fixed-choice {
+  margin: 0 0 20px;
+  padding: 16px 18px;
+  border: 1px solid #d4d7c8;
+  border-radius: 14px;
+  background: #f7f8f2;
+}
+.fixed-choice__title {
+  font-weight: 700;
+  margin: 0 0 10px;
+  font-size: 15px;
+}
+.fixed-choice__option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 8px 0;
+  font-size: 15px;
+  cursor: pointer;
+}
+.fixed-choice__option input {
+  accent-color: #717b54;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+.fixed-options {
+  padding: 16px 18px;
+  margin: 0 0 18px;
+  background: #f7f8f2;
+  border: 1px solid #d4d7c8;
+  border-radius: 14px;
+}
+.fixed-options[hidden],
+.fixed-result[hidden],
+#fixedEndDateField[hidden] {
+  display: none !important;
+}
+.fixed-options__note {
+  line-height: 1.55;
+  font-size: 14px;
+  margin: 0 0 14px;
+  color: #43483b;
+}
+.fixed-options select,
+.fixed-options textarea {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  padding: 11px 12px;
+  background: #fff;
+  border: 1px solid #ccd0c3;
+  border-radius: 9px;
+  font: inherit;
+  color: #242820;
+}
+.fixed-options textarea {
+  resize: vertical;
+}
+.fixed-result {
+  border: 1px solid #91aa80;
+  background: #eef5eb;
+  color: #2f4931;
+  border-radius: 11px;
+  padding: 14px 16px;
+  margin-top: 12px;
+  font-size: 14px;
+  line-height: 1.5;
+}
 
 /* Confirmación de solicitud semanal — modal exclusivo, sin alterar reserva normal. */
-.fixed-request-dialog{width:min(92vw,490px);max-width:490px;max-height:calc(100dvh - 30px);overflow:auto;border:1px solid #d9dacd;border-radius:20px;padding:0;background:#fbfbf8;color:#22231f;box-shadow:0 30px 75px #1118;font-family:Inter,Arial,sans-serif}
-.fixed-request-dialog::backdrop{background:rgba(21,25,18,.64);backdrop-filter:blur(3px)}
-.fixed-request-dialog__body{padding:clamp(20px,4vw,34px)}
-.fixed-request-dialog__symbol{display:inline-grid;place-items:center;width:52px;height:52px;border-radius:50%;background:#edf1e6;font-size:25px;margin-bottom:14px}
-.fixed-request-dialog__eyebrow{font-size:11px;font-weight:750;letter-spacing:.16em;color:#7d8258;margin:0 0 6px}
-.fixed-request-dialog h2{font:800 clamp(27px,5vw,36px)/1.04 'Barlow Condensed',sans-serif;text-transform:uppercase;margin:0 0 10px}
-.fixed-request-dialog p{font-size:14px;line-height:1.55}
-.fixed-request-dialog__details{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:18px 0}
-.fixed-request-dialog__details>div{border:1px solid #dddfd2;border-radius:11px;padding:12px;background:white}
-.fixed-request-dialog__details dt{font-size:11px;color:#666e5d;margin-bottom:6px}
-.fixed-request-dialog__details dd{font-weight:700;font-size:14px;margin:0;overflow-wrap:anywhere}
-.fixed-request-dialog__note{border-radius:10px;background:#f0f2e8;padding:10px 13px;margin-bottom:16px}
-.fixed-request-dialog__actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.fixed-request-dialog__actions button{min-height:48px;border-radius:11px;font:700 14px Inter,Arial,sans-serif;cursor:pointer}
-.fixed-request-dialog__back{border:1px solid #cdd0c2;background:#f4f4ef;color:#22231f}
-.fixed-request-dialog__confirm{border:1px solid #191c17;background:#191c17;color:white}
-.fixed-request-toast[hidden]{display:none!important}
-.fixed-request-toast{max-width:950px;margin:20px auto 12px;padding:15px 18px;background:#ebf3e9;border:1px solid #a8bea2;color:#274c2c;border-radius:12px;font-size:14px;line-height:1.55}
-@media(max-width:420px){.fixed-request-dialog__details{gap:7px}.fixed-request-dialog__details>div{padding:10px}.fixed-request-dialog__actions{gap:8px}}
-
+.fixed-request-dialog {
+  width: min(92vw, 490px);
+  max-width: 490px;
+  max-height: calc(100dvh - 30px);
+  overflow: auto;
+  border: 1px solid #d9dacd;
+  border-radius: 20px;
+  padding: 0;
+  background: #fbfbf8;
+  color: #22231f;
+  box-shadow: 0 30px 75px #1118;
+  font-family: Inter, Arial, sans-serif;
+}
+.fixed-request-dialog::backdrop {
+  background: rgba(21, 25, 18, 0.64);
+  backdrop-filter: blur(3px);
+}
+.fixed-request-dialog__body {
+  padding: clamp(20px, 4vw, 34px);
+}
+.fixed-request-dialog__symbol {
+  display: inline-grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: #edf1e6;
+  font-size: 25px;
+  margin-bottom: 14px;
+}
+.fixed-request-dialog__eyebrow {
+  font-size: 11px;
+  font-weight: 750;
+  letter-spacing: 0.16em;
+  color: #7d8258;
+  margin: 0 0 6px;
+}
+.fixed-request-dialog h2 {
+  font:
+    800 clamp(27px, 5vw, 36px)/1.04 "Barlow Condensed",
+    sans-serif;
+  text-transform: uppercase;
+  margin: 0 0 10px;
+}
+.fixed-request-dialog p {
+  font-size: 14px;
+  line-height: 1.55;
+}
+.fixed-request-dialog__details {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 18px 0;
+}
+.fixed-request-dialog__details > div {
+  border: 1px solid #dddfd2;
+  border-radius: 11px;
+  padding: 12px;
+  background: white;
+}
+.fixed-request-dialog__details dt {
+  font-size: 11px;
+  color: #666e5d;
+  margin-bottom: 6px;
+}
+.fixed-request-dialog__details dd {
+  font-weight: 700;
+  font-size: 14px;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.fixed-request-dialog__note {
+  border-radius: 10px;
+  background: #f0f2e8;
+  padding: 10px 13px;
+  margin-bottom: 16px;
+}
+.fixed-request-dialog__actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.fixed-request-dialog__actions button {
+  min-height: 48px;
+  border-radius: 11px;
+  font:
+    700 14px Inter,
+    Arial,
+    sans-serif;
+  cursor: pointer;
+}
+.fixed-request-dialog__back {
+  border: 1px solid #cdd0c2;
+  background: #f4f4ef;
+  color: #22231f;
+}
+.fixed-request-dialog__confirm {
+  border: 1px solid #191c17;
+  background: #191c17;
+  color: white;
+}
+.fixed-request-toast[hidden] {
+  display: none !important;
+}
+.fixed-request-toast {
+  max-width: 950px;
+  margin: 20px auto 12px;
+  padding: 15px 18px;
+  background: #ebf3e9;
+  border: 1px solid #a8bea2;
+  color: #274c2c;
+  border-radius: 12px;
+  font-size: 14px;
+  line-height: 1.55;
+}
+@media (max-width: 420px) {
+  .fixed-request-dialog__details {
+    gap: 7px;
+  }
+  .fixed-request-dialog__details > div {
+    padding: 10px;
+  }
+  .fixed-request-dialog__actions {
+    gap: 8px;
+  }
+}
 
 /* 14/10/2026 — Centrado del modal de solicitud de turno fijo.
    Corrección exclusivamente visual: no modifica el envío ni la validación. */

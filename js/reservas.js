@@ -369,7 +369,7 @@ async function selectDate(button, dateISO) {
   button.classList.add("date-card--active");
 
   selectedDate = dateISO;
-  if (typeof updateFixedDateLimits === 'function') updateFixedDateLimits();
+  if (typeof updateFixedDateLimits === "function") updateFixedDateLimits();
 
   resetDetailsStep();
 
@@ -537,23 +537,40 @@ window.addEventListener("resize", updateDateArrowState);
 /* =========================================================
    SOLICITUD DE TURNO FIJO (flujo separado; reserva normal intacta)
 ========================================================= */
-const fixedOptions = document.getElementById('fixedOptions');
-const fixedEndDate = document.getElementById('fixedEndDate');
-const fixedEndDateField = document.getElementById('fixedEndDateField');
-const fixedDurationType = document.getElementById('fixedDurationType');
-const fixedResult = document.getElementById('fixedResult');
-const bookingModeNote = document.getElementById('bookingModeNote');
-const bookingModeRadios = document.querySelectorAll('input[name="bookingMode"]');
-function isFixedMode() { return document.querySelector('input[name="bookingMode"]:checked')?.value === 'fixed'; }
+const fixedOptions = document.getElementById("fixedOptions");
+const fixedEndDate = document.getElementById("fixedEndDate");
+const fixedEndDateField = document.getElementById("fixedEndDateField");
+const fixedDurationType = document.getElementById("fixedDurationType");
+const fixedResult = document.getElementById("fixedResult");
+const bookingModeNote = document.getElementById("bookingModeNote");
+const bookingModeRadios = document.querySelectorAll(
+  'input[name="bookingMode"]',
+);
+function isFixedMode() {
+  return (
+    document.querySelector('input[name="bookingMode"]:checked')?.value ===
+    "fixed"
+  );
+}
 
 // Límite de solicitudes fijas: dos meses calendario desde el primer turno.
 // Nunca superar tampoco el fin de la ventana de reservas vigente.
 function fixedLastAllowedDate() {
-  if (!selectedDate) return '';
-  const [year, month, day] = selectedDate.split('-').map(Number);
+  if (!selectedDate) return "";
+  const [year, month, day] = selectedDate.split("-").map(Number);
   const endMonth = new Date(Date.UTC(year, month - 1 + 2, 1));
-  const lastDay = new Date(Date.UTC(endMonth.getUTCFullYear(), endMonth.getUTCMonth() + 1, 0)).getUTCDate();
-  const limit = new Date(Date.UTC(endMonth.getUTCFullYear(), endMonth.getUTCMonth(), Math.min(day, lastDay))).toISOString().slice(0, 10);
+  const lastDay = new Date(
+    Date.UTC(endMonth.getUTCFullYear(), endMonth.getUTCMonth() + 1, 0),
+  ).getUTCDate();
+  const limit = new Date(
+    Date.UTC(
+      endMonth.getUTCFullYear(),
+      endMonth.getUTCMonth(),
+      Math.min(day, lastDay),
+    ),
+  )
+    .toISOString()
+    .slice(0, 10);
   const bookingLimit = bookingConfig?.booking_end_date;
   return bookingLimit && bookingLimit < limit ? bookingLimit : limit;
 }
@@ -561,54 +578,75 @@ function updateFixedDateLimits() {
   if (!fixedEndDate || !selectedDate) return;
   fixedEndDate.min = selectedDate;
   fixedEndDate.max = fixedLastAllowedDate();
-  if (fixedEndDate.value && (fixedEndDate.value < fixedEndDate.min || fixedEndDate.value > fixedEndDate.max)) {
-    fixedEndDate.value = '';
+  if (
+    fixedEndDate.value &&
+    (fixedEndDate.value < fixedEndDate.min ||
+      fixedEndDate.value > fixedEndDate.max)
+  ) {
+    fixedEndDate.value = "";
   }
 }
 function validFixedPeriod() {
   updateFixedDateLimits();
-  return !!fixedEndDate.value && fixedEndDate.value >= selectedDate && fixedEndDate.value <= fixedLastAllowedDate();
+  return (
+    !!fixedEndDate.value &&
+    fixedEndDate.value >= selectedDate &&
+    fixedEndDate.value <= fixedLastAllowedDate()
+  );
 }
 
 function syncBookingMode() {
   const fixed = isFixedMode();
   fixedOptions.hidden = !fixed;
   if (fixed) updateFixedDateLimits();
-  fixedEndDateField.hidden = !fixed || fixedDurationType.value === 'indefinite';
-  fixedEndDate.required = fixed && fixedDurationType.value === 'defined';
-  const submit = bookingForm?.querySelector('.booking-submit');
-  if (submit) submit.textContent = fixed ? 'Enviar solicitud' : 'Confirmar reserva';
-  if (bookingModeNote) bookingModeNote.textContent = fixed ? 'Tu solicitud quedará pendiente de aprobación. No se reserva la cancha todavía.' : 'Al confirmar, tu turno quedará reservado en el sistema.';
+  fixedEndDateField.hidden = !fixed || fixedDurationType.value === "indefinite";
+  fixedEndDate.required = fixed && fixedDurationType.value === "defined";
+  const submit = bookingForm?.querySelector(".booking-submit");
+  if (submit)
+    submit.textContent = fixed ? "Enviar solicitud" : "Confirmar reserva";
+  if (bookingModeNote)
+    bookingModeNote.textContent = fixed
+      ? "Tu solicitud quedará pendiente de aprobación. No se reserva la cancha todavía."
+      : "Al confirmar, tu turno quedará reservado en el sistema.";
   if (fixedResult) fixedResult.hidden = true;
 }
-bookingModeRadios.forEach(r => r.addEventListener('change', syncBookingMode));
-fixedDurationType?.addEventListener('change', syncBookingMode);
+bookingModeRadios.forEach((r) => r.addEventListener("change", syncBookingMode));
+fixedDurationType?.addEventListener("change", syncBookingMode);
 syncBookingMode();
 
 function confirmFixedRequest() {
-  const dialog = document.getElementById('fixedRequestDialog');
+  const dialog = document.getElementById("fixedRequestDialog");
   if (!dialog || !selectedDate || !selectedSlot) return Promise.resolve(false);
-  const dayName = formatSelectedDate(selectedDate).split(',')[0];
-  document.getElementById('fixedDialogDay').textContent = dayName.charAt(0).toUpperCase() + dayName.slice(1);
-  document.getElementById('fixedDialogTime').textContent = `${formatTime(selectedSlot.start_time)} a ${formatTime(selectedSlot.end_time)} hs`;
-  document.getElementById('fixedDialogStart').textContent = formatShortDate(selectedDate);
-  document.getElementById('fixedDialogEnd').textContent = fixedDurationType.value === 'indefinite' ? 'Por tiempo indeterminado' : formatShortDate(fixedEndDate.value);
+  const dayName = formatSelectedDate(selectedDate).split(",")[0];
+  document.getElementById("fixedDialogDay").textContent =
+    dayName.charAt(0).toUpperCase() + dayName.slice(1);
+  document.getElementById("fixedDialogTime").textContent =
+    `${formatTime(selectedSlot.start_time)} a ${formatTime(selectedSlot.end_time)} hs`;
+  document.getElementById("fixedDialogStart").textContent =
+    formatShortDate(selectedDate);
+  document.getElementById("fixedDialogEnd").textContent =
+    fixedDurationType.value === "indefinite"
+      ? "Por tiempo indeterminado"
+      : formatShortDate(fixedEndDate.value);
   return new Promise((resolve) => {
-    const back = document.getElementById('fixedDialogBack');
-    const confirm = document.getElementById('fixedDialogConfirm');
+    const back = document.getElementById("fixedDialogBack");
+    const confirm = document.getElementById("fixedDialogConfirm");
     const done = (accepted) => {
-      dialog.removeEventListener('cancel', onCancel);
-      back.removeEventListener('click', onBack);
-      confirm.removeEventListener('click', onConfirm);
+      dialog.removeEventListener("cancel", onCancel);
+      back.removeEventListener("click", onBack);
+      confirm.removeEventListener("click", onConfirm);
       if (dialog.open) dialog.close();
       resolve(accepted);
     };
-    const onCancel = (event) => { event.preventDefault(); done(false); };
+    const onCancel = (event) => {
+      event.preventDefault();
+      done(false);
+    };
     const onBack = () => done(false);
     const onConfirm = () => done(true);
-    dialog.addEventListener('cancel', onCancel);
-    back.addEventListener('click', onBack);
-    confirm.addEventListener('click', onConfirm);
+    dialog.addEventListener("cancel", onCancel);
+    back.addEventListener("click", onBack);
+    confirm.addEventListener("click", onConfirm);
     dialog.showModal();
     back.focus();
   });
@@ -637,8 +675,9 @@ bookingForm?.addEventListener("submit", async (event) => {
 
   // Solo turnos fijos: confirmación previa sin modificar el flujo normal.
   if (isFixedMode()) {
-    if (fixedDurationType.value === 'defined' && !validFixedPeriod()) {
-      fixedResult.textContent = 'Elegí una fecha final dentro de los 2 meses permitidos y de la ventana de reservas.';
+    if (fixedDurationType.value === "defined" && !validFixedPeriod()) {
+      fixedResult.textContent =
+        "Elegí una fecha final dentro de los 2 meses permitidos y de la ventana de reservas.";
       fixedResult.hidden = false;
       return;
     }
@@ -661,29 +700,38 @@ bookingForm?.addEventListener("submit", async (event) => {
     }
 
     if (isFixedMode()) {
-      if (fixedDurationType.value === 'defined' && !validFixedPeriod()) {
-        throw new Error('Elegí una fecha final dentro de los 2 meses permitidos y de la ventana de reservas.');
+      if (fixedDurationType.value === "defined" && !validFixedPeriod()) {
+        throw new Error(
+          "Elegí una fecha final dentro de los 2 meses permitidos y de la ventana de reservas.",
+        );
       }
-      const { data: fixedData, error: fixedError } = await supabaseClient.functions.invoke('request-fixed-turn', {
-        body: {
-          fullName: customerName,
-          phone: customerPhone,
-          startsAt: selectedSlot.starts_at,
-          durationType: fixedDurationType.value,
-          endDate: fixedDurationType.value === 'defined' ? fixedEndDate.value : null,
-          notes: document.getElementById('fixedNotes')?.value.trim() || null,
-          turnstileToken,
-        },
-      });
-      if (fixedError || !fixedData?.success) throw new Error(fixedData?.error || fixedError?.message || 'No pudimos enviar la solicitud.');
+      const { data: fixedData, error: fixedError } =
+        await supabaseClient.functions.invoke("request-fixed-turn", {
+          body: {
+            fullName: customerName,
+            phone: customerPhone,
+            startsAt: selectedSlot.starts_at,
+            durationType: fixedDurationType.value,
+            endDate:
+              fixedDurationType.value === "defined" ? fixedEndDate.value : null,
+            notes: document.getElementById("fixedNotes")?.value.trim() || null,
+            turnstileToken,
+          },
+        });
+      if (fixedError || !fixedData?.success)
+        throw new Error(
+          fixedData?.error ||
+            fixedError?.message ||
+            "No pudimos enviar la solicitud.",
+        );
       // Reiniciar por completo el turno fijo, sin dejar datos ni un horario activo.
       // El reinicio reutiliza el botón existente de Nueva reserva.
       newBookingButton?.click();
       syncBookingMode();
-      const toast = document.getElementById('fixedRequestSuccess');
+      const toast = document.getElementById("fixedRequestSuccess");
       if (toast) {
         toast.hidden = false;
-        window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+        window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
       }
       return;
     }
@@ -1272,7 +1320,7 @@ shareBookingCodeButton?.addEventListener("click", shareBookingCode);
 ========================================================= */
 
 newBookingButton?.addEventListener("click", () => {
-  const fixedSuccess = document.getElementById('fixedRequestSuccess');
+  const fixedSuccess = document.getElementById("fixedRequestSuccess");
   if (fixedSuccess) fixedSuccess.hidden = true;
   selectedDate = null;
 
@@ -1280,7 +1328,9 @@ newBookingButton?.addEventListener("click", () => {
 
   bookingForm?.reset();
   // Los radios están fuera del formulario: restaurar modo común de forma explícita.
-  const single = document.querySelector('input[name="bookingMode"][value="single"]');
+  const single = document.querySelector(
+    'input[name="bookingMode"][value="single"]',
+  );
   if (single) single.checked = true;
   syncBookingMode();
 

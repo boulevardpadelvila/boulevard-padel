@@ -1,36 +1,220 @@
 /* Boulevard Pádel — Turnos fijos Admin. Estilos aislados. */
-.admin-fixed[hidden]{display:none!important}
-.admin-fixed{padding:22px 0 6px}
-.admin-fixed__head{display:flex;justify-content:space-between;align-items:start;gap:18px;margin-bottom:20px}
-.admin-fixed__head h1{font-size:clamp(31px,4vw,44px)}
-.admin-fixed__head .muted{margin:8px 0 0}
-.admin-fixed__head>.secondary{min-height:42px}
-.admin-fixed__list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
-.admin-fixed__item{min-width:0;border:1px solid var(--border);border-radius:14px;padding:20px;background:#fafaf6}
-.admin-fixed__item-header{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
-.admin-fixed__item h2{font-size:20px;margin:13px 0 12px}
-.admin-fixed__status{font-size:12px;padding:6px 10px;border-radius:20px;background:#e8ecdb;color:#38472c;font-weight:700}
-.admin-fixed__status--pending{background:#fff1d9;color:#715214}
-.admin-fixed__details{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-.admin-fixed__details>div{min-width:0}
-.admin-fixed__details dt{font-size:11px;color:var(--muted);margin-bottom:4px}
-.admin-fixed__details dd{margin:0;font-size:14px;font-weight:600;overflow-wrap:anywhere}
-.admin-fixed__actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
-.admin-fixed__actions button,.admin-fixed__actions a{min-height:42px;padding:10px 14px;margin:0;width:auto;display:inline-flex;justify-content:center;align-items:center;text-decoration:none;font:600 13px Inter,Arial,sans-serif;border-radius:9px;cursor:pointer}
-.admin-fixed__whatsapp{border:1px solid #b0cdb2;background:#eaf4e8;color:#275a33}
-.admin-fixed__actions button:disabled{opacity:.5;cursor:not-allowed}
-.admin-fixed__note{margin-top:12px;font-size:12px;line-height:1.5;color:var(--muted)}
-.admin-fixed__empty{grid-column:1/-1;border:1px dashed var(--border);padding:25px;text-align:center;border-radius:12px}
-.admin-work-nav{grid-template-columns:repeat(4,minmax(0,1fr))}
-@media(max-width:920px){.admin-fixed__list{grid-template-columns:minmax(0,1fr)}.admin-work-nav{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:620px){.admin-card.dashboard .admin-work-nav{grid-template-columns:repeat(2,minmax(0,1fr))!important}.admin-card.dashboard .admin-work-nav__button{gap:7px;padding:10px 7px;justify-content:center;min-height:60px;font-size:12px}.admin-card.dashboard .admin-work-nav__label{font-size:12px}.admin-card.dashboard .admin-work-nav__icon{width:28px;height:28px;font-size:15px}.admin-fixed__details{grid-template-columns:1fr 1fr}.admin-fixed__item{padding:14px}.admin-fixed__actions>button,.admin-fixed__actions>a{flex:1}}
+.admin-fixed[hidden] {
+  display: none !important;
+}
+.admin-fixed {
+  padding: 22px 0 6px;
+}
+.admin-fixed__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: 18px;
+  margin-bottom: 20px;
+}
+.admin-fixed__head h1 {
+  font-size: clamp(31px, 4vw, 44px);
+}
+.admin-fixed__head .muted {
+  margin: 8px 0 0;
+}
+.admin-fixed__head > .secondary {
+  min-height: 42px;
+}
+.admin-fixed__list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+.admin-fixed__item {
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 20px;
+  background: #fafaf6;
+}
+.admin-fixed__item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.admin-fixed__item h2 {
+  font-size: 20px;
+  margin: 13px 0 12px;
+}
+.admin-fixed__status {
+  font-size: 12px;
+  padding: 6px 10px;
+  border-radius: 20px;
+  background: #e8ecdb;
+  color: #38472c;
+  font-weight: 700;
+}
+.admin-fixed__status--pending {
+  background: #fff1d9;
+  color: #715214;
+}
+.admin-fixed__details {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.admin-fixed__details > div {
+  min-width: 0;
+}
+.admin-fixed__details dt {
+  font-size: 11px;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+.admin-fixed__details dd {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.admin-fixed__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 18px;
+}
+.admin-fixed__actions button,
+.admin-fixed__actions a {
+  min-height: 42px;
+  padding: 10px 14px;
+  margin: 0;
+  width: auto;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  text-decoration: none;
+  font:
+    600 13px Inter,
+    Arial,
+    sans-serif;
+  border-radius: 9px;
+  cursor: pointer;
+}
+.admin-fixed__whatsapp {
+  border: 1px solid #b0cdb2;
+  background: #eaf4e8;
+  color: #275a33;
+}
+.admin-fixed__actions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.admin-fixed__note {
+  margin-top: 12px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.admin-fixed__empty {
+  grid-column: 1/-1;
+  border: 1px dashed var(--border);
+  padding: 25px;
+  text-align: center;
+  border-radius: 12px;
+}
+.admin-work-nav {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+@media (max-width: 920px) {
+  .admin-fixed__list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .admin-work-nav {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 620px) {
+  .admin-card.dashboard .admin-work-nav {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  .admin-card.dashboard .admin-work-nav__button {
+    gap: 7px;
+    padding: 10px 7px;
+    justify-content: center;
+    min-height: 60px;
+    font-size: 12px;
+  }
+  .admin-card.dashboard .admin-work-nav__label {
+    font-size: 12px;
+  }
+  .admin-card.dashboard .admin-work-nav__icon {
+    width: 28px;
+    height: 28px;
+    font-size: 15px;
+  }
+  .admin-fixed__details {
+    grid-template-columns: 1fr 1fr;
+  }
+  .admin-fixed__item {
+    padding: 14px;
+  }
+  .admin-fixed__actions > button,
+  .admin-fixed__actions > a {
+    flex: 1;
+  }
+}
 
 /* Navegación principal: cuatro tarjetas en una fila en escritorio. */
-@media(min-width:921px){.admin-card.dashboard .admin-work-nav{display:grid;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:10px}.admin-card.dashboard .admin-work-nav__button{min-width:0;min-height:74px;padding:12px 10px;gap:8px}.admin-card.dashboard .admin-work-nav__label{font-size:clamp(13px,1.12vw,17px)}.admin-card.dashboard .admin-work-nav__icon{flex-shrink:0}}
+@media (min-width: 921px) {
+  .admin-card.dashboard .admin-work-nav {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 10px;
+  }
+  .admin-card.dashboard .admin-work-nav__button {
+    min-width: 0;
+    min-height: 74px;
+    padding: 12px 10px;
+    gap: 8px;
+  }
+  .admin-card.dashboard .admin-work-nav__label {
+    font-size: clamp(13px, 1.12vw, 17px);
+  }
+  .admin-card.dashboard .admin-work-nav__icon {
+    flex-shrink: 0;
+  }
+}
 /* Selector de fecha dentro del modal existente. */
-.admin-fixed__release-select{width:100%;max-width:100%;padding:12px;border:1px solid var(--border);border-radius:9px;background:#fff;font:500 14px Inter,Arial,sans-serif;color:var(--ink)}
+.admin-fixed__release-select {
+  width: 100%;
+  max-width: 100%;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: #fff;
+  font:
+    500 14px Inter,
+    Arial,
+    sans-serif;
+  color: var(--ink);
+}
 
 /* 14/10/2026 — botón de limpieza visual (sin borrado de historial). */
-.admin-fixed__toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
-.admin-fixed__toolbar .secondary{min-height:42px;white-space:nowrap}
-@media(max-width:620px){.admin-fixed__head{flex-wrap:wrap}.admin-fixed__toolbar{width:100%;justify-content:flex-end}}
+.admin-fixed__toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.admin-fixed__toolbar .secondary {
+  min-height: 42px;
+  white-space: nowrap;
+}
+@media (max-width: 620px) {
+  .admin-fixed__head {
+    flex-wrap: wrap;
+  }
+  .admin-fixed__toolbar {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
