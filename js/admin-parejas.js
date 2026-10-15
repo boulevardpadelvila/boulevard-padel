@@ -110,7 +110,7 @@
       st.className = "torneos-pair-entry__status";
       st.textContent = statusLabels[pair.status] || pair.status;
       const tel = document.createElement("p");
-      tel.textContent = `Contacto (solo Admin): ${pair.contact_phone}`;
+      tel.textContent = `Contacto: ${pair.contact_phone}`;
       const actions = document.createElement("div");
       actions.className = "torneos-pair-entry__buttons";
       actions.append(button("Editar", () => openEdit(pair)));
