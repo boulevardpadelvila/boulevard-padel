@@ -246,33 +246,44 @@
             <h1 id="admin-torneos-title">Torneos</h1>
             <p>Organizá torneos, inscripciones y partidos desde un solo lugar.</p>
           </div>
-          <span class="torneos-preview">Vista de diseño · No guarda cambios</span>
+          <span class="torneos-preview">Gestión inicial · Torneos en borrador</span>
         </header>
         <div class="torneos-overview" aria-label="Resumen de torneos">
-          <article class="torneos-stat"><span>Torneos activos</span><strong>—</strong><small>Sin conexión a datos</small></article>
+          <article class="torneos-stat"><span>Torneos registrados</span><strong id="torneos-count">—</strong><small>Registrados en Supabase</small></article>
           <article class="torneos-stat"><span>Parejas inscriptas</span><strong>—</strong><small>Sin conexión a datos</small></article>
           <article class="torneos-stat"><span>Partidos programados</span><strong>—</strong><small>Sin conexión a datos</small></article>
         </div>
         <div class="torneos-layout">
-          <section class="torneos-panel torneos-create" aria-labelledby="torneos-create-title">
-            <div class="torneos-panel__heading"><div><h2 id="torneos-create-title">Nuevo torneo</h2><p>Datos básicos para organizar una competencia.</p></div><span class="torneos-step">01</span></div>
+          <section class="torneos-panel torneos-create" aria-labelledby="torneo-create-title">
+            <div class="torneos-panel__heading"><div><h2 id="torneo-create-title">Nuevo torneo</h2><p>Datos básicos para organizar una competencia.</p></div><span class="torneos-step">01</span></div>
             <div class="torneos-fields">
               <div class="torneos-field torneos-field--full"><label for="torneo-name">Nombre del torneo</label><input id="torneo-name" type="text" placeholder="Ej.: Torneo de Primavera" maxlength="100"></div>
-              <div class="torneos-field"><label for="torneo-category">Categoría</label><select id="torneo-category"><option selected>Seleccionar categoría</option><option>Principiantes</option><option>7° categoría</option><option>6° categoría</option><option>5° categoría</option><option>Libre</option></select></div>
-              <div class="torneos-field"><label for="torneo-format">Modalidad</label><select id="torneo-format"><option selected>Fase de grupos + eliminatorias</option><option>Eliminación directa</option><option>Todos contra todos</option></select></div>
+              <div class="torneos-field"><label for="torneo-category">Categoría</label><select id="torneo-category"><option value="">Seleccionar categoría</option></select><button type="button" class="torneos-outline" id="torneo-add-category">+ Nueva categoría</button></div>
+              <div class="torneos-field"><label for="torneo-format">Modalidad</label><select id="torneo-format"><option value="groups_knockout" selected>Fase de grupos + eliminatorias</option><option value="knockout">Eliminación directa</option><option value="league">Todos contra todos</option></select></div>
               <div class="torneos-field"><label for="torneo-start">Fecha de inicio</label><input id="torneo-start" type="date"></div>
               <div class="torneos-field"><label for="torneo-end">Fecha de finalización</label><input id="torneo-end" type="date"></div>
-              <div class="torneos-field"><label for="torneo-pairs">Cupo de parejas</label><select id="torneo-pairs"><option>8 parejas</option><option selected>12 parejas</option><option>16 parejas</option><option>Personalizado</option></select></div>
-              <div class="torneos-field"><label for="torneo-state">Estado inicial</label><select id="torneo-state"><option selected>Borrador</option><option>Inscripciones abiertas</option></select></div>
+              <div class="torneos-field"><label for="torneo-pairs">Cupo de parejas</label><select id="torneo-pairs"><option value="8">8 parejas</option><option value="12" selected>12 parejas</option><option value="16">16 parejas</option><option value="custom">Personalizado</option></select><input id="torneo-pairs-custom" type="number" min="2" max="256" step="1" placeholder="Cantidad de parejas" aria-label="Cantidad personalizada de parejas" hidden></div>
+              <div class="torneos-field"><label for="torneo-state">Estado inicial</label><select id="torneo-state"><option value="draft" selected>Borrador</option><option value="registration_open">Inscripciones abiertas (sin formulario público todavía)</option></select></div>
             </div>
-            <div class="torneos-panel__bottom"><span>Los datos ingresados son solo una muestra visual.</span><button type="button" disabled>Crear torneo (próximamente)</button></div>
+            <div class="torneos-panel__bottom"><span>Los torneos nuevos quedan ocultos al público hasta que los publiques.</span><div class="torneos-form-actions"><button type="button" id="torneo-edit-cancel" class="torneos-outline" hidden>Cancelar edición</button><button type="button" id="torneo-create-button">Crear torneo</button></div></div>
+            <p id="torneo-feedback" role="status" aria-live="polite"></p>
+            <div id="torneos-list" aria-live="polite"></div>
           </section>
           <div class="torneos-side">
             <section class="torneos-panel" aria-labelledby="torneos-pairs-title"><div class="torneos-panel__heading"><div><h2 id="torneos-pairs-title">Parejas e inscripciones</h2><p>Listado y control de participantes.</p></div><span class="torneos-step">02</span></div><div class="torneos-empty"><span class="torneos-empty__icon" aria-hidden="true">👥</span><strong>Sin parejas cargadas</strong><p>Al crear un torneo podrás registrar parejas y gestionar su inscripción.</p></div><button type="button" class="torneos-outline" disabled>+ Agregar pareja</button></section>
             <section class="torneos-panel" aria-labelledby="torneos-fixture-title"><div class="torneos-panel__heading"><div><h2 id="torneos-fixture-title">Grupos y fixture</h2><p>Organización de partidos y resultados.</p></div><span class="torneos-step">03</span></div><div class="torneos-stage"><span>1. Inscripciones</span><span aria-hidden="true">›</span><span>2. Grupos</span><span aria-hidden="true">›</span><span>3. Eliminatorias</span></div><p class="torneos-hint">El fixture estará disponible cuando haya parejas y una modalidad definida.</p><button type="button" class="torneos-outline" disabled>Administrar fixture</button></section>
           </div>
         </div>
-        <p class="torneos-disclaimer">Esta sección es una vista preliminar. No crea torneos, no guarda inscripciones y no modifica reservas ni horarios reales.</p>
+        <dialog id="torneo-dialog" class="admin-save-dialog torneo-dialog" aria-labelledby="torneo-dialog-title" aria-describedby="torneo-dialog-description">
+          <form method="dialog" id="torneo-dialog-form" class="admin-save-dialog__body">
+            <h2 id="torneo-dialog-title">Confirmar</h2>
+            <p id="torneo-dialog-description"></p>
+            <div id="torneo-dialog-field" class="torneo-dialog__field" hidden><label id="torneo-dialog-label" for="torneo-dialog-input"></label><input id="torneo-dialog-input" type="text" maxlength="80" autocomplete="off"></div>
+            <p id="torneo-dialog-message" class="torneo-dialog__error" role="alert"></p>
+            <div class="admin-save-dialog__actions"><button type="button" class="secondary" id="torneo-dialog-cancel">Volver</button><button type="submit" class="primary" id="torneo-dialog-accept">Aceptar</button></div>
+          </form>
+        </dialog>
+        <p class="torneos-disclaimer">La creación de torneos está activa. Inscripciones, sorteo y fixture estarán disponibles en los próximos pasos. No se modifican reservas ni disponibilidad.</p>
       </section>
     </section>
     <dialog class="admin-save-dialog" id="admin-save-dialog" aria-labelledby="admin-save-dialog-title" aria-describedby="admin-save-dialog-description">
@@ -304,5 +315,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../js/supabase-config.js"></script>
   <script src="../js/admin.js" defer></script>
+  <script src="../js/admin-torneos.js" defer></script>
 </body>
 </html>

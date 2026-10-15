@@ -38,3 +38,12 @@
     grid-row: auto;
   }
 }
+/* Gestión de torneos: acciones y modal (15/10/2026). */
+.torneos-entry{padding:14px 0;border-bottom:1px solid #e8e9df}.torneos-entry>strong{font-size:14px}.torneos-entry>p{font-size:12px;color:#62685b;line-height:1.6;margin:5px 0 10px}
+.torneos-entry__actions,.torneos-form-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.torneos-entry__button{border:1px solid #d5dac8;border-radius:8px;padding:9px 14px;background:#eff2e8;color:#35422d;font-weight:700;font-size:12px;cursor:pointer}
+.torneos-entry__button--danger{color:#923b35;background:#fff5f3;border-color:#eccfc8}
+.torneos-form-actions .torneos-outline{width:auto;margin:0}
+.torneo-dialog__field{text-align:left;margin:17px 0}.torneo-dialog__field label{display:block;font-size:13px;font-weight:700;margin-bottom:7px}.torneo-dialog__field input{width:100%;border:1px solid #c9d0be;border-radius:9px;padding:12px;font-size:14px}
+.torneo-dialog__error{color:#a32923!important;font-weight:600}.torneo-dialog__error:empty{display:none}.torneo-dialog .torneo-danger{background:#9f302c!important;border-color:#9f302c!important;color:#fff!important}
+#torneo-pairs-custom:not([hidden]){margin-top:8px}#torneo-edit-cancel[hidden],#torneo-pairs-custom[hidden],#torneo-dialog-field[hidden]{display:none!important}

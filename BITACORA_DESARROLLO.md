@@ -2055,10 +2055,16 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 - **Alcance:** solo CSS de navegación; ninguna modificación de lógica, HTML, Supabase o módulos administrativos.
 - **Prueba pendiente:** verificar en Chrome móvil o DevTools a 375 px antes de publicar.
 
-## 15/10/2026 — Torneos: etapa 1, modelo inicial de Supabase (preparado, no ejecutado)
-- Se inspeccionó el ZIP actualizado `(10)`: maqueta de `#admin-torneos-view` existente y responsive 2×2 preservados. El ZIP no incluye scripts SQL históricos.
-- Se preparó `sql/27_torneos_base.sql` para crear categorías reutilizables y competencias con tipos liga, grupos + eliminación y eliminación directa; borrador, inscripciones, publicación independiente y validaciones básicas.
-- Permisos: edición limitada a perfiles `admin` activos; usuarios anónimos solo leen competencias publicadas. No hay todavía datos privados de inscripciones ni teléfonos.
-- No se modificaron HTML, CSS ni JS; no se tocó el sistema de reservas ni la disponibilidad.
-- **Estado:** SQL pendiente de ejecutar y verificar en Supabase antes de conectar el Admin. Se requiere verificar primero que no existan objetos con nombres `bp_tournament_*`.
-- **Siguiente paso:** ejecutar SQL 27 y verificar tablas/RLS; después conectar creación y categorías al Admin manteniendo la maqueta.
+## 15/10/2026 — Torneos, paso 2: alta inicial en Admin (preparado, pendiente de prueba)
+- Confirmado SQL 27: tablas bp_tournament_categories y bp_tournaments, RLS activo y ocho políticas presentes; condiciones comprobadas desde SQL Editor.
+- Archivos: admin/index.html (conserva el diseño), js/admin-torneos.js (nuevo), BITACORA_DESARROLLO.md.
+- Permite cargar categorías y crear torneos ocultos al público, listar los registrados. No programa partidos, no publica, no modifica reservas, turnos fijos o disponibilidad.
+- Prueba pendiente: entrar como Admin, crear una categoría de prueba y un torneo en borrador, recargar y confirmar persistencia; revisar móvil. No subir a producción sin probar.
+
+## 15/10/2026 — Torneos, paso 3: administración básica (parche para probar)
+- Comprobación real del paso 2: categorías cargadas desde Supabase; TORNEO_PRUEBA_1 creado y listado correctamente en borrador y oculto.
+- Se sustituyeron ventanas nativas `prompt` por modal visual para categorías y campo numérico para cupo personalizado; confirmaciones de publicación, ocultación y eliminación mediante modal.
+- Acciones agregadas: editar datos básicos, publicar/ocultar sin cambiar estado, y eliminación confirmada (Supabase impedirá borrado si las futuras relaciones lo restringen).
+- Contador rotulado «Torneos registrados»; nombres de estado y fechas en español. Se preservan reservas, disponibilidad, turnos fijos y grilla móvil 2×2.
+- Pruebas pendientes: en entorno local probar edición de TORNEO_PRUEBA_1, alta de categoría, publicar/ocultar y cancelación del borrado; revisar consola y visual móvil. No borrar el torneo de prueba hasta concluir.
+- Sin SQL nuevo. Toda publicación actual expone el registro por RLS, aunque la vista pública de torneos se desarrollará después.
