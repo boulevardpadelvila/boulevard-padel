@@ -2037,3 +2037,12 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 - **Decisión sobre eliminación:** no implementar borrado físico de solicitudes por ahora: preservamos trazabilidad y vínculos con reservas semanales; el ahorro de espacio sería marginal.
 - **Archivos:** `admin/index.html`, `js/admin.js`, `css/admin-fixed.css`, `css/turnero.css` y la bitácora maestra.
 - **Prueba pendiente:** verificar centrado del modal en móvil y PC; limpiar/mostrar historial en el Admin.
+
+## 15/10/2026 — Ajuste visual del Admin en celulares y revisión de pendientes
+- **Objetivo:** presentar los cuatro accesos del Admin en dos filas de dos tarjetas en celulares.
+- **Cambio:** regla CSS limitada a anchos de hasta 620 px; dos columnas iguales, separación uniforme y ajuste de textos/iconos. No se modifica HTML, JS, Supabase ni lógica de navegación.
+- **Prueba pendiente:** verificar visualmente en móvil real, sin desbordes; controles Reservas, Horarios, Torneos y Turnos fijos siguen funcionando.
+- **Pendiente de lógica:** el plazo máximo para solicitar turnos fijos debe derivar de la configuración `Período de reservas` del Admin (1, 2 o 3 meses; valor predeterminado 2), en lugar de estar fijo en 2 meses. Debe validarse tanto en el navegador como en Supabase. No renovar automáticamente.
+- **Regla funcional conservada:** turnos fijos no se cancelan desde la web pública; jugador contacta al administrador para liberar una fecha o finalizar el período.
+- **Antes de lanzamiento:** verificar que los cambios locales recientes estén confirmados y desplegados, respaldar configuración de Supabase y hacer prueba integral de reservas.
+- **Siguiente etapa:** definir con el responsable las reglas concretas de Torneos y Campeonatos *antes* de implementar la lógica; la sección actual es visual solamente.
