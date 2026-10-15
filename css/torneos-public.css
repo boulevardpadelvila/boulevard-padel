@@ -1,0 +1,24 @@
+/* Boulevard Pádel — módulo público de Torneos. Estilos aislados. */
+.public-tournaments{padding:95px 0;background:var(--color-bg);min-height:55vh}
+.public-tournaments h2,.public-tournament-dialog h2{font-family:"Barlow Condensed",sans-serif;font-weight:800;text-transform:uppercase;font-size:clamp(2rem,4vw,3.4rem);line-height:1.1}
+.public-tournaments__intro{max-width:660px;margin:16px 0 30px;color:var(--color-muted)}
+.public-tournaments__list{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:16px}
+.public-tournament-card{background:var(--color-surface);border:1px solid var(--color-border);border-radius:16px;padding:25px;display:flex;flex-direction:column;gap:12px;align-items:flex-start}
+.public-tournament-card h3{font-size:1.28rem;line-height:1.25}
+.public-tournament-card p{color:var(--color-muted);font-size:.93rem}
+.public-tournament-card .button{margin-top:auto;font-size:.84rem;padding:13px 18px;cursor:pointer}
+.public-tournaments__feedback{margin-top:15px;font-size:.91rem}
+.public-tournament-dialog{position:fixed;inset:0;margin:auto;width:min(93vw,510px);max-height:90vh;overflow-y:auto;border:1px solid var(--color-border);border-radius:20px;padding:0;box-shadow:0 20px 75px rgba(0,0,0,.27);background:var(--color-surface);color:var(--color-text)}
+.public-tournament-dialog::backdrop{background:rgba(0,0,0,.65)}
+.public-tournament-form{display:flex;flex-direction:column;gap:10px;padding:clamp(20px,4vw,34px)}
+.public-tournament-name{margin-bottom:12px;color:var(--color-muted)}
+.public-tournament-form label{font-size:.87rem;font-weight:600;margin-top:5px}
+.public-tournament-form input{width:100%;padding:13px 14px;border:1px solid var(--color-border);border-radius:9px;background:#fafaf8;color:var(--color-text)}
+.public-tournament-form input:focus-visible{outline:2px solid var(--color-olive);outline-offset:2px}
+.public-tournament-form .cf-turnstile{margin:12px 0 2px;max-width:100%;overflow:hidden}
+.public-tournament-notice{font-size:.84rem;color:var(--color-muted)}
+.public-tournament-error{font-size:.9rem;color:#ad2525;min-height:1em}
+.public-tournament-actions{display:flex;gap:12px;justify-content:flex-end;margin-top:8px;flex-wrap:wrap}
+.public-tournament-actions .button{cursor:pointer;padding:12px 20px}
+.public-tournament-back{background:#ebeee4;border:1px solid var(--color-border);color:var(--color-text)}
+@media(max-width:480px){.public-tournaments{padding:72px 0}.public-tournament-actions .button{flex:1 1 auto;text-align:center}}

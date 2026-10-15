@@ -1,0 +1,2 @@
+[functions.register-tournament-pair]
+verify_jwt = false

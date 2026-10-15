@@ -22,6 +22,7 @@
     />
 
     <link rel="stylesheet" href="css/styles.css" />
+    <link rel="stylesheet" href="css/torneos-public.css" />
     <link
       rel="icon"
       type="image/jpeg"
@@ -60,6 +61,7 @@
           <a href="#inicio">Inicio</a>
           <a href="#cancha">La cancha</a>
           <a href="#reservas">Reservas</a>
+          <a href="#torneos">Torneos</a>
           <a href="#contacto">Contacto</a>
         </nav>
 
@@ -207,6 +209,38 @@
           </a>
         </div>
       </section>
+
+      <!-- TORNEOS Y CAMPEONATOS — lectura pública sin teléfonos -->
+      <section class="public-tournaments" id="torneos" aria-labelledby="public-tournaments-title">
+        <div class="container">
+          <span class="section-heading__eyebrow">COMPETENCIAS</span>
+          <h2 id="public-tournaments-title">Torneos y campeonatos</h2>
+          <p class="public-tournaments__intro">Conocé nuestras competencias e inscribí tu pareja cuando estén abiertas las inscripciones.</p>
+          <div id="public-tournament-list-wrap"><div id="public-tournaments-list" class="public-tournaments__list"></div></div>
+          <p id="public-tournament-feedback" class="public-tournaments__feedback" role="status" aria-live="polite"></p>
+        </div>
+      </section>
+
+      <dialog id="public-tournament-dialog" class="public-tournament-dialog" aria-labelledby="public-tournament-dialog-title">
+        <form id="public-tournament-form" class="public-tournament-form">
+          <span class="section-heading__eyebrow">INSCRIPCIÓN DE PAREJA</span>
+          <h2 id="public-tournament-dialog-title">Inscribí tu pareja</h2>
+          <p id="public-tournament-name" class="public-tournament-name"></p>
+          <label for="public-player1">Nombre y apellido — jugador 1</label>
+          <input id="public-player1" name="player1" required maxlength="100" autocomplete="name" />
+          <label for="public-player2">Nombre y apellido — jugador 2</label>
+          <input id="public-player2" name="player2" required maxlength="100" />
+          <label for="public-phone">Teléfono de contacto (solo Admin)</label>
+          <input id="public-phone" name="phone" type="tel" required maxlength="30" autocomplete="tel" inputmode="tel" />
+          <div class="cf-turnstile" data-sitekey="0x4AAAAAAFT8R8Oy4VMKNRb1"></div>
+          <p class="public-tournament-notice">Tu inscripción quedará pendiente de aprobación. El teléfono no se publica.</p>
+          <p id="public-tournament-error" class="public-tournament-error" role="alert"></p>
+          <div class="public-tournament-actions">
+            <button id="public-tournament-back" type="button" class="button public-tournament-back">Volver</button>
+            <button id="public-tournament-send" type="submit" class="button button--dark">Enviar inscripción</button>
+          </div>
+        </form>
+      </dialog>
 
       <!-- =================================================
      CONTACTO
@@ -487,6 +521,10 @@
       </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-config.js"></script>
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+    <script src="js/torneos-public.js"></script>
     <script src="js/main.js"></script>
   </body>
 </html>

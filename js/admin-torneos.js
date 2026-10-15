@@ -61,7 +61,11 @@
       const title=document.createElement('strong');title.textContent=t.name;
       const meta=document.createElement('p');meta.textContent=`${t.bp_tournament_categories?.name || 'Sin categoría'} · ${names[t.format] || t.format} · ${date(t.starts_on)} a ${date(t.ends_on)} · ${states[t.status] || t.status} · ${t.is_published?'Publicado':'Oculto'}`;
       const actions=document.createElement('div');actions.className='torneos-entry__actions';
-      actions.append(action('Editar',()=>edit(t)),action(t.is_published?'Ocultar':'Publicar',()=>togglePublication(t)),action('Eliminar',()=>remove(t),'torneos-entry__button--danger'));
+      actions.append(action('Editar',()=>edit(t)),action(t.is_published?'Ocultar':'Publicar',()=>togglePublication(t)));
+      if(['draft','registration_open','registration_closed'].includes(t.status)) {
+        actions.append(action(t.status==='registration_open'?'Cerrar inscripciones':'Abrir inscripciones',()=>toggleRegistration(t)));
+      }
+      actions.append(action('Eliminar',()=>remove(t),'torneos-entry__button--danger'));
       card.append(title,meta,actions);box.append(card);
     }
   }
@@ -94,13 +98,38 @@
     }
   }));
   async function togglePublication(t){
+    if(t.is_published && t.status==='registration_open'){feedback('Primero cerrá las inscripciones y después ocultá el torneo.');return;}
     openModal({title:t.is_published?'Ocultar torneo':'Publicar torneo',description:t.is_published?
       `«${t.name}» dejará de estar visible para visitantes. Se conservan todos sus datos.`:
-      `¿Publicar «${t.name}»? Será visible cuando esté disponible la sección pública de torneos. Las inscripciones todavía no están habilitadas.`,
+      `¿Publicar «${t.name}»? Será visible cuando esté disponible la sección pública de torneos. El formulario de inscripción pública todavía no está conectado.`,
       confirm:t.is_published?'Ocultar':'Publicar',action:async()=>{
         await adminSession();const {data,error}=await supabaseClient.from('bp_tournaments').update({is_published:!t.is_published,updated_at:new Date().toISOString()}).eq('id',t.id).select('id');
         if(error || data?.length!==1)throw new Error('No se pudo cambiar la visibilidad.');
         await loadTournaments();feedback(t.is_published?'Torneo ocultado.':'Torneo publicado.');
+      }
+    });
+  }
+  function toggleRegistration(t){
+    const opening=t.status!=='registration_open';
+    if(opening && !t.is_published){
+      feedback('Primero publicá el torneo. No se abren inscripciones de torneos ocultos.');
+      return;
+    }
+    openModal({
+      title:opening?'Abrir inscripciones':'Cerrar inscripciones',
+      description:opening?
+        `¿Habilitar las inscripciones de «${t.name}»? Podrás cerrarlas cuando quieras. El formulario público todavía no está disponible.`:
+        `¿Cerrar las inscripciones de «${t.name}»? Las parejas ya registradas se conservarán.`,
+      confirm:opening?'Abrir inscripciones':'Cerrar inscripciones',
+      action:async()=>{
+        await adminSession();
+        // El filtro por estado evita sobrescribir una actualización concurrente.
+        const {data,error}=await supabaseClient.from('bp_tournaments')
+          .update({status:opening?'registration_open':'registration_closed',updated_at:new Date().toISOString()})
+          .eq('id',t.id).eq('status',t.status).select('id');
+        if(error || data?.length!==1)throw new Error('No se pudo cambiar el estado. Actualizá la vista e intentá nuevamente.');
+        await loadTournaments();
+        feedback(opening?'Inscripciones abiertas en el Admin. El formulario público se habilitará en el siguiente paso.':'Inscripciones cerradas correctamente.');
       }
     });
   }

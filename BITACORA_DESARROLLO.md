@@ -2083,3 +2083,20 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 - Se muestran solo los datos del torneo elegido; contador «Parejas del torneo». Se mantienen protección RLS del SQL 28 y validaciones de nombres, teléfono, duplicados.
 - No se habilita inscripción pública, ni fixture, ni eliminación relacional; no se toca turnero ni bloqueos de cancha.
 - Pruebas pendientes: desplegar archivos, comprobar selector y agregar pareja manual ficticia, recargar y verificar persistencia; posteriormente editar y cambios de estado con usuario. Probar vista móvil.
+
+
+## 15/10/2026 — Torneos Paso 4C-1: apertura y cierre desde Admin (preparado)
+- Fuente: BoulevardPadel(20261015-135826).zip.
+- Se incorpora Abrir/Cerrar inscripciones por torneo con confirmación en modal existente.
+- Para abrir, el torneo debe estar publicado; para ocultarlo, primero deben cerrarse inscripciones abiertas.
+- No se añade SQL: se reutilizan `bp_tournaments.status` (`registration_open` / `registration_closed`).
+- No se habilita aún inscripción pública: faltan Edge Function, validación de Turnstile y controles de privacidad.
+- Estado: código preparado, pendiente de prueba en localhost/Admin y revisión en Supabase.
+- Siguiente: prueba de apertura/cierre; luego implementar endpoint público y formulario.
+
+## 15/10/2026 — Torneos, paso 4C-2: formulario público (para instalación y pruebas)
+- Archivo base: BoulevardPadel(20261015-135826).zip. Se preserva JS de Paso 4C-1 (apertura/cierre) ya probado; no reemplazarlo con archivo anterior.
+- index.html: sección pública de Torneos después de Reservas; modal propio para solicitar inscripción (dos nombres completos, un teléfono), Turnstile. CSS nuevo aislado css/torneos-public.css y JS nuevo js/torneos-public.js. No se tocan reservas ni panel Admin.
+- supabase/functions/register-tournament-pair/index.ts: función servidor para comprobar origen permitido, Turnstile con secret, estado published + registration_open, cupo y duplicados; inserta como pending/web con service role que no se expone al navegador. Requiere desplegar Edge Function con verify_jwt=false y configurar TURNSTILE_SECRET_KEY en Supabase (nunca en frontend). 
+- Pendiente de prueba: desplegar función y configurar secretos; verificar en local lista pública, torneo oculto no visible, publicación y formulario cuando abierto; envío válido, duplicados y teléfono privado en Admin; cerrar inscripciones. PROBAR ANTES de subir producción.
+- Consideración futura: evitar carreras al alcanzar cupo mediante inserción transaccional si inscripción concurrente alta; hoy se consulta cupo previo. Confirmar fecha real de inscripción si se adopta una política de apertura/cierre por fechas (hoy controla Admin).
