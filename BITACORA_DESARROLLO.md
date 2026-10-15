@@ -2046,3 +2046,19 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 - **Regla funcional conservada:** turnos fijos no se cancelan desde la web pública; jugador contacta al administrador para liberar una fecha o finalizar el período.
 - **Antes de lanzamiento:** verificar que los cambios locales recientes estén confirmados y desplegados, respaldar configuración de Supabase y hacer prueba integral de reservas.
 - **Siguiente etapa:** definir con el responsable las reglas concretas de Torneos y Campeonatos *antes* de implementar la lógica; la sección actual es visual solamente.
+
+
+## 15/10/2026 — Corrección definitiva de navegación Admin móvil
+- **Problema:** Torneos ocupaba toda la segunda fila y Turnos fijos caía a una tercera fila, a pesar de la grilla de dos columnas.
+- **Causa:** `css/admin-torneos.css` establecía `#admin-tab-torneos { grid-column: 1/-1 }` bajo 650 px; tenía precedencia práctica sobre la grilla configurada en `admin.css`.
+- **Solución:** se eliminó la expansión y se dejaron los cuatro botones en celdas de dos columnas, dos filas.
+- **Alcance:** solo CSS de navegación; ninguna modificación de lógica, HTML, Supabase o módulos administrativos.
+- **Prueba pendiente:** verificar en Chrome móvil o DevTools a 375 px antes de publicar.
+
+## 15/10/2026 — Torneos: etapa 1, modelo inicial de Supabase (preparado, no ejecutado)
+- Se inspeccionó el ZIP actualizado `(10)`: maqueta de `#admin-torneos-view` existente y responsive 2×2 preservados. El ZIP no incluye scripts SQL históricos.
+- Se preparó `sql/27_torneos_base.sql` para crear categorías reutilizables y competencias con tipos liga, grupos + eliminación y eliminación directa; borrador, inscripciones, publicación independiente y validaciones básicas.
+- Permisos: edición limitada a perfiles `admin` activos; usuarios anónimos solo leen competencias publicadas. No hay todavía datos privados de inscripciones ni teléfonos.
+- No se modificaron HTML, CSS ni JS; no se tocó el sistema de reservas ni la disponibilidad.
+- **Estado:** SQL pendiente de ejecutar y verificar en Supabase antes de conectar el Admin. Se requiere verificar primero que no existan objetos con nombres `bp_tournament_*`.
+- **Siguiente paso:** ejecutar SQL 27 y verificar tablas/RLS; después conectar creación y categorías al Admin manteniendo la maqueta.

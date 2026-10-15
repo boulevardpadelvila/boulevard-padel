@@ -28,5 +28,13 @@
 .admin-card.dashboard .admin-work-nav{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}
 .admin-card.dashboard .admin-work-nav__button{min-width:0;white-space:normal;line-height:1.2}
 @media(max-width:900px){.torneos-layout{grid-template-columns:minmax(0,1fr)}.torneos-side{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:650px){.admin-card.dashboard .admin-work-nav{grid-template-columns:repeat(2,minmax(0,1fr))}.admin-card.dashboard #admin-tab-torneos{grid-column:1/-1}.torneos-side{grid-template-columns:minmax(0,1fr)}.torneos-overview{gap:7px}.torneos-stat{padding:12px 9px}.torneos-stat>span{font-size:11px}.torneos-stat>strong{font-size:29px}.torneos-stat>small{font-size:10px}.torneos-heading{gap:11px}.torneos-preview{white-space:normal}.torneos-panel{padding:15px}.torneos-panel__bottom{flex-direction:column;align-items:stretch}.torneos-fields{gap:12px}}
+@media(max-width:650px){.admin-card.dashboard .admin-work-nav{grid-template-columns:repeat(2,minmax(0,1fr))}.torneos-side{grid-template-columns:minmax(0,1fr)}.torneos-overview{gap:7px}.torneos-stat{padding:12px 9px}.torneos-stat>span{font-size:11px}.torneos-stat>strong{font-size:29px}.torneos-stat>small{font-size:10px}.torneos-heading{gap:11px}.torneos-preview{white-space:normal}.torneos-panel{padding:15px}.torneos-panel__bottom{flex-direction:column;align-items:stretch}.torneos-fields{gap:12px}}
 @media(max-width:390px){.torneos-fields{grid-template-columns:minmax(0,1fr)}.torneos-field--full{grid-column:auto}.torneos-overview{grid-template-columns:1fr}.torneos-stat{padding:10px 13px}.torneos-stat>strong{font-size:25px}}
+
+/* 15/10/2026: navegación 2×2 en teléfonos. No expandir Torneos. */
+@media (max-width: 650px) {
+  .admin-card.dashboard .admin-work-nav > .admin-work-nav__button {
+    grid-column: auto;
+    grid-row: auto;
+  }
+}
