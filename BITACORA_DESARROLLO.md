@@ -2068,3 +2068,18 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 - Contador rotulado «Torneos registrados»; nombres de estado y fechas en español. Se preservan reservas, disponibilidad, turnos fijos y grilla móvil 2×2.
 - Pruebas pendientes: en entorno local probar edición de TORNEO_PRUEBA_1, alta de categoría, publicar/ocultar y cancelación del borrado; revisar consola y visual móvil. No borrar el torneo de prueba hasta concluir.
 - Sin SQL nuevo. Toda publicación actual expone el registro por RLS, aunque la vista pública de torneos se desarrollará después.
+
+## 15/10/2026 — Torneos, paso 4A: base privada de inscripciones (SQL 28)
+- Se revisó ZIP actualizado `BoulevardPadel(20261015-133317).zip`, que incorpora la administración de torneos del paso 3. El usuario confirmó pruebas de crear, editar, publicar/ocultar y eliminar con modal «Volver».
+- Nuevo script `sql/28_torneos_inscripciones_base.sql` para `bp_tournament_pairs`: jugadores completos, teléfono de contacto privado, estado pendiente/aprobada/rechazada, origen web/admin y timestamps.
+- Seguridad: RLS administradora basada en `bp_tournament_is_admin()`, sin políticas ni permisos anónimos sobre el teléfono; índice de duplicados sin considerar el orden de los jugadores, para pendientes/aprobadas. No afecta reservas, turnos fijos ni disponibilidad.
+- Este paso **no habilita inscripción pública**. El siguiente trabajo requiere una Edge Function con Turnstile, control de inscripción abierta, límites y validaciones en servidor; luego conectar Admin y web pública con sus modales propios.
+- Prueba pendiente: ejecutar SQL 28 una vez en Supabase y comprobar tabla/políticas. No aplicar archivos web todavía.
+
+## 15/10/2026 — Torneos, paso 4B: gestión privada de parejas (parche para probar)
+- El usuario confirmó `Success. No rows returned` al ejecutar SQL 28. No se requiere nuevo SQL.
+- Archivos modificados: `admin/index.html`, `css/admin-torneos.css`; agregado `js/admin-parejas.js`. Preservado `js/admin-torneos.js` y los módulos de turnos.
+- En sección Parejas e inscripciones: selector de torneo, lista privada, teléfono solo en Admin, alta manual aprobada, edición, aprobación y rechazo. Modal propio con «Volver»; sin alert/prompt/confirm nativos.
+- Se muestran solo los datos del torneo elegido; contador «Parejas del torneo». Se mantienen protección RLS del SQL 28 y validaciones de nombres, teléfono, duplicados.
+- No se habilita inscripción pública, ni fixture, ni eliminación relacional; no se toca turnero ni bloqueos de cancha.
+- Pruebas pendientes: desplegar archivos, comprobar selector y agregar pareja manual ficticia, recargar y verificar persistencia; posteriormente editar y cambios de estado con usuario. Probar vista móvil.

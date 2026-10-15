@@ -250,7 +250,7 @@
         </header>
         <div class="torneos-overview" aria-label="Resumen de torneos">
           <article class="torneos-stat"><span>Torneos registrados</span><strong id="torneos-count">—</strong><small>Registrados en Supabase</small></article>
-          <article class="torneos-stat"><span>Parejas inscriptas</span><strong>—</strong><small>Sin conexión a datos</small></article>
+          <article class="torneos-stat"><span>Parejas del torneo</span><strong id="torneos-pairs-count">—</strong><small>Del torneo seleccionado</small></article>
           <article class="torneos-stat"><span>Partidos programados</span><strong>—</strong><small>Sin conexión a datos</small></article>
         </div>
         <div class="torneos-layout">
@@ -270,7 +270,13 @@
             <div id="torneos-list" aria-live="polite"></div>
           </section>
           <div class="torneos-side">
-            <section class="torneos-panel" aria-labelledby="torneos-pairs-title"><div class="torneos-panel__heading"><div><h2 id="torneos-pairs-title">Parejas e inscripciones</h2><p>Listado y control de participantes.</p></div><span class="torneos-step">02</span></div><div class="torneos-empty"><span class="torneos-empty__icon" aria-hidden="true">👥</span><strong>Sin parejas cargadas</strong><p>Al crear un torneo podrás registrar parejas y gestionar su inscripción.</p></div><button type="button" class="torneos-outline" disabled>+ Agregar pareja</button></section>
+            <section class="torneos-panel" aria-labelledby="torneos-pairs-title">
+              <div class="torneos-panel__heading"><div><h2 id="torneos-pairs-title">Parejas e inscripciones</h2><p>Gestioná las parejas de cada competencia.</p></div><span class="torneos-step">02</span></div>
+              <div class="torneos-field"><label for="torneos-pairs-tournament">Torneo</label><select id="torneos-pairs-tournament"><option value="">Seleccionar torneo</option></select></div>
+              <p id="torneos-pairs-feedback" class="torneos-pairs-feedback" role="status" aria-live="polite"></p>
+              <div id="torneos-pairs-list"><div class="torneos-empty"><span class="torneos-empty__icon" aria-hidden="true">👥</span><strong>Seleccioná un torneo</strong><p>Elegí una competencia para ver sus parejas.</p></div></div>
+              <button type="button" class="torneos-outline" id="torneos-pairs-add" disabled>+ Agregar pareja</button>
+            </section>
             <section class="torneos-panel" aria-labelledby="torneos-fixture-title"><div class="torneos-panel__heading"><div><h2 id="torneos-fixture-title">Grupos y fixture</h2><p>Organización de partidos y resultados.</p></div><span class="torneos-step">03</span></div><div class="torneos-stage"><span>1. Inscripciones</span><span aria-hidden="true">›</span><span>2. Grupos</span><span aria-hidden="true">›</span><span>3. Eliminatorias</span></div><p class="torneos-hint">El fixture estará disponible cuando haya parejas y una modalidad definida.</p><button type="button" class="torneos-outline" disabled>Administrar fixture</button></section>
           </div>
         </div>
@@ -310,11 +316,28 @@
         </div>
       </div>
     </dialog>
+    <dialog id="torneos-pair-dialog" class="admin-save-dialog torneo-dialog" aria-labelledby="torneos-pair-dialog-title" aria-describedby="torneos-pair-dialog-description">
+      <form id="torneos-pair-form" class="admin-save-dialog__body">
+        <h2 id="torneos-pair-dialog-title">Agregar pareja</h2>
+        <p id="torneos-pair-dialog-description">Registrá ambos jugadores y un teléfono de contacto.</p>
+        <div id="torneos-pair-fields" class="torneos-pair-fields">
+          <label for="torneos-pair-player1">Nombre y apellido del jugador 1</label><input id="torneos-pair-player1" type="text" autocomplete="off" maxlength="100" required>
+          <label for="torneos-pair-player2">Nombre y apellido del jugador 2</label><input id="torneos-pair-player2" type="text" autocomplete="off" maxlength="100" required>
+          <label for="torneos-pair-phone">Teléfono de contacto (solo Admin)</label><input id="torneos-pair-phone" type="tel" autocomplete="tel" maxlength="30" required>
+        </div>
+        <p id="torneos-pair-dialog-error" class="torneo-dialog__error" role="alert"></p>
+        <div class="admin-save-dialog__actions">
+          <button type="button" class="secondary" id="torneos-pair-back">Volver</button>
+          <button type="submit" class="primary" id="torneos-pair-save">Guardar pareja</button>
+        </div>
+      </form>
+    </dialog>
     <section class="loading" id="loading-panel" aria-live="polite">Verificando acceso…</section>
   </main>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../js/supabase-config.js"></script>
   <script src="../js/admin.js" defer></script>
   <script src="../js/admin-torneos.js" defer></script>
+  <script src="../js/admin-parejas.js" defer></script>
 </body>
 </html>
