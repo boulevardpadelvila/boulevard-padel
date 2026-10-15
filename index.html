@@ -60,7 +60,6 @@
         <nav class="nav" id="nav">
           <a href="#inicio">Inicio</a>
           <a href="#cancha">La cancha</a>
-          <a href="#reservas">Reservas</a>
           <a href="#torneos">Torneos</a>
           <a href="#contacto">Contacto</a>
         </nav>
@@ -187,29 +186,6 @@
         </div>
       </section>
 
-      <!-- =================================================
-           RESERVAS - SECCIÓN CLARA
-      ================================================== -->
-      <section class="booking-section" id="reservas">
-        <div class="container booking-section__container">
-          <div>
-            <span class="section-heading__eyebrow">RESERVAS</span>
-
-            <h2>¿Jugamos?</h2>
-
-            <p>
-              Elegí el día, seleccioná uno de los horarios disponibles y
-              confirmá tu turno. También podrás reservar un turno fijo semanal
-              para vos y tu grupo de juego.
-            </p>
-          </div>
-
-          <a href="reservar.html" class="button button--dark">
-            Ver turnos disponibles
-          </a>
-        </div>
-      </section>
-
       <!-- TORNEOS Y CAMPEONATOS — lectura pública sin teléfonos -->
       <section
         class="public-tournaments"
@@ -223,7 +199,11 @@
             Conocé nuestras competencias e inscribí tu pareja cuando estén
             abiertas las inscripciones.
           </p>
-          <div id="public-tournament-list-wrap">
+          <div class="public-tournaments__tabs" role="tablist" aria-label="Estado de las competencias">
+            <button class="public-tournaments__tab is-active" type="button" id="public-tournaments-current-tab" role="tab" aria-selected="true" aria-controls="public-tournament-list-wrap" data-tournament-tab="current">Vigentes <span id="public-current-count" class="public-tournaments__count">0</span></button>
+            <button class="public-tournaments__tab" type="button" id="public-tournaments-finished-tab" role="tab" aria-selected="false" aria-controls="public-tournament-list-wrap" data-tournament-tab="finished">Finalizados <span id="public-finished-count" class="public-tournaments__count">0</span></button>
+          </div>
+          <div id="public-tournament-list-wrap" role="tabpanel" aria-labelledby="public-tournaments-current-tab">
             <div
               id="public-tournaments-list"
               class="public-tournaments__list"

@@ -2100,3 +2100,57 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 - supabase/functions/register-tournament-pair/index.ts: función servidor para comprobar origen permitido, Turnstile con secret, estado published + registration_open, cupo y duplicados; inserta como pending/web con service role que no se expone al navegador. Requiere desplegar Edge Function con verify_jwt=false y configurar TURNSTILE_SECRET_KEY en Supabase (nunca en frontend). 
 - Pendiente de prueba: desplegar función y configurar secretos; verificar en local lista pública, torneo oculto no visible, publicación y formulario cuando abierto; envío válido, duplicados y teléfono privado en Admin; cerrar inscripciones. PROBAR ANTES de subir producción.
 - Consideración futura: evitar carreras al alcanzar cupo mediante inserción transaccional si inscripción concurrente alta; hoy se consulta cupo previo. Confirmar fecha real de inscripción si se adopta una política de apertura/cierre por fechas (hoy controla Admin).
+
+
+## 15/10/2026 — Cierre verificado del módulo de inscripciones (revisión del ZIP 18:11)
+- **Base revisada:** `BoulevardPadel(20261015-181135).zip`. Se inspeccionaron `admin/index.html`, `index.html`, JS de torneos/parejas, CSS público y la función `supabase/functions/register-tournament-pair/index.ts`. Este ZIP se toma como base para la siguiente fase; no se alteraron archivos de funcionamiento.
+- **Pruebas confirmadas por el usuario durante la sesión:** creación, edición, publicación/ocultación y eliminación de torneos; categorías desde Supabase; inscripción manual y edición de parejas; aprobación/rechazo; apertura de inscripciones solo en competencia publicada; envío público con Turnstile; solicitud pública registrada como pendiente y visible en Admin; aprobación posterior correcta. No inferir otras pruebas no realizadas.
+- **Incidencia Supabase y resolución:** la lectura pública de torneos falló con `permission denied for function bp_tournament_is_admin`; se ejecutó SQL **29** (`GRANT EXECUTE ON FUNCTION public.bp_tournament_is_admin() TO anon`). La Edge Function devolvía 500 por falta de lectura sobre `bp_tournaments` para `service_role`; se ejecutó SQL **30** (`GRANT SELECT ON TABLE public.bp_tournaments TO service_role`). El usuario confirmó posteriormente el alta pública exitosa. Estos SQL se guardaron en Supabase, pero **sus archivos no figuran en este ZIP**; no dar por probado que están versionados en el repositorio.
+- **Edge Function:** `register-tournament-pair` desplegada desde editor de Supabase con comprobación JWT legacy desactivada; utiliza `TURNSTILE_SECRET_KEY` ya presente en Secrets, y el servidor almacena el contacto sin consulta pública directa. Se verificó el flujo real, no se realizó auditoría de penetración ni de concurrencia.
+- **Corrección aprobación Admin:** el botón de aprobar/rechazar abría un diálogo, pero el envío se bloqueaba por `required` de campos ocultos (`An invalid form control ... is not focusable`). `js/admin-parejas.js` activa `form.noValidate` solo en confirmaciones de estado; al añadir o editar mantiene validación. Usuario comprobó que la pareja pendiente pasó a aprobada correctamente.
+- **Ajustes de texto:** el formulario público ya presenta `Teléfono de contacto`; en listado Admin aparece `Contacto`, sin aclaración redundante. Queda un texto residual `Teléfono de contacto (solo Admin)` en `admin/index.html`, dentro del modal de alta/edición de parejas; es visual y no cambia permisos.
+- **Estado proyecto:** reservas, bloqueos, horarios y turnos fijos no fueron modificados en este cierre. La maqueta `Grupos y fixture` sigue sin funcionalidad. La carpeta `supabase/functions/register-tournament-pair/` se encuentra en el proyecto; el ZIP incluye además `.git`, innecesaria para futuros traspasos.
+- **Decisión del organizador:** torneo tipo Mundial de fútbol = fase de grupos seguida de eliminación directa (16avos, 8vos, cuartos, semifinal, final según cantidad de **clasificados**, no siempre todas). Liga = todos contra todos; eliminación directa = cuadro sin grupos. En tablas: victoria 2 puntos, derrota jugada 1, derrota W.O. 0. No añadir reglamentos configurables aún. El Admin bloquea **manualmente** las franjas de cancha para partidos.
+- **Próximo paso recomendado:** definir y comprobar el modelo de grupos, encuentros y resultados en Supabase con SQL **31**, **después de revisar el esquema vivo** y decidir clasificación/desempates con el organizador. Preparar primero SQL acotado y reversible; no activar el botón «Administrar fixture» ni sortear sobre parejas reales sin prueba previa. Mantener fixture oculto hasta confirmación.
+- **Validaciones importantes pendientes:** cupos concurrentes (la Edge Function comprueba cupo antes de insertar, sin operación atómica), política de cierres y retiros tras sorteo, desempates y W.O., pruebas de duplicados, revisión CSP/Turnstile en producción y móvil. La inscripción pública ya funcionó pese a advertencias CSP observadas en consola; revisar sin debilitar seguridad global.
+- **Otros pendientes previos:** límite de solicitudes de turnos fijos según configuración Admin 1/2/3 meses (por defecto 2), sin permitir cancelación pública de turnos fijos.
+
+
+## 15/10/2026 — Torneos Paso 5A: visualización pública (propuesta para probar)
+- El organizador debe confirmar posteriormente el armado de grupos, clasificación, desempates y avance eliminatorio. Queda en standby toda implementación de fixture y resultados reales.
+- En el sitio público se agregan pestañas «Vigentes» y «Finalizados», conservando el formulario seguro existente. Se agrupan torneos publicados según `status=completed` o `ends_on` anterior a la fecha local; los futuros y actuales están en Vigentes. Los ocultos no aparecen.
+- Cada competencia muestra formato, categoría, fechas y estado; sólo las vigentes con `registration_open` ofrecen inscripción.
+- «Ver resultados y posiciones» despliega exclusivamente una presentación de espacios vacíos para resultados, tabla de posiciones o cuadro eliminatorio según formato, sin inventar datos ni consultar tablas aún inexistentes.
+- Archivos tocados: `index.html`, `css/torneos-public.css`, `js/torneos-public.js` y esta bitácora. No hay SQL ni cambios en el Admin/reservas.
+- Pendiente: prueba local de filtros, tarjetas, modal de inscripción, responsive y publicación. La publicación histórica depende de que Admin mantenga `is_published=true` al finalizar. Confirmar con el dueño reglas de cierre y permanencia.
+
+
+## 15/10/2026 — Ajuste visual: se elimina sección pública de Reservas
+- Para conservar la alternancia de fondos sin rediseñar colores, se retira la sección pública `#reservas`, que resultaba redundante con el botón principal del encabezado y el flujo de reserva existente.
+- El menú superior deja de apuntar a `#reservas`. Se conservan el botón «Reservar turno», `reservar.html` y todo el funcionamiento del turnero.
+- Nuevo orden de secciones públicas: Inicio (claro) → La cancha (oscuro) → Torneos (claro) → Contacto (oscuro).
+- Alcance: solo `index.html` y bitácora. Sin cambios en Supabase ni en el Admin.
+
+## 15/10/2026 — Ajuste visual: altura mínima de la sección Torneos
+- Se corrige la altura de `public-tournaments` para que ocupe la ventana visible por debajo del encabezado fijo, evitando que se vea una franja de la sección siguiente cuando el contenido es corto.
+- Se usó `min-height: calc(100vh - var(--header-height))` y `100svh` como respaldo moderno, manteniendo crecimiento natural si la sección luego contiene más tablas o resultados.
+- Alcance: solo `css/torneos-public.css` y bitácora. No se alteró la lógica de carga de torneos ni la inscripción pública.
+
+## 15/10/2026 — Torneos Paso 5B: demo visual de resultados y finalizados
+- Objetivo: mostrar al dueño del complejo una maqueta de cómo se verían los torneos vigentes con resultados/posiciones y los finalizados con su cierre, usando **datos ficticios** y sin tocar el modelo real de partidos.
+- `js/torneos-public.js` agrega dos tarjetas de demostración claramente marcadas como **Demo visual**: una competencia vigente con resultados recientes y tabla de posiciones, y una finalizada con campeones, resultados decisivos y posiciones finales.
+- `css/torneos-public.css` suma estilos para chips, resaltados, tarjetas de resultados y tablas demo, conservando la inscripción pública real de los torneos publicados.
+- No hay SQL, no se modifica el Admin y no se crean partidos reales. Las tarjetas demo conviven con las competencias publicadas solo como recurso de presentación comercial; luego podrán retirarse o reemplazarse por datos reales.
+- Próximo pendiente: confirmar con el dueño si la visual general le resulta clara y qué información exacta quiere ver en cada tarjeta (por ejemplo: grupo, fecha, sets, campeones, posiciones finales, cuadro eliminatorio, etc.).
+
+
+## 15/10/2026 — Ajuste de altura independiente en tarjetas públicas de Torneos
+- Incidencia: al expandir los resultados de la tarjeta de demostración vigente, la grilla estiraba verticalmente la tarjeta real `TORNEO_PRUEBA_PAREJAS`, generando un espacio vacío y enviando el botón «Inscribir pareja» al final.
+- Solución mínima: `align-items: start` sobre `.public-tournaments__list` en `css/torneos-public.css`. Cada tarjeta ajusta su altura a su propio contenido incluso cuando otra tiene resultados extendidos.
+- Alcance: solo CSS público y esta bitácora. Sin cambios JavaScript, Supabase, Admin, reservas ni inscripción pública.
+- Pendiente: verificar visual local en pantalla grande y móvil, con demo expandida y contraída.
+
+
+## 15/10/2026 — Tarjetas de resultados inicialmente contraídas
+- Se eliminó la apertura automática (`details.open`) de las tarjetas demostrativas. Tanto demos como torneos reales comienzan con «Ver resultados y posiciones» cerrado; el visitante decide cuándo desplegarlo.
+- Cambio exclusivo en `js/torneos-public.js`; se conserva corrección independiente de alturas de tarjetas aplicada en el parche anterior. No cambia Supabase ni inscripción.
