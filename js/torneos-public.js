@@ -11,119 +11,6 @@
     groups_knockout: "Grupos + eliminatorias",
     knockout: "Eliminación directa",
   };
-  const DEMO_TOURNAMENTS = {
-    current: [
-      {
-        id: "demo-current-showcase",
-        demo: true,
-        name: "Copa Boulevard Primavera",
-        category_name: "Caballeros 5ta",
-        format: "groups_knockout",
-        status: "in_progress",
-        starts_on: "2026-10-10",
-        ends_on: "2026-10-28",
-        demoHelperText: "Datos ficticios para mostrar cómo se verían resultados y posiciones de un torneo vigente.",
-        demoSummaryTitle: "Ver demo de resultados y posiciones",
-        resultsLabel: "Resultados recientes",
-        results: [
-          {
-            stage: "Fecha 1 · Grupo A",
-            date: "14/10/2026",
-            teams: "López / Sosa vs. Molina / Ruiz",
-            score: "6-4 · 3-6 · 6-3",
-            winner: "Ganadores: López / Sosa",
-          },
-          {
-            stage: "Fecha 1 · Grupo A",
-            date: "14/10/2026",
-            teams: "Ríos / Cejas vs. Benítez / Páez",
-            score: "6-2 · 6-1",
-            winner: "Ganadores: Ríos / Cejas",
-          },
-          {
-            stage: "Fecha 1 · Grupo B",
-            date: "15/10/2026",
-            teams: "Maidana / Acosta vs. Giménez / Falco",
-            score: "7-5 · 6-4",
-            winner: "Ganadores: Maidana / Acosta",
-          },
-        ],
-        tables: [
-          {
-            title: "Grupo A — tabla de posiciones",
-            caption: "Ejemplo visual con sistema de puntos WPC Rafaela",
-            columns: ["Pareja", "PJ", "PG", "PP", "Pts"],
-            rows: [
-              ["López / Sosa", "1", "1", "0", "2"],
-              ["Ríos / Cejas", "1", "1", "0", "2"],
-              ["Molina / Ruiz", "1", "0", "1", "1"],
-              ["Benítez / Páez", "1", "0", "1", "1"],
-            ],
-          },
-        ],
-        highlights: [
-          { label: "Próxima instancia", value: "Clasifican 2 parejas por grupo" },
-          { label: "Siguiente fecha", value: "Sábado 17/10 · desde las 16:00" },
-        ],
-      },
-    ],
-    finished: [
-      {
-        id: "demo-finished-showcase",
-        demo: true,
-        name: "Torneo Relámpago de Septiembre",
-        category_name: "Mixto libre",
-        format: "knockout",
-        status: "completed",
-        starts_on: "2026-09-19",
-        ends_on: "2026-09-20",
-        champion: "Pérez / González",
-        demoHelperText: "Datos ficticios para mostrar cómo se vería un torneo finalizado y su cierre.",
-        demoSummaryTitle: "Ver demo de resultados finales",
-        resultsLabel: "Resultados decisivos",
-        results: [
-          {
-            stage: "Semifinal 1",
-            date: "20/09/2026",
-            teams: "Pérez / González vs. Díaz / Nieva",
-            score: "6-3 · 6-4",
-            winner: "Ganadores: Pérez / González",
-          },
-          {
-            stage: "Semifinal 2",
-            date: "20/09/2026",
-            teams: "Soria / Mendieta vs. Roldán / Ferrero",
-            score: "4-6 · 6-3 · 6-4",
-            winner: "Ganadores: Soria / Mendieta",
-          },
-          {
-            stage: "Final",
-            date: "20/09/2026",
-            teams: "Pérez / González vs. Soria / Mendieta",
-            score: "6-2 · 7-5",
-            winner: "Campeones: Pérez / González",
-          },
-        ],
-        tables: [
-          {
-            title: "Posiciones finales",
-            caption: "Ejemplo visual de cierre para mostrar en competencias finalizadas",
-            columns: ["Pos.", "Pareja", "Instancia"],
-            rows: [
-              ["1", "Pérez / González", "Campeones"],
-              ["2", "Soria / Mendieta", "Finalistas"],
-              ["3", "Díaz / Nieva", "Semifinal"],
-              ["4", "Roldán / Ferrero", "Semifinal"],
-            ],
-          },
-        ],
-        highlights: [
-          { label: "Campeones", value: "Pérez / González" },
-          { label: "Resultado final", value: "6-2 · 7-5" },
-        ],
-      },
-    ],
-  };
   let selection = null;
   let loading = false;
   let tournamentsCache = [];
@@ -220,39 +107,14 @@
   }
   function detailBlock(t) {
     const details = make("details", "public-tournament-more");
-    const summary = make("summary", "public-tournament-more__summary", t.demoSummaryTitle || "Ver resultados y posiciones");
+    const summary = make("summary", "public-tournament-more__summary", "Ver resultados y posiciones");
     const content = make("div", "public-tournament-more__body");
     const matches = make("section", "public-tournament-data");
-    matches.append(make("h4", "", t.resultsLabel || "Resultados de partidos"));
-
-    if (t.demo) {
-      matches.append(make("p", "public-tournament-data__note", t.demoHelperText));
-      appendResults(matches, t.results || []);
-    } else {
-      matches.append(make("p", "public-tournament-data__empty", "Los resultados aparecerán aquí cuando la organización los registre."));
-    }
-
+    matches.append(make("h4", "", "Resultados de partidos"));
+    matches.append(make("p", "public-tournament-data__empty", "Los resultados aparecerán aquí cuando la organización los registre."));
     const standings = make("section", "public-tournament-data");
-    standings.append(make("h4", "", isFinished(t)
-      ? (t.format === "knockout" ? "Cierre de la competencia" : "Posiciones finales")
-      : (t.format === "knockout" ? "Cuadro eliminatorio" : "Tabla de posiciones")));
-
-    if (t.demo) {
-      if (t.highlights?.length) {
-        const highlight = make("div", "public-tournament-highlight");
-        t.highlights.forEach((item) => {
-          const card = make("div", "public-tournament-highlight__item");
-          card.append(make("span", "public-tournament-highlight__label", item.label));
-          card.append(make("div", "public-tournament-highlight__value", item.value));
-          highlight.append(card);
-        });
-        standings.append(highlight);
-      }
-      (t.tables || []).forEach((tableData) => {
-        standings.append(make("span", "public-tournament-data__eyebrow", tableData.title));
-        standings.append(buildTableBlock(tableData));
-      });
-    } else if (t.format === "knockout") {
+    standings.append(make("h4", "", t.format === "knockout" ? "Cuadro eliminatorio" : "Tabla de posiciones"));
+    if (t.format === "knockout") {
       standings.append(make("p", "public-tournament-data__empty", "Los cruces y ganadores estarán disponibles cuando se programe el cuadro."));
     } else {
       const scroller = make("div", "public-tournament-table-scroll");
@@ -260,17 +122,13 @@
       const caption = make("caption", "", "Estructura prevista; sin posiciones oficiales todavía");
       const thead = document.createElement("thead");
       const head = document.createElement("tr");
-      ["Pareja", "PJ", "PG", "PP", "Pts"].forEach((col) => head.append(make("th", "", col)));
+      for (const col of ["Pareja", "PJ", "PG", "PP", "Pts"]) head.append(make("th", "", col));
       thead.append(head);
       const tbody = document.createElement("tbody");
       const tr = document.createElement("tr");
       const td = make("td", "public-tournament-table__pending", "Tabla pendiente de resultados");
-      td.colSpan = 5;
-      tr.append(td);
-      tbody.append(tr);
-      table.append(caption, thead, tbody);
-      scroller.append(table);
-      standings.append(scroller);
+      td.colSpan = 5; tr.append(td); tbody.append(tr);
+      table.append(caption, thead, tbody); scroller.append(table); standings.append(scroller);
     }
     content.append(matches, standings);
     details.append(summary, content);
@@ -279,23 +137,12 @@
   function cardFor(t) {
     const card = make("article", "public-tournament-card");
     const top = make("div", "public-tournament-card__top");
-    const chips = make("div", "public-tournament-card__chips");
-    chips.append(make("span", "public-tournament-card__state", competitionState(t)));
-    if (t.demo) chips.append(make("span", "public-tournament-card__demo", "Demo visual"));
-    top.append(chips);
+    top.append(make("span", "public-tournament-card__state", competitionState(t)));
     top.append(make("span", "public-tournament-card__format", labels[t.format] || t.format));
     card.append(top, make("h3", "", t.name));
-    card.append(make("p", "public-tournament-card__category", categoryName(t)));
+    card.append(make("p", "public-tournament-card__category", t.bp_tournament_categories?.name || "Categoría por confirmar"));
     card.append(make("p", "public-tournament-card__dates", `${dateText(t.starts_on)} — ${dateText(t.ends_on)}`));
-    if (t.champion) {
-      const winner = make("p", "public-tournament-card__winner");
-      winner.append("Campeones:");
-      winner.append(make("strong", "", t.champion));
-      card.append(winner);
-    }
-    if (t.demo) {
-      card.append(make("p", "public-tournament-card__demo-text", t.demoHelperText));
-    } else if (!isFinished(t)) {
+    if (!isFinished(t)) {
       const state = make("p", "public-tournament-card__registration", t.status === "registration_open" ? "Inscripciones abiertas" : "Inscripciones no disponibles");
       card.append(state);
       if (t.status === "registration_open") {
@@ -311,8 +158,8 @@
   function render() {
     const currentReal = tournamentsCache.filter((t) => !isFinished(t));
     const finishedReal = tournamentsCache.filter(isFinished);
-    const current = [...DEMO_TOURNAMENTS.current, ...currentReal];
-    const finished = [...DEMO_TOURNAMENTS.finished, ...finishedReal];
+    const current = currentReal;
+    const finished = finishedReal;
     $("public-current-count").textContent = String(current.length);
     $("public-finished-count").textContent = String(finished.length);
     const selected = currentTab === "finished" ? finished : current;

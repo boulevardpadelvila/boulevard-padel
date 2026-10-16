@@ -176,6 +176,14 @@
             </div>
           </div>
 
+          <div class="booking-duration" id="bookingDurationControl">
+            <p class="booking-duration__label">Duración del turno</p>
+            <div class="booking-duration__choices" role="group" aria-label="Duración de la reserva">
+              <button type="button" class="booking-duration__option is-active" data-booking-duration="90" aria-pressed="true">90 minutos</button>
+              <button type="button" class="booking-duration__option" data-booking-duration="120" aria-pressed="false">120 minutos</button>
+            </div>
+          </div>
+          <p class="booking-time-hint" id="bookingTimeHint">Elegí a qué hora querés empezar</p>
           <div class="time-selector" id="timeSelector">
             <!-- Se genera desde JavaScript -->
           </div>

@@ -106,6 +106,31 @@ let selectedSlot = null;
 
 let managedBooking = null;
 
+let selectedDuration = 90;
+let availabilityRequestNumber = 0;
+const durationButtons = document.querySelectorAll("[data-booking-duration]");
+const durationControl = document.getElementById("bookingDurationControl");
+
+function updateDurationButtons() {
+  durationButtons.forEach((button) => {
+    const active = Number(button.dataset.bookingDuration) === selectedDuration;
+    button.classList.toggle("is-active", active);
+    button.setAttribute("aria-pressed", String(active));
+  });
+}
+
+durationButtons.forEach((button) => button.addEventListener("click", async () => {
+  const requested = Number(button.dataset.bookingDuration);
+  if (requested === selectedDuration || isFixedMode()) return;
+  selectedDuration = requested;
+  updateDurationButtons();
+  resetDetailsStep();
+  if (selectedDate) {
+    showTimeMessage("Consultando horarios disponibles...");
+    await loadAvailableSlots(selectedDate);
+  }
+}));
+
 /* =========================================================
 
    UTILIDADES
@@ -393,9 +418,14 @@ async function selectDate(button, dateISO) {
 ========================================================= */
 
 async function loadAvailableSlots(dateISO) {
-  const { data, error } = await supabaseClient.rpc("get_available_slots", {
+  const requestNumber = ++availabilityRequestNumber;
+  const duration = selectedDuration;
+  const { data, error } = await supabaseClient.rpc("get_available_slots_flexible", {
     p_date: dateISO,
+    p_duration_minutes: duration,
   });
+  // Una respuesta vieja no puede sobrescribir la fecha/duración actual.
+  if (requestNumber !== availabilityRequestNumber || selectedDate !== dateISO || selectedDuration !== duration) return;
 
   if (error) {
     console.error("Error consultando horarios:", error);
@@ -474,12 +504,12 @@ function selectTime(button, slot) {
   const readableTime = formatTime(slot.start_time);
 
   if (selectedBookingText) {
-    selectedBookingText.textContent = `${readableDate} · ${readableTime} hs`;
+    selectedBookingText.textContent = `${readableDate} · ${readableTime} a ${formatTime(slot.end_time)} hs`;
   }
 
   if (summaryDate) summaryDate.textContent = readableDate;
 
-  if (summaryTime) summaryTime.textContent = `${readableTime} hs`;
+  if (summaryTime) summaryTime.textContent = `${readableTime} a ${formatTime(slot.end_time)} hs`;
 
   if (summaryCourt) {
     summaryCourt.textContent = slot.court_name || "Cancha 1";
@@ -597,6 +627,18 @@ function validFixedPeriod() {
 
 function syncBookingMode() {
   const fixed = isFixedMode();
+  // La solicitud de turno fijo conserva su duración original de 90 minutos.
+  // No enviar un inicio de 120 minutos como si fuese una solicitud fija de 90.
+  if (durationControl) durationControl.hidden = fixed;
+  if (fixed && selectedDuration !== 90) {
+    selectedDuration = 90;
+    updateDurationButtons();
+    resetDetailsStep();
+    if (selectedDate) {
+      showTimeMessage("Consultando horarios disponibles...");
+      loadAvailableSlots(selectedDate);
+    }
+  }
   fixedOptions.hidden = !fixed;
   if (fixed) updateFixedDateLimits();
   fixedEndDateField.hidden = !fixed || fixedDurationType.value === "indefinite";
@@ -743,6 +785,7 @@ bookingForm?.addEventListener("submit", async (event) => {
           fullName: customerName,
           phone: customerPhone,
           startsAt: selectedSlot.starts_at,
+          durationMinutes: selectedDuration,
           notes: null,
           turnstileToken,
         },
@@ -774,7 +817,7 @@ bookingForm?.addEventListener("submit", async (event) => {
     }
 
     if (confirmationTime) {
-      confirmationTime.textContent = `${formatTime(selectedSlot.start_time)} hs`;
+      confirmationTime.textContent = `${formatTime(selectedSlot.start_time)} a ${formatTime(selectedSlot.end_time)} hs`;
     }
 
     document.querySelectorAll(".booking-step").forEach((section) => {
@@ -1325,6 +1368,9 @@ newBookingButton?.addEventListener("click", () => {
   selectedDate = null;
 
   selectedSlot = null;
+  selectedDuration = 90;
+  updateDurationButtons();
+  availabilityRequestNumber++;
 
   bookingForm?.reset();
   // Los radios están fuera del formulario: restaurar modo común de forma explícita.

@@ -2154,3 +2154,13 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 ## 15/10/2026 — Tarjetas de resultados inicialmente contraídas
 - Se eliminó la apertura automática (`details.open`) de las tarjetas demostrativas. Tanto demos como torneos reales comienzan con «Ver resultados y posiciones» cerrado; el visitante decide cuándo desplegarlo.
 - Cambio exclusivo en `js/torneos-public.js`; se conserva corrección independiente de alturas de tarjetas aplicada en el parche anterior. No cambia Supabase ni inscripción.
+
+
+## 16/10/2026 — Paso 32E: interfaz pública de turnero flexible (preparado para prueba)
+- Se agrega selector visual 90/120 minutos (90 predeterminado), horario de inicio cada 30 minutos según `get_available_slots_flexible`, y resumen de inicio/fin y duración.
+- `create-booking-secure` recibe `durationMinutes` y utiliza `create_booking_flexible` (Edge Function 32D ya publicada).
+- Solicitudes de turno fijo siguen su flujo existente; al elegir modo fijo, duración 90 y se recargan horarios para evitar discrepancias con `request-fixed-turn`.
+- Respuestas asíncronas antiguas de disponibilidad no pueden pisar la fecha/duración actual.
+- Archivos: `reservar.html`, `js/reservas.js`, `css/turnero.css`, bitácora. Sin SQL, cambios de Admin ni envío de correo.
+- **Pendiente de pruebas:** comprobar lista y cambio 90/120 en local, visual móvil, cruces de medianoche, reservar realmente una vez desde dominio autorizado (Turnstile), comprobar duración en Supabase y ausencia de superposiciones. No publicar la interfaz sin las comprobaciones.
+- **Pendiente separado:** avisos automáticos de nuevas reservas a `boulevardpadelvila@gmail.com` y posibilidad de cambiar el correo desde Admin.
