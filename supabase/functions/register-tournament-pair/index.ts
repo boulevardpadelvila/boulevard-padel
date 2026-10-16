@@ -1,73 +1,162 @@
-// Boulevard Pádel — registro público de parejas. Desplegar con verify_jwt = false.
-// Secrets obligatorios: TURNSTILE_SECRET_KEY y SUPABASE_SERVICE_ROLE_KEY.
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-const allowedOrigins = new Set([
-  'https://boulevard-padel.pages.dev',
-  'http://127.0.0.1:5500', 'http://localhost:5500',
-]);
-const json = (status: number, body: Record<string, unknown>, origin: string | null) =>
-  new Response(JSON.stringify(body), { status, headers: {
-    'Content-Type': 'application/json; charset=utf-8',
-    'Cache-Control': 'no-store', 'Vary': 'Origin',
-    ...(origin && allowedOrigins.has(origin) ? { 'Access-Control-Allow-Origin': origin } : {}),
-    'Access-Control-Allow-Headers': 'authorization, apikey, content-type, x-client-info',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  }});
-const tidy = (v: unknown) => typeof v === 'string' ? v.trim().replace(/\s+/g, ' ') : '';
-Deno.serve(async req => {
-  const origin = req.headers.get('origin');
-  if (req.method === 'OPTIONS') return allowedOrigins.has(origin ?? '') ? json(200, {}, origin) : json(403, { error: 'Origen no permitido.' }, origin);
-  if (req.method !== 'POST') return json(405, { error: 'Método no permitido.' }, origin);
-  if (!allowedOrigins.has(origin ?? '')) return json(403, { error: 'Origen no permitido.' }, origin);
-  const turnstileSecret = Deno.env.get('TURNSTILE_SECRET_KEY');
-  const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-  const supabaseUrl = Deno.env.get('SUPABASE_URL');
-  if (!turnstileSecret || !serviceKey || !supabaseUrl) return json(503, { error: 'Inscripciones temporalmente no disponibles.' }, origin);
-  let payload: Record<string, unknown>;
-  try { payload = await req.json(); } catch { return json(400, { error: 'Solicitud inválida.' }, origin); }
-  const tournamentId = tidy(payload.tournamentId);
-  const player1_name = tidy(payload.player1_name);
-  const player2_name = tidy(payload.player2_name);
-  const contact_phone = tidy(payload.contact_phone);
-  const token = tidy(payload.turnstileToken);
-  if (!/^[0-9a-f]{8}-[0-9a-f-]{27,36}$/i.test(tournamentId) ||
-      ![player1_name,player2_name].every(n => n.length >= 3 && n.length <= 100 && n.includes(' ')) ||
-      player1_name.toLocaleLowerCase() === player2_name.toLocaleLowerCase() ||
-      !/^[+\d\s()\-]{6,30}$/.test(contact_phone) || !token || token.length > 2500)
-    return json(400, { error: 'Revisá los nombres, apellidos y teléfono ingresados.' }, origin);
-  try {
-    const ip = req.headers.get('cf-connecting-ip') ?? '';
-    const form = new URLSearchParams({ secret: turnstileSecret, response: token });
-    if (ip) form.set('remoteip', ip);
-    const response = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
-      method: 'POST', body: form,
-    });
-    if (!response.ok) return json(503, { error: 'No se pudo comprobar la seguridad. Intentá nuevamente.' }, origin);
-    const verify = await response.json();
-    const host = new URL(origin!).hostname;
-    if (!verify.success || verify.hostname !== host) return json(400, { error: 'Verificación de seguridad vencida o incorrecta. Volvé a intentarlo.' }, origin);
+import { createClient } from "jsr:@supabase/supabase-js@2";
 
-    const db = createClient(supabaseUrl, serviceKey, {auth:{persistSession:false}});
-    const { data: competition, error: competitionError } = await db.from('bp_tournaments')
-      .select('id,status,is_published,max_pairs').eq('id',tournamentId).maybeSingle();
-    if (competitionError) throw competitionError;
-    if (!competition || !competition.is_published || competition.status !== 'registration_open')
-      return json(409, { error: 'Las inscripciones de este torneo no están abiertas.' }, origin);
-    // Se considera el cupo de solicitudes pendientes y aprobadas.
-    if (competition.max_pairs != null) {
-      const {count,error} = await db.from('bp_tournament_pairs').select('id',{count:'exact',head:true})
-        .eq('tournament_id',tournamentId).in('status',['pending','approved']);
-      if (error) throw error;
-      if ((count ?? 0) >= competition.max_pairs) return json(409,{error:'Se alcanzó el cupo de inscripciones.'},origin);
+// Reserva pública flexible: 90/120 minutos y aviso por email solo desde la web.
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
+};
+
+function reply(body: Record<string, unknown>, status: number): Response {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
+
+Deno.serve(async (req) => {
+  if (req.method === "OPTIONS")
+    return new Response("ok", { headers: corsHeaders });
+  if (req.method !== "POST")
+    return reply({ error: "Método no permitido." }, 405);
+
+  try {
+    const {
+      fullName,
+      phone,
+      startsAt,
+      notes,
+      turnstileToken,
+      durationMinutes,
+    } = await req.json();
+
+    if (!fullName || !phone || !startsAt || !turnstileToken) {
+      return reply({ error: "Faltan datos obligatorios." }, 400);
     }
-    const { error: insertError } = await db.from('bp_tournament_pairs').insert({
-      tournament_id:tournamentId, player1_name,player2_name,contact_phone,status:'pending',source:'web',
+
+    // Compatibilidad con clientes antiguos que aún no envían durationMinutes.
+    const duration = durationMinutes === undefined ? 90 : durationMinutes;
+    if (!Number.isInteger(duration) || ![90, 120].includes(duration)) {
+      return reply({ error: "La duración debe ser de 90 o 120 minutos." }, 400);
+    }
+
+    const turnstileSecret = Deno.env.get("TURNSTILE_SECRET_KEY");
+    if (!turnstileSecret)
+      throw new Error("TURNSTILE_SECRET_KEY no está configurada.");
+
+    const verificationResponse = await fetch(
+      "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          secret: turnstileSecret,
+          response: turnstileToken,
+        }),
+      },
+    );
+    const verification = await verificationResponse.json();
+    if (!verification.success) {
+      return reply(
+        {
+          error: "No se pudo validar la verificación de seguridad.",
+          details: verification["error-codes"] ?? [],
+        },
+        403,
+      );
+    }
+
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    if (!supabaseUrl || !serviceRoleKey) {
+      throw new Error("Falta la configuración interna de Supabase.");
+    }
+    const supabase = createClient(supabaseUrl, serviceRoleKey);
+    const { data, error } = await supabase.rpc("create_booking_flexible", {
+      p_full_name: fullName,
+      p_phone: phone,
+      p_starts_at: startsAt,
+      p_duration_minutes: duration,
+      p_notes: notes ?? null,
     });
-    if (insertError?.code === '23505') return json(409,{error:'Esta pareja ya tiene una inscripción registrada.'},origin);
-    if (insertError) throw insertError;
-    return json(201,{ok:true,message:'Solicitud recibida. Está pendiente de aprobación.'},origin);
-  } catch(error) {
-    console.error('register-tournament-pair failed',error);
-    return json(500,{error:'No pudimos registrar la inscripción. Intentá nuevamente.'},origin);
+
+    if (error) return reply({ error: error.message }, 400);
+
+    // La reserva ya está confirmada. Un problema de correo NO la cancela.
+    // Se reutilizan los mismos secretos de Resend que request-fixed-turn.
+    const resendKey = Deno.env.get("RESEND_API_KEY");
+    const from = Deno.env.get("FIXED_TURN_FROM_EMAIL");
+    const to = Deno.env.get("FIXED_TURN_ADMIN_EMAIL");
+
+    if (resendKey && from && to) {
+      try {
+        const start = new Date(String(startsAt));
+        if (Number.isNaN(start.getTime()))
+          throw new Error("Fecha de reserva no válida para el aviso");
+        const end = new Date(start.getTime() + duration * 60_000);
+        const timezone = "America/Argentina/Cordoba";
+        const day = new Intl.DateTimeFormat("es-AR", {
+          timeZone: timezone,
+          weekday: "long",
+          day: "2-digit",
+          month: "long",
+          year: "numeric",
+        }).format(start);
+        const timeFormatter = new Intl.DateTimeFormat("es-AR", {
+          timeZone: timezone,
+          hour: "2-digit",
+          minute: "2-digit",
+          hourCycle: "h23",
+        });
+        const safeName = String(fullName)
+          .replace(/[\r\n]+/g, " ")
+          .trim();
+        const safePhone = String(phone)
+          .replace(/[\r\n]+/g, " ")
+          .trim();
+        const body = [
+          "Se confirmó una nueva reserva desde el turnero público de Boulevard Pádel.",
+          "",
+          `Jugador: ${safeName}`,
+          `Celular: ${safePhone}`,
+          `Fecha: ${day}`,
+          `Horario: ${timeFormatter.format(start)} a ${timeFormatter.format(end)} hs`,
+          `Duración: ${duration} minutos`,
+          "",
+          "Consultar reservas en el panel Admin:",
+          "https://boulevard-padel.pages.dev/admin/",
+        ].join("\n");
+
+        const sent = await fetch("https://api.resend.com/emails", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${resendKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            from,
+            to: [to],
+            subject: "Boulevard Pádel — Nueva reserva confirmada",
+            text: body,
+          }),
+        });
+        if (!sent.ok) {
+          console.error(
+            "No se pudo enviar el aviso de nueva reserva:",
+            sent.status,
+            await sent.text(),
+          );
+        }
+      } catch (emailError) {
+        console.error("Error enviando aviso de nueva reserva:", emailError);
+      }
+    } else {
+      console.warn("Aviso de reserva omitido: faltan secretos de Resend");
+    }
+
+    return reply({ success: true, reservation: data }, 200);
+  } catch (error) {
+    console.error("create-booking-secure failed", error);
+    return reply({ error: "Ocurrió un error al procesar la reserva." }, 500);
   }
 });
