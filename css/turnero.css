@@ -291,7 +291,7 @@
 
 .time-selector {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 12px;
 }
 
@@ -1223,10 +1223,7 @@ body.booking-modal-open {
   .booking-intro h1 {
     font-size: 2.9rem;
   }
-
-  .time-selector {
-    grid-template-columns: 1fr;
-  }
+  /* Los inicios también se mantienen en dos columnas en móviles angostos. */
 }
 @media (max-width: 640px) {
   .turnstile-box {
