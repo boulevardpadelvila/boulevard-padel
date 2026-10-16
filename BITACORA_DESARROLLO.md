@@ -2164,3 +2164,52 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 - Archivos: `reservar.html`, `js/reservas.js`, `css/turnero.css`, bitácora. Sin SQL, cambios de Admin ni envío de correo.
 - **Pendiente de pruebas:** comprobar lista y cambio 90/120 en local, visual móvil, cruces de medianoche, reservar realmente una vez desde dominio autorizado (Turnstile), comprobar duración en Supabase y ausencia de superposiciones. No publicar la interfaz sin las comprobaciones.
 - **Pendiente separado:** avisos automáticos de nuevas reservas a `boulevardpadelvila@gmail.com` y posibilidad de cambiar el correo desde Admin.
+
+
+## 16/10/2026 — Paso 33A–33C: alta de reservas flexibles desde Admin (en prueba)
+- SQL 33A: se creó `public.create_admin_booking_flexible` sin sustituir `create_admin_booking`; control de permisos `auth.uid()` e `is_admin()` y llamada a `create_booking_flexible`.
+- SQL 33B: comprobación sin sesión Admin devuelve correctamente 42501, sin crear reservas.
+- Paso 33C: formulario de nueva reserva Admin incorpora duración 90/120 (90 por defecto), consulta `get_available_slots_flexible` y llama a `create_admin_booking_flexible`; se mantiene el desplegable.
+- **Pendiente de prueba**: validar primero en Live Server fecha y duraciones y luego una reserva real controlada desde Admin; comprobar ocupación y cancelación. No publicar sin validar.
+- **Pendiente separado**: edición de reservas existentes sigue usando función antigua `update_admin_booking`/`get_available_slots`; revisar su compatibilidad con reservas 120 antes de cambiarla.
+- **Pendiente**: solicitudes y aprobación de turnos fijos 90/120 con inicios cada 30 minutos.
+
+
+### 2026-10-16 — Paso 33D/33E: Edición de reservas flexibles (en prueba)
+- SQL 33D `update_admin_booking_flexible` instalado por el administrador. No reemplaza `update_admin_booking`.
+- Admin: formulario Nueva reserva reorganizado (fecha, duración, horario / nombre, teléfono / observaciones).
+- Admin: Editar reserva ahora muestra duración real (90/120), consulta `get_available_slots_flexible` y guarda con `update_admin_booking_flexible`.
+- Se conserva el horario propio en el selector aun si no aparece entre los libres; la validación definitiva es del servidor. Los horarios alternativos que se solapen únicamente con la reserva propia todavía podrían no aparecer; revisar en siguiente iteración con disponibilidad específica de edición.
+- Pendientes de prueba: cambiar duración de reserva de prueba sin desplazar inicio; mover a un horario libre; comprobar actualización de fin y bloqueo de superposiciones. Sin commit/push hasta validar.
+- Próximo: perfeccionar disponibilidad de edición excluyendo reserva propia y luego turnos fijos 90/120.
+
+
+### 2026-10-16 — Paso 33F: disponibilidad de edición excluyendo reserva propia (pendiente de prueba)
+- Detectado: en editar la reserva de prueba de 09:00 a 11:00 (120 minutos) no aparecía 09:30 porque `get_available_slots_flexible` filtra todas las reservas, incluida la propia.
+- SQL 33F (preparado, aún no instalado): `get_admin_edit_slots_flexible(p_date,p_duration_minutes,p_reservation_id)` solo para Admin; ofrece horarios cada 30 minutos ignorando exclusivamente la reserva editada, manteniendo validación de las demás reservas y bloqueos. No altera datos ni funciones anteriores.
+- `js/admin.js`: al editar usa la nueva consulta. Mantiene la opción original para correcciones de datos cuando la duración no cambió, incluso si el horario original ya comenzó. Al cambiar duración, no introduce artificialmente un horario ocupado.
+- `admin/index.html`: eliminado carácter `>` suelto antes de selector «Horario disponible». Se conserva disposición 3 campos / 2 campos / observaciones.
+- Pendiente de prueba: ejecutar SQL 33F en Supabase, abrir edición Live Server y verificar 09:30 si sigue en el futuro y no hay conflictos; luego mover una reserva real controlada sin cambiar su código, y verificar superposiciones. Sin publicar en GitHub hasta probar.
+- Pendiente general: habilitar solicitud y aprobación de turnos fijos semanales de 90/120 minutos.
+
+
+### 2026-10-16 — Paso 33F validado / Paso 34A preparación de turnos fijos flexibles
+- La consulta de edición `get_admin_edit_slots_flexible` y los formularios del Admin se probaron localmente: duración 90/120 y horarios alternativos cada 30 minutos; las alternativas pasadas se ocultan correctamente. El usuario confirmó «Funciona perfecto todo».
+- Paso 34A: se prepara actualización exclusiva de `bp_admin_approve_fixed_request` para aceptar duraciones 90/120 e inicios cada `start_step_minutes` (30) hasta `last_start_time` (23:30). Se preservan autenticación Admin, bloqueo transaccional, validación de ventana, superposiciones con reservas y bloqueos, y aprobación atómica.
+- **Estado del SQL 34A:** ejecutado exitosamente en Supabase el 16/10/2026; confirmado por el usuario.
+- **Próximos pasos:** ajustar Edge Function `request-fixed-turn` para recibir/validar/guardar `durationMinutes`; después `js/reservas.js` para mantener visible el selector 90/120 en modo fijo y enviar el campo; probar solicitudes, correos, aprobación (con fechas futuras y rollback si corresponde) y reservas resultantes. No modificar el Admin de torneos ni las reservas manuales.
+
+### 2026-10-16 — Paso 34B: Edge Function de solicitudes fijas 90/120 (preparada)
+- Se prepara `supabase/functions/request-fixed-turn/index.ts` tomando como base el código real de Supabase aportado por el usuario. Acepta `durationMinutes` numérico (90 o 120), con 90 como valor por defecto para compatibilidad con la web pública todavía no actualizada.
+- Guarda `duration_minutes` de cada solicitud en `fixed_turn_requests`, en lugar de utilizar la duración general `booking_settings.slot_duration_minutes`.
+- Conserva validaciones previas, Turnstile, creación de cliente, estado `pending`, y aviso existente por Resend (`RESEND_API_KEY`, `FIXED_TURN_FROM_EMAIL`, `FIXED_TURN_ADMIN_EMAIL`), sin aprobar automáticamente ni crear reservas.
+- **Estado actualizado el 16/10/2026:** publicado exitosamente en Supabase (confirmado por el usuario). Falta probar las solicitudes semanales reales con ambas duraciones. No hace falta SQL nuevo para este paso.
+
+
+### 2026-10-16 — Paso 34C: turnero público con turnos fijos semanales de 90/120 minutos (parche preparado)
+- El usuario confirmó el despliegue exitoso de la Edge Function `request-fixed-turn` del Paso 34B. SQL 34A de aprobación también instalado anteriormente.
+- `js/reservas.js`: el selector de duración 90/120 continúa visible y habilitado al elegir «Solicitar turno fijo semanal»; ya no restablece 90 minutos al cambiar de tipo. Cambiar duración actualiza los horarios mediante `get_available_slots_flexible` y descarta un horario elegido previamente hasta volver a seleccionar uno válido.
+- Las solicitudes semanales envían `durationMinutes: selectedDuration` a `request-fixed-turn`, además de los campos previos. Se mantiene Turnstile, el aviso por Resend, la confirmación previa, el estado `pending` y la aprobación del administrador.
+- `reservar.html`: texto de ayuda aclara que también se repetirá la duración elegida. CSS, Admin, reservas comunes y SQL quedan intactos.
+- **Estado:** parche preparado, no publicado ni probado con Turnstile todavía. Probar primero interfaz con Live Server y luego publicar en Pages para ejecutar solicitud real desde dominio autorizado. Probar aprobación con período corto y verificar que cada reserva creada dure 120 minutos; limpiar las reservas de prueba con las herramientas administrativas apropiadas.
+- **Pendiente de seguridad/negocio:** la disponibilidad del primer día no garantiza la de todas las semanas; la aprobación SQL 34A debe validar cada fecha y rechazar la aprobación completa ante cualquier conflicto. No conceder turno fijo automáticamente desde la web.

@@ -121,7 +121,7 @@ function updateDurationButtons() {
 
 durationButtons.forEach((button) => button.addEventListener("click", async () => {
   const requested = Number(button.dataset.bookingDuration);
-  if (requested === selectedDuration || isFixedMode()) return;
+  if (requested === selectedDuration) return;
   selectedDuration = requested;
   updateDurationButtons();
   resetDetailsStep();
@@ -627,18 +627,9 @@ function validFixedPeriod() {
 
 function syncBookingMode() {
   const fixed = isFixedMode();
-  // La solicitud de turno fijo conserva su duración original de 90 minutos.
-  // No enviar un inicio de 120 minutos como si fuese una solicitud fija de 90.
-  if (durationControl) durationControl.hidden = fixed;
-  if (fixed && selectedDuration !== 90) {
-    selectedDuration = 90;
-    updateDurationButtons();
-    resetDetailsStep();
-    if (selectedDate) {
-      showTimeMessage("Consultando horarios disponibles...");
-      loadAvailableSlots(selectedDate);
-    }
-  }
+  // La duración elegida es válida para turnos únicos y fijos semanales.
+  // Cambiar el tipo de turno no debe alterar el horario ni su duración.
+  if (durationControl) durationControl.hidden = false;
   fixedOptions.hidden = !fixed;
   if (fixed) updateFixedDateLimits();
   fixedEndDateField.hidden = !fixed || fixedDurationType.value === "indefinite";
@@ -753,6 +744,7 @@ bookingForm?.addEventListener("submit", async (event) => {
             fullName: customerName,
             phone: customerPhone,
             startsAt: selectedSlot.starts_at,
+            durationMinutes: selectedDuration,
             durationType: fixedDurationType.value,
             endDate:
               fixedDurationType.value === "defined" ? fixedEndDate.value : null,

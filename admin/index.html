@@ -296,10 +296,17 @@
               </button>
             </div>
             <form id="new-booking-form">
-              <div class="booking-editor__fields">
+              <div class="booking-editor__fields booking-editor__fields--reservation">
                 <div>
                   <label for="new-booking-date">Fecha</label
                   ><input id="new-booking-date" type="date" required />
+                </div>
+                <div>
+                  <label for="new-booking-duration">Duración</label>
+                  <select id="new-booking-duration" required>
+                    <option value="90" selected>90 minutos</option>
+                    <option value="120">120 minutos</option>
+                  </select>
                 </div>
                 <div>
                   <label for="new-booking-slot">Horario disponible</label
@@ -364,14 +371,21 @@
             </div>
             <p id="edit-booking-code" class="reservation-code"></p>
             <form id="edit-booking-form">
-              <div class="booking-editor__fields">
+              <div class="booking-editor__fields booking-editor__fields--reservation">
                 <div>
                   <label for="edit-booking-date">Fecha</label
                   ><input id="edit-booking-date" type="date" required />
                 </div>
                 <div>
-                  <label for="edit-booking-slot">Horario</label
-                  ><select id="edit-booking-slot" required disabled>
+                  <label for="edit-booking-duration">Duración</label>
+                  <select id="edit-booking-duration" required>
+                    <option value="90">90 minutos</option>
+                    <option value="120">120 minutos</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="edit-booking-slot">Horario disponible</label>
+                  <select id="edit-booking-slot" required disabled>
                     <option value="">Consultando horarios…</option>
                   </select>
                 </div>

@@ -287,7 +287,7 @@
       $("cancel-booking-back").disabled = false;
     }
   });
-  // Edición: la opción original permanece disponible para no forzar un cambio de turno.
+  // Edición: disponibilidad específica de Admin que ignora solo la reserva editada.
   const editPanel = $("edit-booking-panel");
   let editing = null;
   let editSlots = [];
@@ -305,62 +305,56 @@
   async function loadEditSlots() {
     const req = ++editSlotsRequest;
     const day = $("edit-booking-date").value;
+    const duration = Number($("edit-booking-duration").value);
     const select = $("edit-booking-slot");
     editSlots = [];
     select.replaceChildren(new Option("Consultando horarios…", ""));
     select.disabled = true;
     display("edit-booking-message", "");
-    if (!day || !editing) return;
+    if (!day || !editing || ![90, 120].includes(duration)) return;
     try {
-      const { data, error } = await supabaseClient.rpc("get_available_slots", {
+      const { data, error } = await supabaseClient.rpc("get_admin_edit_slots_flexible", {
         p_date: day,
+        p_duration_minutes: duration,
+        p_reservation_id: editing.id,
       });
       if (error) throw error;
       if (req !== editSlotsRequest || !editing || editPanel.hidden) return;
       const slots = (data || []).filter(
         (v) => v.starts_at && Number.isFinite(isoMillis(v.starts_at)),
       );
-      if (day === argentinaDay(new Date(editing.starts_at))) {
-        // La reserva actual no aparece en los slots libres: incluirla una sola vez.
-        if (
-          !slots.some(
-            (v) => isoMillis(v.starts_at) === isoMillis(editing.starts_at),
-          )
-        ) {
-          slots.push({ starts_at: editing.starts_at });
+      const originalDuration = Math.round(
+        (isoMillis(editing.ends_at) - isoMillis(editing.starts_at)) / 60000,
+      );
+      if (
+        day === argentinaDay(new Date(editing.starts_at)) &&
+        duration === originalDuration
+      ) {
+        // Si el inicio original ya pasó, dejarlo seleccionado únicamente cuando
+        // se conserva la duración: permite corregir datos sin mover el turno.
+        // Los cambios de horario/duración requieren disponibilidad real.
+        if (!slots.some((v) => isoMillis(v.starts_at) === isoMillis(editing.starts_at))) {
+          slots.push({ starts_at: editing.starts_at, current: true });
         }
       }
       slots.sort((a, b) => isoMillis(a.starts_at) - isoMillis(b.starts_at));
       editSlots = slots;
-      select.replaceChildren(
-        new Option(
-          slots.length
-            ? "Seleccioná un horario"
-            : "No hay horarios disponibles",
-          "",
-        ),
-      );
+      select.replaceChildren(new Option(
+        slots.length ? "Seleccioná un horario" : "No hay horarios disponibles", "",
+      ));
       slots.forEach((slot, i) => {
-        const isCurrent =
-          isoMillis(slot.starts_at) === isoMillis(editing.starts_at);
-        select.add(
-          new Option(
-            `${timeFormatter.format(new Date(slot.starts_at))}${isCurrent ? " (horario actual)" : ""}`,
-            String(i),
-          ),
-        );
+        const isCurrent = isoMillis(slot.starts_at) === isoMillis(editing.starts_at);
+        select.add(new Option(
+          `${timeFormatter.format(new Date(slot.starts_at))}${isCurrent ? " (horario actual)" : ""}`,
+          String(i),
+        ));
         if (isCurrent) select.value = String(i);
       });
       select.disabled = !slots.length;
     } catch (error) {
       if (req !== editSlotsRequest) return;
-      select.replaceChildren(
-        new Option("No se pudieron cargar los horarios", ""),
-      );
-      display(
-        "edit-booking-message",
-        "No se pudo consultar la disponibilidad. Intentá cambiar la fecha y volver.",
-      );
+      select.replaceChildren(new Option("No se pudieron cargar los horarios", ""));
+      display("edit-booking-message", "No se pudo consultar la disponibilidad. Intentá cambiar la fecha y volver.");
       console.error("Error cargando horarios de edición:", error);
     }
   }
@@ -371,6 +365,8 @@
     editPanel.hidden = false;
     safeText($("edit-booking-code"), `Código: ${item.reservation_code}`);
     $("edit-booking-date").value = argentinaDay(new Date(item.starts_at));
+    const savedDuration = Math.round((new Date(item.ends_at) - new Date(item.starts_at)) / 60000);
+    $("edit-booking-duration").value = [90, 120].includes(savedDuration) ? String(savedDuration) : "90";
     $("edit-booking-name").value =
       item.booking_name || item.customers?.full_name || "";
     $("edit-booking-phone").value =
@@ -382,6 +378,7 @@
   $("edit-booking-close").addEventListener("click", closeEditBooking);
   $("edit-booking-cancel").addEventListener("click", closeEditBooking);
   $("edit-booking-date").addEventListener("change", loadEditSlots);
+  $("edit-booking-duration").addEventListener("change", loadEditSlots);
   $("edit-booking-form").addEventListener("submit", async (event) => {
     event.preventDefault();
     if (!editing || editSaving) return;
@@ -401,8 +398,9 @@
     $("edit-booking-save").disabled = true;
     display("edit-booking-message", "Guardando cambios…", true);
     try {
-      const { data, error } = await supabaseClient.rpc("update_admin_booking", {
+      const { data, error } = await supabaseClient.rpc("update_admin_booking_flexible", {
         p_reservation_id: editing.id,
+        p_duration_minutes: Number($("edit-booking-duration").value),
         p_full_name: name,
         p_phone: phone,
         p_starts_at: slot.starts_at,
@@ -450,6 +448,7 @@
   async function loadAdminSlots() {
     const request = ++slotsRequest;
     const day = $("new-booking-date").value;
+    const duration = Number($("new-booking-duration").value);
     availableSlots = [];
     setSlotPlaceholder(
       day ? "Consultando horarios…" : "Elegí primero una fecha",
@@ -457,8 +456,9 @@
     display("new-booking-message", "");
     if (!day) return;
     try {
-      const { data, error } = await supabaseClient.rpc("get_available_slots", {
+      const { data, error } = await supabaseClient.rpc("get_available_slots_flexible", {
         p_date: day,
+        p_duration_minutes: duration,
       });
       if (error) throw error;
       if (request !== slotsRequest || editor.hidden) return;
@@ -498,12 +498,14 @@
     $("new-booking-name").value = "";
     $("new-booking-phone").value = "";
     $("new-booking-notes").value = "";
+    $("new-booking-duration").value = "90";
     loadAdminSlots();
     editor.scrollIntoView({ behavior: "smooth", block: "nearest" });
   });
   $("new-booking-close").addEventListener("click", closeBookingEditor);
   $("new-booking-cancel").addEventListener("click", closeBookingEditor);
   $("new-booking-date").addEventListener("change", loadAdminSlots);
+  $("new-booking-duration").addEventListener("change", loadAdminSlots);
   $("new-booking-form").addEventListener("submit", async (event) => {
     event.preventDefault();
     if (bookingSaving) return;
@@ -523,10 +525,11 @@
     $("new-booking-save").disabled = true;
     display("new-booking-message", "Guardando reserva…", true);
     try {
-      const { data, error } = await supabaseClient.rpc("create_admin_booking", {
+      const { data, error } = await supabaseClient.rpc("create_admin_booking_flexible", {
         p_full_name: fullName,
         p_phone: phone,
         p_starts_at: slot.starts_at,
+        p_duration_minutes: Number($("new-booking-duration").value),
         p_notes: $("new-booking-notes").value.trim() || null,
       });
       if (error) throw error;

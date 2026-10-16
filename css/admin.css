@@ -1850,3 +1850,12 @@ input:focus {
     min-width: 0;
   }
 }
+
+/* Paso 33E: fecha, duración y horario en la primera fila; contacto en la segunda. */
+@media (min-width: 621px) {
+  .booking-editor__fields--reservation {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+  .booking-editor__fields--reservation > div:nth-child(-n+3) { grid-column: span 2; min-width: 0; }
+  .booking-editor__fields--reservation > div:nth-child(n+4) { grid-column: span 3; min-width: 0; }
+}
