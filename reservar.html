@@ -27,10 +27,10 @@
     />
     <link rel="apple-touch-icon" href="assets/img/logo-boulevard-padel.jpg" />
     <script
-  src="https://challenges.cloudflare.com/turnstile/v0/api.js"
-  async
-  defer
-></script>
+      src="https://challenges.cloudflare.com/turnstile/v0/api.js"
+      async
+      defer
+    ></script>
   </head>
 
   <body class="booking-page">
@@ -87,8 +87,15 @@
     ====================================================== -->
     <main class="booking-app">
       <div class="booking-app__container">
-        <div class="fixed-request-toast" id="fixedRequestSuccess" role="status" aria-live="polite" hidden>
-          <strong>Solicitud enviada correctamente.</strong> Quedó pendiente de aprobación. El administrador recibió un aviso para revisarla.
+        <div
+          class="fixed-request-toast"
+          id="fixedRequestSuccess"
+          role="status"
+          aria-live="polite"
+          hidden
+        >
+          <strong>Solicitud enviada correctamente.</strong> Quedó pendiente de
+          aprobación. El administrador recibió un aviso para revisarla.
         </div>
         <!-- ENCABEZADO DEL TURNERO -->
         <section class="booking-intro">
@@ -178,12 +185,32 @@
 
           <div class="booking-duration" id="bookingDurationControl">
             <p class="booking-duration__label">Duración del turno</p>
-            <div class="booking-duration__choices" role="group" aria-label="Duración de la reserva">
-              <button type="button" class="booking-duration__option is-active" data-booking-duration="90" aria-pressed="true">90 minutos</button>
-              <button type="button" class="booking-duration__option" data-booking-duration="120" aria-pressed="false">120 minutos</button>
+            <div
+              class="booking-duration__choices"
+              role="group"
+              aria-label="Duración de la reserva"
+            >
+              <button
+                type="button"
+                class="booking-duration__option is-active"
+                data-booking-duration="90"
+                aria-pressed="true"
+              >
+                90 minutos
+              </button>
+              <button
+                type="button"
+                class="booking-duration__option"
+                data-booking-duration="120"
+                aria-pressed="false"
+              >
+                120 minutos
+              </button>
             </div>
           </div>
-          <p class="booking-time-hint" id="bookingTimeHint">Elegí a qué hora querés empezar</p>
+          <p class="booking-time-hint" id="bookingTimeHint">
+            Elegí a qué hora querés empezar
+          </p>
           <div class="time-selector" id="timeSelector">
             <!-- Se genera desde JavaScript -->
           </div>
@@ -210,8 +237,14 @@
 
           <div class="fixed-choice" aria-label="Tipo de turno">
             <p class="fixed-choice__title">¿Qué tipo de turno querés?</p>
-            <label class="fixed-choice__option"><input type="radio" name="bookingMode" value="single" checked> Una sola vez</label>
-            <label class="fixed-choice__option"><input type="radio" name="bookingMode" value="fixed"> Solicitar turno fijo semanal</label>
+            <label class="fixed-choice__option"
+              ><input type="radio" name="bookingMode" value="single" checked />
+              Una sola vez</label
+            >
+            <label class="fixed-choice__option"
+              ><input type="radio" name="bookingMode" value="fixed" /> Solicitar
+              turno fijo semanal</label
+            >
           </div>
           <form class="booking-form" id="bookingForm">
             <div class="form-field">
@@ -244,13 +277,33 @@
             </div>
 
             <div class="fixed-options" id="fixedOptions" hidden>
-              <p class="fixed-options__note">Se repetirá cada semana el día, horario y duración elegidos arriba, por un máximo de <strong>2 meses</strong>. Al finalizar, podrás solicitar un nuevo período. La solicitud <strong>requiere aprobación</strong> del administrador.</p>
+              <p class="fixed-options__note">
+                Se repetirá cada semana el día, horario y duración elegidos
+                arriba, por un máximo de <strong>2 meses</strong>. Al finalizar,
+                podrás solicitar un nuevo período. La solicitud
+                <strong>requiere aprobación</strong> del administrador.
+              </p>
               <div class="form-field">
                 <label for="fixedDurationType">¿Hasta cuándo?</label>
-                <select id="fixedDurationType"><option value="defined">Hasta una fecha determinada (máximo 2 meses)</option></select>
+                <select id="fixedDurationType">
+                  <option value="defined">
+                    Hasta una fecha determinada (máximo 2 meses)
+                  </option>
+                </select>
               </div>
-              <div class="form-field" id="fixedEndDateField"><label for="fixedEndDate">Último día del turno fijo</label><input type="date" id="fixedEndDate"></div>
-              <div class="form-field"><label for="fixedNotes">Observaciones (opcional)</label><textarea id="fixedNotes" rows="2" maxlength="500" placeholder="Algo que necesitemos saber..."></textarea></div>
+              <div class="form-field" id="fixedEndDateField">
+                <label for="fixedEndDate">Último día del turno fijo</label
+                ><input type="date" id="fixedEndDate" />
+              </div>
+              <div class="form-field">
+                <label for="fixedNotes">Observaciones (opcional)</label
+                ><textarea
+                  id="fixedNotes"
+                  rows="2"
+                  maxlength="500"
+                  placeholder="Algo que necesitemos saber..."
+                ></textarea>
+              </div>
             </div>
             <div class="booking-summary">
               <div>
@@ -269,23 +322,23 @@
               </div>
             </div>
 
-       <div class="turnstile-box">
-  <span class="turnstile-box__title">
-    Verificación de seguridad
-  </span>
+            <div class="turnstile-box">
+              <span class="turnstile-box__title">
+                Verificación de seguridad
+              </span>
 
-  <div class="turnstile-box__widget">
-    <div
-      class="cf-turnstile"
-      data-sitekey="0x4AAAAAAFT8R8Oy4VMKNRb1"
-      data-theme="light"
-    ></div>
-  </div>
+              <div class="turnstile-box__widget">
+                <div
+                  class="cf-turnstile"
+                  data-sitekey="0x4AAAAAAFT8R8Oy4VMKNRb1"
+                  data-theme="light"
+                ></div>
+              </div>
 
-  <p class="turnstile-box__text">
-    Protegemos las reservas contra envíos automáticos.
-  </p>
-</div>
+              <p class="turnstile-box__text">
+                Protegemos las reservas contra envíos automáticos.
+              </p>
+            </div>
 
             <button type="submit" class="button button--primary booking-submit">
               Confirmar reserva
@@ -294,27 +347,69 @@
             <p class="booking-form__note" id="bookingModeNote">
               Al confirmar, tu turno quedará reservado en el sistema.
             </p>
-            <div class="fixed-result" id="fixedResult" role="status" aria-live="polite" hidden></div>
+            <div
+              class="fixed-result"
+              id="fixedResult"
+              role="status"
+              aria-live="polite"
+              hidden
+            ></div>
           </form>
         </section>
 
         <!-- Confirmación de solicitud fija; reserva común sin cambios -->
-        <dialog id="fixedRequestDialog" class="fixed-request-dialog" aria-labelledby="fixedRequestTitle" aria-describedby="fixedRequestDescription">
+        <dialog
+          id="fixedRequestDialog"
+          class="fixed-request-dialog"
+          aria-labelledby="fixedRequestTitle"
+          aria-describedby="fixedRequestDescription"
+        >
           <div class="fixed-request-dialog__body">
-            <span class="fixed-request-dialog__symbol" aria-hidden="true">📅</span>
+            <span class="fixed-request-dialog__symbol" aria-hidden="true"
+              >📅</span
+            >
             <p class="fixed-request-dialog__eyebrow">BOULEVARD PÁDEL</p>
             <h2 id="fixedRequestTitle">Confirmar solicitud de turno fijo</h2>
-            <p id="fixedRequestDescription">Revisá los datos antes de enviarla. La solicitud requiere aprobación del administrador.</p>
+            <p id="fixedRequestDescription">
+              Revisá los datos antes de enviarla. La solicitud requiere
+              aprobación del administrador.
+            </p>
             <dl class="fixed-request-dialog__details">
-              <div><dt>Día semanal</dt><dd id="fixedDialogDay">—</dd></div>
-              <div><dt>Horario</dt><dd id="fixedDialogTime">—</dd></div>
-              <div><dt>Desde</dt><dd id="fixedDialogStart">—</dd></div>
-              <div><dt>Hasta</dt><dd id="fixedDialogEnd">—</dd></div>
+              <div>
+                <dt>Día semanal</dt>
+                <dd id="fixedDialogDay">—</dd>
+              </div>
+              <div>
+                <dt>Horario</dt>
+                <dd id="fixedDialogTime">—</dd>
+              </div>
+              <div>
+                <dt>Desde</dt>
+                <dd id="fixedDialogStart">—</dd>
+              </div>
+              <div>
+                <dt>Hasta</dt>
+                <dd id="fixedDialogEnd">—</dd>
+              </div>
             </dl>
-            <p class="fixed-request-dialog__note">Enviar esta solicitud no confirma ni reserva la cancha.</p>
+            <p class="fixed-request-dialog__note">
+              Enviar esta solicitud no confirma ni reserva la cancha.
+            </p>
             <div class="fixed-request-dialog__actions">
-              <button type="button" class="fixed-request-dialog__back" id="fixedDialogBack">Volver</button>
-              <button type="button" class="fixed-request-dialog__confirm" id="fixedDialogConfirm">Confirmar</button>
+              <button
+                type="button"
+                class="fixed-request-dialog__back"
+                id="fixedDialogBack"
+              >
+                Volver
+              </button>
+              <button
+                type="button"
+                class="fixed-request-dialog__confirm"
+                id="fixedDialogConfirm"
+              >
+                Confirmar
+              </button>
             </div>
           </div>
         </dialog>
@@ -380,23 +475,24 @@
             <div class="booking-manage__notice" id="manageBookingNotice"></div>
 
             <div class="booking-manage__actions">
-  <button
-    type="button"
-    class="button button--outline-dark"
-    id="closeManageBookingButton"
-  >
-    Volver al turnero
-  </button>
+              <button
+                type="button"
+                class="button button--outline-dark"
+                id="closeManageBookingButton"
+              >
+                Volver al turnero
+              </button>
 
-  <button
-    type="button"
-    class="button button--danger booking-manage__cancel"
-    id="cancelBookingButton"
-    hidden
-  >
-    Cancelar turno
-  </button>
-</div>
+              <button
+                type="button"
+                class="button button--danger booking-manage__cancel"
+                id="cancelBookingButton"
+                hidden
+              >
+                Cancelar turno
+              </button>
+            </div>
+          </div>
         </section>
 
         <!-- =================================================
@@ -409,7 +505,6 @@
 
           <h2>¡Nos vemos en la cancha!</h2>
 
-
           <div class="booking-code-box">
             <span class="booking-code-box__label">TU CÓDIGO DE RESERVA</span>
 
@@ -419,9 +514,10 @@
             ></strong>
 
             <p class="booking-code-box__warning">
-              Guardá tu código de reserva. Lo necesitarás para consultar o cancelar tu turno. Compartilo solo con personas de confianza.
-
-Importante: si faltan menos de 12 horas para tu turno, para cancelarlo deberás comunicarte con Martín al 3492258212.
+              Guardá tu código de reserva. Lo necesitarás para consultar o
+              cancelar tu turno. Compartilo solo con personas de confianza.
+              Importante: si faltan menos de 12 horas para tu turno, para
+              cancelarlo deberás comunicarte con Martín al 3492258212.
             </p>
 
             <div class="booking-code-box__actions">
@@ -477,7 +573,6 @@ Importante: si faltan menos de 12 horas para tu turno, para cancelarlo deberás 
               <strong>Cancha 1</strong>
             </div>
           </div>
-
         </section>
       </div>
     </main>
