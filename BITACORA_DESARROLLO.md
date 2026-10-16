@@ -2282,3 +2282,10 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 - **Operación real confirmada:** el dueño ya registró dos reservas reales y recibió la notificación en `martinnico_358@hotmail.com` por filtro selectivo Gmail (`onboarding@resend.dev` y asunto Boulevard Pádel). **Preservar todos los datos reales.** No está confirmado en esta bitácora si se ejecutó el SQL de limpieza de 26 registros de prueba: antes de cualquier depuración futura, identificar individualmente las filas y proteger reservas y clientes reales.
 - **Comprobación de bloqueos 35J:** el usuario confirmó que creación, desactivación, liberación de disponibilidad y presentación HH:MM funcionan y que ya publicó los cambios en GitHub.
 - **Pendientes independientes:** sincronizar período de solicitud fija pública con 1/2/3 meses configurables, gestionar adecuadamente los turnos fijos indefinidos, y revisar antes de redeploy fuentes locales de Edge Functions, especialmente `register-tournament-pair`. Los torneos continúan como desarrollo separado.
+
+
+## Ajuste de navegación — Logo del Admin (16/10/2026)
+
+- Se hizo clicable solamente el logo circular del encabezado del panel Admin para abrir `../index.html` (inicio público de Boulevard Pádel).
+- Se usó un enlace HTML con `aria-label` y `title`, sin añadir dependencias ni cambiar autenticación, formularios o funciones de Supabase.
+- Pendiente: validar con Live Server y, después, publicar mediante commit/push.
