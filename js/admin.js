@@ -666,31 +666,34 @@
   let configBusy = false;
   let configLoadCounter = 0;
   const configDays = [...document.querySelectorAll(".admin-weekly-day")];
+  // Paso 35I: selects con horario 24 h en cualquier navegador, sin a. m./p. m.
+  // La base de datos y el turnero trabajan con inicios en :00 o :30.
+  const availableConfigTimes = Array.from({ length: 48 }, (_, index) => {
+    const hh = String(Math.floor(index / 2)).padStart(2, "0");
+    return `${hh}:${index % 2 === 0 ? "00" : "30"}`;
+  });
+  for (const select of document.querySelectorAll(".admin-weekly-time__select")) {
+    const initialTime = select.value;
+    const options = availableConfigTimes.map((time) => new Option(time, time));
+    select.replaceChildren(...options);
+    select.value = initialTime;
+  }
   const configSave = $("admin-config-save");
   const configNote = (message, success = false) =>
     display("admin-config-message", message, success);
   const hhmm = (time) => String(time || "").slice(0, 5);
+  const validConfigTime = (value) => /^([01]\d|2[0-3]):(00|30)$/.test(value);
   function fillConfig() {
     const byDay = new Map(configRows.map((row) => [Number(row.weekday), row]));
     for (let day = 1; day <= 7; day++) {
       const row = byDay.get(day);
-      const inputs = configDays[day - 1].querySelectorAll("input");
-      inputs[0].checked = Boolean(row.is_open);
-      inputs[1].value = hhmm(row.opening_time) || "09:00";
-      inputs[2].value = hhmm(row.closing_time) || "22:30";
+      const dayFields = configDays[day - 1];
+      dayFields.querySelector('input[type="checkbox"]').checked = Boolean(row.is_open);
+      dayFields.querySelector('.admin-weekly-time--start select').value = hhmm(row.opening_time);
+      dayFields.querySelector('.admin-weekly-time--end select').value = hhmm(row.last_start_time);
     }
-    const duration = $("admin-preview-duration");
     const windowMonths = $("admin-preview-window");
-    // Conservar configuraciones preexistentes que no aparecen en las opciones iniciales.
-    for (const [select, number, unit] of [
-      [duration, currentSettings.slot_duration_minutes, "minutos"],
-      [windowMonths, currentSettings.default_window_months, "meses"],
-    ]) {
-      const value = String(number);
-      if (![...select.options].some((o) => o.value === value))
-        select.add(new Option(`${number} ${unit} (actual)`, value));
-      select.value = value;
-    }
+    windowMonths.value = String(currentSettings.default_window_months);
   }
   async function loadConfig() {
     const seq = ++configLoadCounter;
@@ -700,12 +703,12 @@
       const [settingsResult, weeklyResult] = await Promise.all([
         supabaseClient
           .from("booking_settings")
-          .select("id, slot_duration_minutes, default_window_months")
+          .select("id, default_window_months")
           .eq("id", 1)
           .single(),
         supabaseClient
           .from("weekly_hours")
-          .select("id, court_id, weekday, is_open, opening_time, closing_time")
+          .select("id, court_id, weekday, is_open, opening_time, last_start_time")
           .order("weekday"),
       ]);
       if (seq !== configLoadCounter) return;
@@ -714,12 +717,21 @@
       const rows = weeklyResult.data || [];
       if (
         rows.length !== 7 ||
-        new Set(rows.map((r) => r.weekday)).size !== 7 ||
+        new Set(rows.map((r) => Number(r.weekday))).size !== 7 ||
         new Set(rows.map((r) => r.court_id)).size !== 1
       ) {
         throw new Error(
           "La configuración semanal no contiene exactamente los 7 días de una cancha.",
         );
+      }
+      if (
+        ![1, 2, 3].includes(Number(settingsResult.data?.default_window_months)) ||
+        rows.some((row) =>
+          !validConfigTime(hhmm(row.opening_time)) ||
+          !validConfigTime(hhmm(row.last_start_time))
+        )
+      ) {
+        throw new Error("Los horarios o el período almacenados no son válidos. Revisá la configuración en Supabase.");
       }
       currentSettings = settingsResult.data;
       configRows = rows;
@@ -727,8 +739,10 @@
       configSave.disabled = false;
       configNote("Configuración actual cargada desde Supabase.", true);
     } catch (error) {
+      if (seq !== configLoadCounter) return;
       currentSettings = null;
       configRows = [];
+      configSave.disabled = true;
       configNote(error.message || "No se pudo cargar la configuración.");
       console.error("Error cargando configuración del Admin:", error);
     }
@@ -760,32 +774,31 @@
   }
   configSave.addEventListener("click", async () => {
     if (configBusy || !currentSettings || configRows.length !== 7) return;
-    const duration = Number($("admin-preview-duration").value);
     const months = Number($("admin-preview-window").value);
-    if (![60, 90, 120].includes(duration) || ![1, 2, 3].includes(months)) {
-      configNote("Elegí una duración y un período de reservas válidos.");
+    if (![1, 2, 3].includes(months)) {
+      configNote("Elegí un período de reservas válido.");
       return;
     }
-    const changes = [];
+    const days = [];
     for (let index = 0; index < configDays.length; index++) {
-      const [open, from, until] = configDays[index].querySelectorAll("input");
+      const dayFields = configDays[index];
+      const open = dayFields.querySelector('input[type="checkbox"]');
+      const first = dayFields.querySelector('.admin-weekly-time--start select');
+      const last = dayFields.querySelector('.admin-weekly-time--end select');
+      const name = configDays[index].querySelector("strong").textContent;
       if (
-        open.checked &&
-        (!from.value || !until.value || from.value >= until.value)
+        !validConfigTime(first.value) ||
+        !validConfigTime(last.value) ||
+        first.value > last.value
       ) {
-        configNote(
-          `Revisá las horas de ${configDays[index].querySelector("strong").textContent}: el cierre debe ser posterior a la apertura.`,
-        );
+        configNote(`Revisá los horarios de ${name}: usá horas en :00 o :30 y asegurate de que el último inicio no sea anterior al primero.`);
         return;
       }
-      const existing = configRows.find(
-        (row) => Number(row.weekday) === index + 1,
-      );
-      changes.push({
-        id: existing.id,
+      days.push({
+        weekday: index + 1,
         is_open: open.checked,
-        opening_time: from.value || null,
-        closing_time: until.value || null,
+        opening_time: first.value,
+        last_start_time: last.value,
       });
     }
     if (!(await requestConfigConfirmation())) return;
@@ -793,26 +806,17 @@
     configSave.disabled = true;
     configNote("Guardando cambios…", true);
     try {
-      // Una sola RPC PostgreSQL: o se guardan todos los cambios, o ninguno.
-      const days = changes.map((change, index) => ({
-        weekday: index + 1,
-        is_open: change.is_open,
-        opening_time: change.opening_time,
-        closing_time: change.closing_time,
-      }));
-      const { error } = await supabaseClient.rpc("save_admin_booking_config", {
-        p_duration_minutes: duration,
+      const { error } = await supabaseClient.rpc("save_admin_booking_config_flexible", {
         p_window_months: months,
         p_days: days,
       });
       if (error) throw error;
       await loadConfig();
+      if (!currentSettings) throw new Error("No se pudo verificar la configuración guardada.");
       configNote("Configuración guardada correctamente.", true);
     } catch (error) {
       await loadConfig();
-      configNote(
-        "No se guardó la configuración. Ningún cambio de esta operación fue aplicado. Revisá los datos y reintentá.",
-      );
+      configNote(error.message || "No se pudo guardar la configuración. Revisá los datos y reintentá.");
       console.error("Error guardando configuración:", error);
     } finally {
       configBusy = false;

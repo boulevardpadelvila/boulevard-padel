@@ -1118,7 +1118,7 @@ input:focus {
 .admin-weekly-day strong {
   font-size: 13px;
 }
-.admin-weekly-day input[type="time"] {
+.admin-weekly-day .admin-weekly-time select {
   width: 100%;
   min-width: 0;
   padding: 8px;
@@ -1174,7 +1174,7 @@ input:focus {
   outline: 3px solid #81906380;
   outline-offset: 2px;
 }
-.admin-weekly-day:has(.admin-switch input:not(:checked)) input[type="time"] {
+.admin-weekly-day:has(.admin-switch input:not(:checked)) .admin-weekly-time select {
   opacity: 0.4;
   pointer-events: none;
 }
@@ -1241,7 +1241,7 @@ input:focus {
     gap: 6px;
     padding: 11px 0;
   }
-  .admin-weekly-day input[type="time"] {
+  .admin-weekly-day .admin-weekly-time select {
     font-size: 12px;
     padding: 6px 3px;
   }
@@ -1259,7 +1259,7 @@ input:focus {
   .admin-weekly-day strong {
     font-size: 11px;
   }
-  .admin-weekly-day input[type="time"] {
+  .admin-weekly-day .admin-weekly-time select {
     font-size: 11px;
   }
 }
@@ -1858,4 +1858,72 @@ input:focus {
   }
   .booking-editor__fields--reservation > div:nth-child(-n+3) { grid-column: span 2; min-width: 0; }
   .booking-editor__fields--reservation > div:nth-child(n+4) { grid-column: span 3; min-width: 0; }
+}
+
+/* Paso 35H — Horarios independientes por día.
+   Los títulos de cada campo aparecen dentro de la fila en dispositivos móviles. */
+.admin-weekly-time {
+  display: block;
+  min-width: 0;
+  margin: 0;
+}
+.admin-weekly-time__caption {
+  display: none;
+}
+.admin-weekly-day .admin-weekly-time select {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+}
+.admin-config__duration-values {
+  color: var(--ink) !important;
+  font-size: 17px !important;
+  font-weight: 800;
+  margin-top: 8px !important;
+  margin-bottom: 2px !important;
+}
+@media (max-width: 700px) {
+  .admin-weekly-day {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px 12px;
+    padding: 13px 0;
+  }
+  .admin-weekly-day > strong {
+    grid-column: 1;
+    grid-row: 1;
+    align-self: center;
+    font-size: 14px;
+  }
+  .admin-weekly-day > .admin-switch {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
+  }
+  .admin-weekly-day > .admin-weekly-time--start {
+    grid-column: 1;
+    grid-row: 2;
+  }
+  .admin-weekly-day > .admin-weekly-time--end {
+    grid-column: 2;
+    grid-row: 2;
+  }
+  .admin-weekly-time__caption {
+    display: block;
+    margin-bottom: 5px;
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .admin-weekly-day .admin-weekly-time select {
+    padding: 9px 7px;
+    font-size: 13px;
+  }
+}
+
+/* Paso 35I — Horarios siempre en formato 24 h, incluso en Chrome configurado en 12 h. */
+.admin-weekly-day .admin-weekly-time select {
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
 }

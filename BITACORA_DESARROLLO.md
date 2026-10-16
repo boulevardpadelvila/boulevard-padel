@@ -2213,3 +2213,43 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 - `reservar.html`: texto de ayuda aclara que también se repetirá la duración elegida. CSS, Admin, reservas comunes y SQL quedan intactos.
 - **Estado:** parche preparado, no publicado ni probado con Turnstile todavía. Probar primero interfaz con Live Server y luego publicar en Pages para ejecutar solicitud real desde dominio autorizado. Probar aprobación con período corto y verificar que cada reserva creada dure 120 minutos; limpiar las reservas de prueba con las herramientas administrativas apropiadas.
 - **Pendiente de seguridad/negocio:** la disponibilidad del primer día no garantiza la de todas las semanas; la aprobación SQL 34A debe validar cada fecha y rechazar la aprobación completa ante cualquier conflicto. No conceder turno fijo automáticamente desde la web.
+
+
+### 2026-10-16 — Paso 35: horarios de primer/último inicio independientes por día (en curso)
+- El usuario aprobó reemplazar el antiguo «Desde/Hasta» en Admin por «Primer inicio/Último inicio», configurable para cada día, manteniendo reserva flexible 90/120 min, intervalos de 30 min y turnos que cruzan medianoche.
+- SQL 35A instalado y comprobado: `weekly_hours.last_start_time` agregado y sus 7 días inicializados a `23:30`; todos siguen abriendo `09:00`.
+- SQL 35B instalado: `get_available_slots_flexible` ahora consulta `weekly_hours.last_start_time` por día, respetando reservas existentes y blockouts.
+- SQL 35C instalado: `create_booking_flexible` confirma solo inicios entre `weekly_hours.opening_time` y `last_start_time` para el día correspondiente; lo reutilizan web y Admin.
+- SQL 35D instalado: `update_admin_booking_flexible` también respeta los horarios individuales por día.
+- SQL 35E instalado: `get_admin_edit_slots_flexible` muestra disponibilidad por día excluyendo la reserva propia y conservando los demás conflictos.
+- **SQL 35F (instalado, éxito confirmado):** actualizar `bp_admin_approve_fixed_request` sobre la versión 34A ya implementada para que valide `v_hours.last_start_time` en vez de `v_config.last_start_time`, conservando aprobación atómica de todas las fechas, guardas de admin, 90/120 y bloqueos.
+- **Pendiente:** adaptar guardado SQL de configuración por día, pantalla Admin «Horarios y disponibilidad», lecturas/admin de horarios y cualquier validación de solicitudes de turnos fijos que use el límite antiguo. Ejecutar pruebas reales controladas antes de editar horarios desde Admin.
+- **Importante:** no modificar la configuración semanal mediante la pantalla antigua mientras no esté coordinada con SQL 35.
+
+
+### 2026-10-16 — Paso 35G: guardado de horarios semanales independientes (SQL preparado)
+- El usuario confirmó Success al ejecutar SQL 35F; la aprobación de turnos fijos ya valida el último inicio por día.
+- Se preparó nueva función `save_admin_booking_config_flexible(p_window_months integer, p_days jsonb)`; NO sustituye aún `save_admin_booking_config`. Acepta siete días completos, cada uno con `weekday`, `is_open`, `opening_time` (primer inicio) y `last_start_time` (último inicio).
+- Validación y guardado atómicos; solo Admin autenticado; meses 1/2/3; horas alineadas a 00/30 y límite de 23:30; no cambia los datos hasta invocar la RPC desde el frontend.
+- Conserva campos legados `booking_settings.slot_duration_minutes` (90) y `weekly_hours.closing_time` sin alterarlos. La interfaz final mostrará duraciones disponibles 90 y 120 como texto, no un selector general.
+- **Estado del SQL 35G: pendiente de ejecución y confirmación por el usuario.** No modificar todavía la pantalla de horarios en producción.
+- Próximo paso tras Success: parche exclusivamente del Admin `admin/index.html`, `js/admin.js`, `css/admin.css` conectado a nueva RPC y lectura `last_start_time`; probar localmente, cambios por día y bloqueos; actualizar esta misma bitácora.
+
+
+### 2026-10-16 — Paso 35H: Pantalla Admin de horarios por día (parche preparado)
+- SQL 35G `save_admin_booking_config_flexible(p_window_months, p_days)` instalado con éxito en Supabase; confirmado por el usuario. La versión anterior `save_admin_booking_config` se conserva sin alteraciones.
+- `admin/index.html`: sustituye los títulos «Desde/Hasta» por «Primer inicio/Último inicio», ahora configurables por cada día en intervalos de 30 minutos, último máximo 23:30. Se reemplaza el selector general 60/90/120 por un texto informativo «90 o 120 minutos».
+- `js/admin.js`: lee `weekly_hours.last_start_time` de cada día; guarda los siete días y ventana 1/2/3 meses mediante la nueva RPC `save_admin_booking_config_flexible`. Validación de horas y guardado transaccional; se mantiene el diálogo de confirmación.
+- `css/admin.css`: mejora la distribución móvil mostrando día y apertura en una fila, luego ambos campos horarios con etiquetas visibles; escritorio conserva columnas semanales.
+- Se mantiene el módulo de bloqueos excepcionales sin cambios. No se cambian datos ni reservas por instalar estos archivos: solo al confirmar «Guardar configuración».
+- **Pruebas pendientes**: cargar configuración local con Live Server (7 días 09:00–23:30); cambiar únicamente el último inicio de un día futuro a 20:00, guardar y verificar disponibilidad 90/120 en público/Admin y que el bloqueo excepcional siga respetándose; restaurar 23:30 al concluir; revisar móvil; después hacer commit/push.
+- **Atención**: el campo legado `weekly_hours.closing_time` no se modifica, por diseño de SQL 35G; revisar dependencias antiguas si se reactivan flujos previos.
+
+
+### 2026-10-16 — Paso 35I: selector horario de 24 horas en Admin (parche preparado)
+- Se sustituyen solo los 14 campos de «Primer inicio / Último inicio» de la configuración semanal por selectores HTML que muestran inequívocamente HH:MM (00:00, 00:30, ... 23:30), sin AM/PM independientemente de la configuración del navegador.
+- Las opciones permanecen limitadas a :00 y :30, acordes con SQL 35G (que rechaza 08:45); 08:45 NO es admitido por el backend ni generaría la secuencia de inicio estándar.
+- `js/admin.js` genera las opciones en formato 24 horas, rellena los valores guardados desde `weekly_hours` y sigue enviando el mismo JSON a `save_admin_booking_config_flexible`.
+- `css/admin.css` actualiza el aspecto responsive del selector horario y conserva la disposición móvil de 35H.
+- No se modifican Supabase, bloqueos, turnos fijos, duración ni reservas; tampoco los campos de hora del módulo de bloqueos.
+- Pendiente: probar con Live Server en escritorio y móvil, guardar un día de prueba con límite distinto, comprobar turnero público y Admin, restaurar 23:30; commit/push solo después.
