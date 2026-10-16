@@ -1773,7 +1773,6 @@ Iniciar el portal de administración de Boulevard Pádel, manteniendo el sitio y
 
 **Frase para retomar:** «Continuemos Boulevard Pádel desde la bitácora del 12/10/2026. Ya verificamos SELECT=true en las tres tablas. Empecemos el panel Admin de reservas, solo lectura».
 
-
 ---
 
 # 12/10/2026 — Continuación: panel Admin de reservas y cierre funcional
@@ -1894,7 +1893,6 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 - La bitácora maestra sigue siendo **exclusivamente** `BITACORA_DESARROLLO.md`. Los avances nuevos se añaden al documento íntegro, sin crear otras bitácoras.
 - **Próximo paso al retomar:** confirmar visualmente las tres tarjetas alineadas y el responsive; verificar el commit/push y despliegue; luego comenzar la conexión segura de configuración con Supabase. También se deben probar los accesos y cambios desde producción antes de la entrega.
 
-
 ---
 
 ## 14/10/2026 — Maqueta visual del módulo Torneos en el portal Admin
@@ -1902,6 +1900,7 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 **Objetivo:** adelantar el diseño administrable del futuro módulo de torneos sin implementar todavía backend ni persistencia. Se partió del ZIP actualizado `BoulevardPadel(4).zip` facilitado por el usuario.
 
 **Cambios realizados:**
+
 - Se agregó una tercera sección «Torneos» a la navegación del Admin, junto a «Reservas» y «Horarios y disponibilidad».
 - Se incorporó `#admin-torneos-view` al HTML existente del panel, con encabezado explícito de «Vista de diseño · No guarda cambios».
 - Se diseñaron tarjetas de resumen sin estadísticas ficticias, formulario preliminar de torneo (nombre, categoría, modalidad, fechas, cupo, estado), área de parejas/inscripciones y recorrido de grupos/fixture.
@@ -1916,6 +1915,7 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 **Próxima etapa:** priorizar conexión real de Horarios y disponibilidad con Supabase, controles de cierres/bloqueos y turnos fijos; planificar backend de Torneos posteriormente. La navegación móvil del calendario Admin sigue pendiente de avance de un día por pulsación; no se modifica en esta entrega.
 
 ## 14/10/2026 — Ajuste visual rápido del selector de secciones del Admin
+
 - **Objetivo:** mejorar la visual de las tres tarjetas superiores del portal Admin antes del commit/push.
 - **Cambios realizados:**
   - Se rediseñaron las pestañas **Reservas**, **Horarios y disponibilidad** y **Torneos** para que funcionen visualmente como tarjetas más altas.
@@ -1928,12 +1928,14 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 - **Estado:** ajuste visual aplicado. Pendiente revisión final del usuario en navegador antes de hacer commit/push.
 
 ## 14/10/2026 — Navegación adaptable de fechas del Admin
+
 - **Objetivo:** que las flechas del calendario avancen según la cantidad de tarjetas que entran en pantalla.
 - **Cambio:** `js/admin.js` calcula las tarjetas completas visibles a partir del ancho real del contenedor, el ancho de cada tarjeta y el espacio entre ellas. En escritorio (ancho de ventana superior a 1024 px) mantiene el avance semanal de 7 días; en tablet y celular desplaza entre 1 y 7 días según el espacio disponible.
 - **Sin alterar:** calendario, selección de fecha, lectura de reservas, Supabase ni diseño aprobado.
 - **Pruebas:** sintaxis del JavaScript y estructura ZIP verificadas; queda comprobar el desplazamiento en navegadores reales de escritorio, tablet y celular antes de cerrar el ajuste.
 
 ## 14/10/2026 — Primera conexión real de «Horarios y disponibilidad» con Supabase
+
 - **Objetivo:** reemplazar los datos provisionales de la maqueta por la configuración existente, habilitando lectura y guardado únicamente desde la sesión Admin.
 - **Diagnóstico SQL confirmado:** `booking_settings` id 1, turnos de 90 min, ventana de 2 meses, zona `America/Argentina/Cordoba`, cancelación 12 h; `weekly_hours` con una cancha y siete días activos de 09:00 a 22:30. Las tres tablas tienen RLS y política `is_admin()`; se concedió a `authenticated` SELECT y UPDATE en `booking_settings` y `weekly_hours` mediante el script definitivo `19_permisos_configuracion_admin`.
 - **Frontend:** `admin/index.html` identifica botón de guardar y mensajes de estado; opciones de duración/ventana con valores numéricos. `js/admin.js` carga `booking_settings` y `weekly_hours` desde Supabase al abrir la sección, sincroniza interruptores/horas/selectores y habilita guardado únicamente tras lectura válida. Se comprueban siete días de una misma cancha, horarios válidos, duración 60/90/120 min y ventana 1/2/3 meses; se pide confirmación explícita antes de escribir. No se habilitaron inserción, eliminación ni modificaciones de `blockouts`.
@@ -1942,6 +1944,7 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 - **Siguientes pasos:** validar lectura y guardado con un cambio reversible sin reservas afectadas; implementar bloqueos excepcionales y la interfaz de turnos fijos; más adelante, planificar backend de Torneos.
 
 ## 14/10/2026 — Preparación del guardado atómico de horarios
+
 - **Objetivo:** evitar cambios parciales al guardar la configuración general y los siete días de la cancha.
 - **Backend propuesto:** `sql/20_guardado_atomico_configuracion_admin.sql` crea `public.save_admin_booking_config(...)` con `SECURITY INVOKER`, comprobación `is_admin()`, validación de 7 días únicos, intervalos válidos y duración/período permitidos. La función actualiza ocho filas en una sola transacción PostgreSQL; cualquier error deshace toda la operación. Se restringe EXECUTE a `authenticated` y se conservan RLS y permisos anteriores.
 - **Frontend:** `js/admin.js` sustituye las ocho llamadas REST por una sola llamada RPC y conserva la lectura desde Supabase, el formulario, la confirmación y el mensaje final.
@@ -1949,27 +1952,29 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 - **Pendientes prioritarios:** comprobar guardado real sin cambios y cambio reversible; verificar que el turnero público respete horarios modificados; implementar cierres parciales y completos con comprobación de conflictos con reservas; completar pruebas antes de entrega.
 
 ## 14/10/2026 — Corrección visual del botón Guardar configuración
+
 - **Incidencia:** el botón aparecía gris incluso después del mensaje de carga exitosa desde Supabase.
 - **Causa:** una regla CSS heredada de la maqueta asignaba `opacity:.55` y `cursor:not-allowed` al botón independientemente de su atributo `disabled`.
 - **Corrección:** la apariencia ahora responde al estado real de `#admin-config-save:disabled`; cuando JavaScript habilita el botón se muestra opaco y clicable.
 - **Archivo modificado:** `css/admin.css`. No se modificó SQL ni JavaScript.
 - **Prueba pendiente:** revisar visualmente en Live Server, hacer guardado sin modificar valores y confirmar el mensaje de éxito.
 
-
 ## 14/10/2026 — Restauración de tarjetas y diálogo de confirmación del Admin
+
 - Se detectó una regresión: la actualización de `css/admin.css` para habilitar Guardar había sobrescrito las reglas aprobadas para las tres tarjetas superiores; recuperadas exactamente del paquete de diseño aprobado, conservando el arreglo del botón Guardar.
 - Se sustituyó el cuadro nativo `confirm()` por un modal HTML `<dialog>` accesible, con cancelar, confirmar, cierre con Escape y fondo atenuado.
 - Archivos: `admin/index.html`, `css/admin.css`, `js/admin.js`. Se conserva la función RPC transaccional de guardado y la carga de configuración existente.
 - Pendiente: prueba visual en Live Server (escritorio y móvil) y prueba sin cambios contra Supabase antes de publicar.
 
 ## 14/10/2026 — Confirmaciones de bloqueos con modal institucional
+
 - **Comprobado por el usuario:** un bloqueo parcial 23/10/2026 de 18:00 a 20:00 se creó y se mostró en «Bloqueos próximos»; el turnero público dejó de ofrecer los horarios afectados.
 - **Ajuste solicitado:** reemplazar las confirmaciones nativas del navegador al **crear** y **desactivar** bloqueos por modales visuales, consistentes con «Guardar configuración».
 - **Implementación:** se agregó `#bp-block-dialog` en `admin/index.html` y un confirmador reutilizable mediante `<dialog>` en `js/admin.js` (botones Volver/Confirmar, Escape, cierre accesible). **No se alteraron las RPC de Supabase, validación de conflictos, ni estilos existentes.**
 - **Estado:** sintaxis verificada. Queda pendiente probar ambos modales en navegador y volver a confirmar creación/desactivación sin datos reales.
 
-
 ## 14/10/2026 — Mejora visual de reservas afectadas por bloqueos excepcionales
+
 - **Prueba confirmada por el usuario:** bloquear un día completo funciona; cuando existen tres reservas en la fecha seleccionada, el sistema impide crear el bloqueo y enumera las reservas afectadas.
 - **Ajuste:** el estado de conflicto presenta un encabezado claro y tarjetas individuales con horario, jugador, teléfono y código; se elimina el doble aviso rojo redundante.
 - **Acceso directo:** «Ver reservas del día» abre la sección Reservas en la fecha del intento de bloqueo y en vista de reservas activas, sin efectuar cambios en la base de datos.
@@ -1977,8 +1982,8 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 - **Sin cambios:** SQL, RPC de bloqueos, validaciones existentes, guardado de configuración y otros módulos.
 - **Pendiente de validación:** revisar visualmente escritorio y celular y probar el salto a Reservas, la deshabilitación con conflictos y la creación cuando no hay conflictos.
 
-
 ## 14/10/2026 — Primera etapa Turnos fijos: solicitud pública y aviso de correo
+
 - **Objetivo:** mantener «Una sola vez» predeterminado e incorporar «Solicitar turno fijo semanal» sin tocar el código existente de creación de reservas comunes.
 - **Frontend:** `reservar.html`, `css/turnero.css` y `js/reservas.js` incluyen selector de modalidad, fecha final/indefinido, observaciones y envío diferenciado; las solicitudes pendientes NO bloquean horarios.
 - **Backend:** nueva Edge Function `supabase/functions/request-fixed-turn/index.ts` verifica Cloudflare Turnstile, valida datos, registra cliente y solicitud `pending` en `fixed_turn_requests`; intenta notificar al administrador por Resend si están configuradas las variables secretas de email. Un fallo del correo no cancela la solicitud.
@@ -1986,22 +1991,24 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 - **Pruebas:** sintaxis de JS y estructura del ZIP comprobadas; no se ejecutaron solicitudes reales a Supabase desde aquí.
 
 ## 14/10/2026 — Admin de Turnos fijos y WhatsApp Web (etapa controlada)
+
 - Se preparó una sección **Turnos fijos** con bandeja de solicitudes en `admin/index.html`, lógica aislada en `js/admin.js` y estilos independientes `css/admin-fixed.css`.
 - Se añadieron funciones SQL administrativas en `sql/24_admin_turnos_fijos.sql`: listar solicitudes, rechazar pendientes y aprobar solicitudes **de período definido** con generación atómica de reservas semanales y validaciones contra horarios, cierres excepcionales, reservas existentes, fechas pasadas y ventana actual. Requieren perfil administrador activo y no exponen escrituras al público.
 - Contacto **manual** mediante botón WhatsApp Web: abre el chat del teléfono solicitado con texto listo para enviar; nunca se envía automáticamente. Al aprobar aparece «Avisar por WhatsApp».
 - Confirmaciones de aprobar y rechazar utilizan el modal existente, no `window.confirm`.
-- **Límite explícito de seguridad:** solicitudes *por tiempo indeterminado* visibles, pero su aprobación permanece deshabilitada hasta implementar la renovación automática segura; no se deben aprobar sin ocupar el horizonte futuro correspondiente.
+- **Límite explícito de seguridad:** solicitudes _por tiempo indeterminado_ visibles, pero su aprobación permanece deshabilitada hasta implementar la renovación automática segura; no se deben aprobar sin ocupar el horizonte futuro correspondiente.
 - No se modificaron archivos del turnero público, funciones de reservas normales ni de bloqueos; no se generan registros de prueba desde el SQL.
 - **Pruebas pendientes:** ejecutar SQL en Supabase; verificar carga y rechazo de solicitudes de prueba; crear una solicitud definida futura sin conflictos y comprobar aprobación, ocupación en turnero, aviso por WhatsApp Web y protección ante conflictos; revisar versión móvil. No publicar ni considerar cerrado hasta verificaciones.
 
-
 ## 14/10/2026 — Corrección puntual WhatsApp y criterios de liberación anticipada
+
 - **Probado por el usuario:** el Admin aprobó una solicitud de turno fijo definido y las reservas semanales se ocultaron del turnero público.
 - **Problema detectado:** el enlace a WhatsApp Web requería agregar 549 a celulares argentinos ingresados sin código internacional. Se normalizan los formatos nacionales habituales (sin prefijo, 0, 15, +54, +549) en `js/admin.js`. Si el número no puede convertirse con seguridad, se abre WhatsApp Web con el texto, sin destinatario precargado, en vez de apuntar a un contacto incorrecto. No se automatiza el envío.
 - **Pendiente funcional prioritario:** permitir al administrador (a) liberar una única ocurrencia semanal sin cancelar el turno fijo completo, y (b) finalizar anticipadamente un turno fijo aprobado, cancelando exclusivamente las reservas futuras vinculadas a `fixed_turn_request_id`; conservar las pasadas y toda la trazabilidad. Preparar RPC transaccionales con `is_admin()`, confirmación mediante modal y mensajes claros. Nunca cancelar manualmente las reservas de otro cliente ni eliminar la solicitud.
 - **Pendiente:** probar el enlace de WhatsApp Web con un número local real y ambas variantes de liberación tras implementar su SQL, sin modificar reservas normales ni bloqueos.
 
 ## 14/10/2026 — Liberación de turnos fijos y navegación superior (etapa de prueba)
+
 - **Validado por el usuario:** aprobación de turno fijo por período determinado, ocupación semanal en el turnero y acceso a WhatsApp Web con normalización argentina.
 - **Interfaz:** cuatro tarjetas de navegación del Admin en una fila en escritorio; dos columnas para tablet/celular. Se conservan diseños y funcionalidades previas.
 - **SQL definitivo 25:** función de consulta de fechas futuras confirmadas de un turno fijo, función transaccional para liberar una fecha y función transaccional para finalizar anticipadamente el turno fijo y cancelar solo sus reservas futuras. Verifican administrador activo; las cancelaciones preservan historial.
@@ -2010,6 +2017,7 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 - **Nota:** la aprobación de turnos indeterminados continúa deshabilitada hasta implementar renovación de reservas automática. Liberar una fecha no finaliza el turno fijo.
 
 ## 14/10/2026 — Modal previo y reinicio del turnero al solicitar un turno fijo
+
 - **Solicitud pública:** antes de enviar un turno fijo se muestra un modal con día semanal, horario, fecha inicial y fecha final o duración indeterminada. Opciones Volver y Confirmar; cancelar no envía.
 - **Tras éxito del servidor:** se reutiliza el reinicio existente de «Nueva reserva», borrando la selección y los datos del formulario, restaurando «Una sola vez» como predeterminado y mostrando un aviso de éxito al inicio. Un error no reinicia nada.
 - **Archivos:** `reservar.html`, `css/turnero.css`, `js/reservas.js`. Sin cambios SQL, Edge Functions ni en el flujo de reserva única.
@@ -2017,20 +2025,22 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 - **Verificación técnica:** sintaxis JS y ZIP correctos. Pendiente prueba del modal y reinicio desde producción, incluyendo tablet/celular.
 
 ## 14/10/2026 — Política simple de turnos fijos: máximo dos meses
+
 - **Decisión del usuario:** no ofrecer solicitudes de tiempo indeterminado. Todo turno fijo tendrá inicio y fin, con duración máxima de dos meses calendario; al vencer, el jugador podrá hacer una solicitud nueva. Permite renegociar precios y evita renovaciones automáticas.
 - **Turnero público:** se retira la opción indeterminada, se aclara el máximo de dos meses, se limita el selector de fecha final al menor valor entre dos meses desde el primer turno y el fin de la ventana actual de reservas, y se valida antes de abrir el modal y antes de enviar. Se conserva el modal de confirmación y el reinicio del formulario al confirmar Supabase, con aviso de éxito arriba.
 - **Supabase:** script definitivo `26_limite_dos_meses_turnos_fijos.sql` con trigger de validación para nuevas solicitudes; no modifica reservas ni solicitudes históricas.
 - **Admin:** no se modifica el módulo estable; las solicitudes antiguas por tiempo indeterminado que estén pendientes deberán rechazarse y solicitarse nuevamente como período determinado.
 - **Pendiente de prueba:** instalar SQL 26, aplicar archivos web, comprobar fecha máxima, modal, envío, reinicio y aviso por correo. No publicar sin validar.
 
-
 ## 14/10/2026 — Corregir posición del modal de confirmación de turno fijo
+
 - **Incidencia:** el modal del turnero público aparecía en la esquina superior izquierda en lugar de centrado.
 - **Corrección:** se agregó una regla CSS acotada a `dialog.fixed-request-dialog:modal` con `position: fixed`, `inset: 0` y `margin: auto`, manteniendo sus dimensiones, estilos, contenido y comportamiento.
 - **Alcance:** exclusivamente `css/turnero.css`. No modifica HTML, JS, Supabase, solicitudes ni reservas.
 - **Pendiente de prueba:** abrir el modal en escritorio y celular, verificar centrado, desplazamiento y botones Volver/Confirmar antes de publicar.
 
 ## 14/10/2026 — Turnos fijos: limpieza visual y regla de cancelación administrativa
+
 - **Decisión funcional:** los jugadores no podrán cancelar ni suspender turnos fijos desde la web pública. Para liberar una fecha o finalizar anticipadamente el período deberán contactar al administrador, quien realizará la acción desde el panel. Se conservan las funciones de liberación ya probadas.
 - **Ajuste visual:** junto a «Actualizar» se incorporó «Limpiar vista» para ocultar solicitudes rechazadas, canceladas y finalizadas. El mismo botón permite «Mostrar historial»; no elimina ni modifica datos en Supabase.
 - **Corrección incluida:** centrado del modal de confirmación del turnero desde el CSS, sin cambios en la lógica de solicitud.
@@ -2039,16 +2049,17 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 - **Prueba pendiente:** verificar centrado del modal en móvil y PC; limpiar/mostrar historial en el Admin.
 
 ## 15/10/2026 — Ajuste visual del Admin en celulares y revisión de pendientes
+
 - **Objetivo:** presentar los cuatro accesos del Admin en dos filas de dos tarjetas en celulares.
 - **Cambio:** regla CSS limitada a anchos de hasta 620 px; dos columnas iguales, separación uniforme y ajuste de textos/iconos. No se modifica HTML, JS, Supabase ni lógica de navegación.
 - **Prueba pendiente:** verificar visualmente en móvil real, sin desbordes; controles Reservas, Horarios, Torneos y Turnos fijos siguen funcionando.
 - **Pendiente de lógica:** el plazo máximo para solicitar turnos fijos debe derivar de la configuración `Período de reservas` del Admin (1, 2 o 3 meses; valor predeterminado 2), en lugar de estar fijo en 2 meses. Debe validarse tanto en el navegador como en Supabase. No renovar automáticamente.
 - **Regla funcional conservada:** turnos fijos no se cancelan desde la web pública; jugador contacta al administrador para liberar una fecha o finalizar el período.
 - **Antes de lanzamiento:** verificar que los cambios locales recientes estén confirmados y desplegados, respaldar configuración de Supabase y hacer prueba integral de reservas.
-- **Siguiente etapa:** definir con el responsable las reglas concretas de Torneos y Campeonatos *antes* de implementar la lógica; la sección actual es visual solamente.
-
+- **Siguiente etapa:** definir con el responsable las reglas concretas de Torneos y Campeonatos _antes_ de implementar la lógica; la sección actual es visual solamente.
 
 ## 15/10/2026 — Corrección definitiva de navegación Admin móvil
+
 - **Problema:** Torneos ocupaba toda la segunda fila y Turnos fijos caía a una tercera fila, a pesar de la grilla de dos columnas.
 - **Causa:** `css/admin-torneos.css` establecía `#admin-tab-torneos { grid-column: 1/-1 }` bajo 650 px; tenía precedencia práctica sobre la grilla configurada en `admin.css`.
 - **Solución:** se eliminó la expansión y se dejaron los cuatro botones en celdas de dos columnas, dos filas.
@@ -2056,12 +2067,14 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 - **Prueba pendiente:** verificar en Chrome móvil o DevTools a 375 px antes de publicar.
 
 ## 15/10/2026 — Torneos, paso 2: alta inicial en Admin (preparado, pendiente de prueba)
+
 - Confirmado SQL 27: tablas bp_tournament_categories y bp_tournaments, RLS activo y ocho políticas presentes; condiciones comprobadas desde SQL Editor.
 - Archivos: admin/index.html (conserva el diseño), js/admin-torneos.js (nuevo), BITACORA_DESARROLLO.md.
 - Permite cargar categorías y crear torneos ocultos al público, listar los registrados. No programa partidos, no publica, no modifica reservas, turnos fijos o disponibilidad.
 - Prueba pendiente: entrar como Admin, crear una categoría de prueba y un torneo en borrador, recargar y confirmar persistencia; revisar móvil. No subir a producción sin probar.
 
 ## 15/10/2026 — Torneos, paso 3: administración básica (parche para probar)
+
 - Comprobación real del paso 2: categorías cargadas desde Supabase; TORNEO_PRUEBA_1 creado y listado correctamente en borrador y oculto.
 - Se sustituyeron ventanas nativas `prompt` por modal visual para categorías y campo numérico para cupo personalizado; confirmaciones de publicación, ocultación y eliminación mediante modal.
 - Acciones agregadas: editar datos básicos, publicar/ocultar sin cambiar estado, y eliminación confirmada (Supabase impedirá borrado si las futuras relaciones lo restringen).
@@ -2070,6 +2083,7 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 - Sin SQL nuevo. Toda publicación actual expone el registro por RLS, aunque la vista pública de torneos se desarrollará después.
 
 ## 15/10/2026 — Torneos, paso 4A: base privada de inscripciones (SQL 28)
+
 - Se revisó ZIP actualizado `BoulevardPadel(20261015-133317).zip`, que incorpora la administración de torneos del paso 3. El usuario confirmó pruebas de crear, editar, publicar/ocultar y eliminar con modal «Volver».
 - Nuevo script `sql/28_torneos_inscripciones_base.sql` para `bp_tournament_pairs`: jugadores completos, teléfono de contacto privado, estado pendiente/aprobada/rechazada, origen web/admin y timestamps.
 - Seguridad: RLS administradora basada en `bp_tournament_is_admin()`, sin políticas ni permisos anónimos sobre el teléfono; índice de duplicados sin considerar el orden de los jugadores, para pendientes/aprobadas. No afecta reservas, turnos fijos ni disponibilidad.
@@ -2077,6 +2091,7 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 - Prueba pendiente: ejecutar SQL 28 una vez en Supabase y comprobar tabla/políticas. No aplicar archivos web todavía.
 
 ## 15/10/2026 — Torneos, paso 4B: gestión privada de parejas (parche para probar)
+
 - El usuario confirmó `Success. No rows returned` al ejecutar SQL 28. No se requiere nuevo SQL.
 - Archivos modificados: `admin/index.html`, `css/admin-torneos.css`; agregado `js/admin-parejas.js`. Preservado `js/admin-torneos.js` y los módulos de turnos.
 - En sección Parejas e inscripciones: selector de torneo, lista privada, teléfono solo en Admin, alta manual aprobada, edición, aprobación y rechazo. Modal propio con «Volver»; sin alert/prompt/confirm nativos.
@@ -2084,8 +2099,8 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 - No se habilita inscripción pública, ni fixture, ni eliminación relacional; no se toca turnero ni bloqueos de cancha.
 - Pruebas pendientes: desplegar archivos, comprobar selector y agregar pareja manual ficticia, recargar y verificar persistencia; posteriormente editar y cambios de estado con usuario. Probar vista móvil.
 
-
 ## 15/10/2026 — Torneos Paso 4C-1: apertura y cierre desde Admin (preparado)
+
 - Fuente: BoulevardPadel(20261015-135826).zip.
 - Se incorpora Abrir/Cerrar inscripciones por torneo con confirmación en modal existente.
 - Para abrir, el torneo debe estar publicado; para ocultarlo, primero deben cerrarse inscripciones abiertas.
@@ -2095,14 +2110,15 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 - Siguiente: prueba de apertura/cierre; luego implementar endpoint público y formulario.
 
 ## 15/10/2026 — Torneos, paso 4C-2: formulario público (para instalación y pruebas)
+
 - Archivo base: BoulevardPadel(20261015-135826).zip. Se preserva JS de Paso 4C-1 (apertura/cierre) ya probado; no reemplazarlo con archivo anterior.
 - index.html: sección pública de Torneos después de Reservas; modal propio para solicitar inscripción (dos nombres completos, un teléfono), Turnstile. CSS nuevo aislado css/torneos-public.css y JS nuevo js/torneos-public.js. No se tocan reservas ni panel Admin.
-- supabase/functions/register-tournament-pair/index.ts: función servidor para comprobar origen permitido, Turnstile con secret, estado published + registration_open, cupo y duplicados; inserta como pending/web con service role que no se expone al navegador. Requiere desplegar Edge Function con verify_jwt=false y configurar TURNSTILE_SECRET_KEY en Supabase (nunca en frontend). 
+- supabase/functions/register-tournament-pair/index.ts: función servidor para comprobar origen permitido, Turnstile con secret, estado published + registration_open, cupo y duplicados; inserta como pending/web con service role que no se expone al navegador. Requiere desplegar Edge Function con verify_jwt=false y configurar TURNSTILE_SECRET_KEY en Supabase (nunca en frontend).
 - Pendiente de prueba: desplegar función y configurar secretos; verificar en local lista pública, torneo oculto no visible, publicación y formulario cuando abierto; envío válido, duplicados y teléfono privado en Admin; cerrar inscripciones. PROBAR ANTES de subir producción.
 - Consideración futura: evitar carreras al alcanzar cupo mediante inserción transaccional si inscripción concurrente alta; hoy se consulta cupo previo. Confirmar fecha real de inscripción si se adopta una política de apertura/cierre por fechas (hoy controla Admin).
 
-
 ## 15/10/2026 — Cierre verificado del módulo de inscripciones (revisión del ZIP 18:11)
+
 - **Base revisada:** `BoulevardPadel(20261015-181135).zip`. Se inspeccionaron `admin/index.html`, `index.html`, JS de torneos/parejas, CSS público y la función `supabase/functions/register-tournament-pair/index.ts`. Este ZIP se toma como base para la siguiente fase; no se alteraron archivos de funcionamiento.
 - **Pruebas confirmadas por el usuario durante la sesión:** creación, edición, publicación/ocultación y eliminación de torneos; categorías desde Supabase; inscripción manual y edición de parejas; aprobación/rechazo; apertura de inscripciones solo en competencia publicada; envío público con Turnstile; solicitud pública registrada como pendiente y visible en Admin; aprobación posterior correcta. No inferir otras pruebas no realizadas.
 - **Incidencia Supabase y resolución:** la lectura pública de torneos falló con `permission denied for function bp_tournament_is_admin`; se ejecutó SQL **29** (`GRANT EXECUTE ON FUNCTION public.bp_tournament_is_admin() TO anon`). La Edge Function devolvía 500 por falta de lectura sobre `bp_tournaments` para `service_role`; se ejecutó SQL **30** (`GRANT SELECT ON TABLE public.bp_tournaments TO service_role`). El usuario confirmó posteriormente el alta pública exitosa. Estos SQL se guardaron en Supabase, pero **sus archivos no figuran en este ZIP**; no dar por probado que están versionados en el repositorio.
@@ -2115,8 +2131,8 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 - **Validaciones importantes pendientes:** cupos concurrentes (la Edge Function comprueba cupo antes de insertar, sin operación atómica), política de cierres y retiros tras sorteo, desempates y W.O., pruebas de duplicados, revisión CSP/Turnstile en producción y móvil. La inscripción pública ya funcionó pese a advertencias CSP observadas en consola; revisar sin debilitar seguridad global.
 - **Otros pendientes previos:** límite de solicitudes de turnos fijos según configuración Admin 1/2/3 meses (por defecto 2), sin permitir cancelación pública de turnos fijos.
 
-
 ## 15/10/2026 — Torneos Paso 5A: visualización pública (propuesta para probar)
+
 - El organizador debe confirmar posteriormente el armado de grupos, clasificación, desempates y avance eliminatorio. Queda en standby toda implementación de fixture y resultados reales.
 - En el sitio público se agregan pestañas «Vigentes» y «Finalizados», conservando el formulario seguro existente. Se agrupan torneos publicados según `status=completed` o `ends_on` anterior a la fecha local; los futuros y actuales están en Vigentes. Los ocultos no aparecen.
 - Cada competencia muestra formato, categoría, fechas y estado; sólo las vigentes con `registration_open` ofrecen inscripción.
@@ -2124,39 +2140,41 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 - Archivos tocados: `index.html`, `css/torneos-public.css`, `js/torneos-public.js` y esta bitácora. No hay SQL ni cambios en el Admin/reservas.
 - Pendiente: prueba local de filtros, tarjetas, modal de inscripción, responsive y publicación. La publicación histórica depende de que Admin mantenga `is_published=true` al finalizar. Confirmar con el dueño reglas de cierre y permanencia.
 
-
 ## 15/10/2026 — Ajuste visual: se elimina sección pública de Reservas
+
 - Para conservar la alternancia de fondos sin rediseñar colores, se retira la sección pública `#reservas`, que resultaba redundante con el botón principal del encabezado y el flujo de reserva existente.
 - El menú superior deja de apuntar a `#reservas`. Se conservan el botón «Reservar turno», `reservar.html` y todo el funcionamiento del turnero.
 - Nuevo orden de secciones públicas: Inicio (claro) → La cancha (oscuro) → Torneos (claro) → Contacto (oscuro).
 - Alcance: solo `index.html` y bitácora. Sin cambios en Supabase ni en el Admin.
 
 ## 15/10/2026 — Ajuste visual: altura mínima de la sección Torneos
+
 - Se corrige la altura de `public-tournaments` para que ocupe la ventana visible por debajo del encabezado fijo, evitando que se vea una franja de la sección siguiente cuando el contenido es corto.
 - Se usó `min-height: calc(100vh - var(--header-height))` y `100svh` como respaldo moderno, manteniendo crecimiento natural si la sección luego contiene más tablas o resultados.
 - Alcance: solo `css/torneos-public.css` y bitácora. No se alteró la lógica de carga de torneos ni la inscripción pública.
 
 ## 15/10/2026 — Torneos Paso 5B: demo visual de resultados y finalizados
+
 - Objetivo: mostrar al dueño del complejo una maqueta de cómo se verían los torneos vigentes con resultados/posiciones y los finalizados con su cierre, usando **datos ficticios** y sin tocar el modelo real de partidos.
 - `js/torneos-public.js` agrega dos tarjetas de demostración claramente marcadas como **Demo visual**: una competencia vigente con resultados recientes y tabla de posiciones, y una finalizada con campeones, resultados decisivos y posiciones finales.
 - `css/torneos-public.css` suma estilos para chips, resaltados, tarjetas de resultados y tablas demo, conservando la inscripción pública real de los torneos publicados.
 - No hay SQL, no se modifica el Admin y no se crean partidos reales. Las tarjetas demo conviven con las competencias publicadas solo como recurso de presentación comercial; luego podrán retirarse o reemplazarse por datos reales.
 - Próximo pendiente: confirmar con el dueño si la visual general le resulta clara y qué información exacta quiere ver en cada tarjeta (por ejemplo: grupo, fecha, sets, campeones, posiciones finales, cuadro eliminatorio, etc.).
 
-
 ## 15/10/2026 — Ajuste de altura independiente en tarjetas públicas de Torneos
+
 - Incidencia: al expandir los resultados de la tarjeta de demostración vigente, la grilla estiraba verticalmente la tarjeta real `TORNEO_PRUEBA_PAREJAS`, generando un espacio vacío y enviando el botón «Inscribir pareja» al final.
 - Solución mínima: `align-items: start` sobre `.public-tournaments__list` en `css/torneos-public.css`. Cada tarjeta ajusta su altura a su propio contenido incluso cuando otra tiene resultados extendidos.
 - Alcance: solo CSS público y esta bitácora. Sin cambios JavaScript, Supabase, Admin, reservas ni inscripción pública.
 - Pendiente: verificar visual local en pantalla grande y móvil, con demo expandida y contraída.
 
-
 ## 15/10/2026 — Tarjetas de resultados inicialmente contraídas
+
 - Se eliminó la apertura automática (`details.open`) de las tarjetas demostrativas. Tanto demos como torneos reales comienzan con «Ver resultados y posiciones» cerrado; el visitante decide cuándo desplegarlo.
 - Cambio exclusivo en `js/torneos-public.js`; se conserva corrección independiente de alturas de tarjetas aplicada en el parche anterior. No cambia Supabase ni inscripción.
 
-
 ## 16/10/2026 — Paso 32E: interfaz pública de turnero flexible (preparado para prueba)
+
 - Se agrega selector visual 90/120 minutos (90 predeterminado), horario de inicio cada 30 minutos según `get_available_slots_flexible`, y resumen de inicio/fin y duración.
 - `create-booking-secure` recibe `durationMinutes` y utiliza `create_booking_flexible` (Edge Function 32D ya publicada).
 - Solicitudes de turno fijo siguen su flujo existente; al elegir modo fijo, duración 90 y se recargan horarios para evitar discrepancias con `request-fixed-turn`.
@@ -2165,8 +2183,8 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 - **Pendiente de pruebas:** comprobar lista y cambio 90/120 en local, visual móvil, cruces de medianoche, reservar realmente una vez desde dominio autorizado (Turnstile), comprobar duración en Supabase y ausencia de superposiciones. No publicar la interfaz sin las comprobaciones.
 - **Pendiente separado:** avisos automáticos de nuevas reservas a `boulevardpadelvila@gmail.com` y posibilidad de cambiar el correo desde Admin.
 
-
 ## 16/10/2026 — Paso 33A–33C: alta de reservas flexibles desde Admin (en prueba)
+
 - SQL 33A: se creó `public.create_admin_booking_flexible` sin sustituir `create_admin_booking`; control de permisos `auth.uid()` e `is_admin()` y llamada a `create_booking_flexible`.
 - SQL 33B: comprobación sin sesión Admin devuelve correctamente 42501, sin crear reservas.
 - Paso 33C: formulario de nueva reserva Admin incorpora duración 90/120 (90 por defecto), consulta `get_available_slots_flexible` y llama a `create_admin_booking_flexible`; se mantiene el desplegable.
@@ -2174,8 +2192,8 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 - **Pendiente separado**: edición de reservas existentes sigue usando función antigua `update_admin_booking`/`get_available_slots`; revisar su compatibilidad con reservas 120 antes de cambiarla.
 - **Pendiente**: solicitudes y aprobación de turnos fijos 90/120 con inicios cada 30 minutos.
 
-
 ### 2026-10-16 — Paso 33D/33E: Edición de reservas flexibles (en prueba)
+
 - SQL 33D `update_admin_booking_flexible` instalado por el administrador. No reemplaza `update_admin_booking`.
 - Admin: formulario Nueva reserva reorganizado (fecha, duración, horario / nombre, teléfono / observaciones).
 - Admin: Editar reserva ahora muestra duración real (90/120), consulta `get_available_slots_flexible` y guarda con `update_admin_booking_flexible`.
@@ -2183,8 +2201,8 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 - Pendientes de prueba: cambiar duración de reserva de prueba sin desplazar inicio; mover a un horario libre; comprobar actualización de fin y bloqueo de superposiciones. Sin commit/push hasta validar.
 - Próximo: perfeccionar disponibilidad de edición excluyendo reserva propia y luego turnos fijos 90/120.
 
-
 ### 2026-10-16 — Paso 33F: disponibilidad de edición excluyendo reserva propia (pendiente de prueba)
+
 - Detectado: en editar la reserva de prueba de 09:00 a 11:00 (120 minutos) no aparecía 09:30 porque `get_available_slots_flexible` filtra todas las reservas, incluida la propia.
 - SQL 33F (preparado, aún no instalado): `get_admin_edit_slots_flexible(p_date,p_duration_minutes,p_reservation_id)` solo para Admin; ofrece horarios cada 30 minutos ignorando exclusivamente la reserva editada, manteniendo validación de las demás reservas y bloqueos. No altera datos ni funciones anteriores.
 - `js/admin.js`: al editar usa la nueva consulta. Mantiene la opción original para correcciones de datos cuando la duración no cambió, incluso si el horario original ya comenzó. Al cambiar duración, no introduce artificialmente un horario ocupado.
@@ -2192,21 +2210,22 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 - Pendiente de prueba: ejecutar SQL 33F en Supabase, abrir edición Live Server y verificar 09:30 si sigue en el futuro y no hay conflictos; luego mover una reserva real controlada sin cambiar su código, y verificar superposiciones. Sin publicar en GitHub hasta probar.
 - Pendiente general: habilitar solicitud y aprobación de turnos fijos semanales de 90/120 minutos.
 
-
 ### 2026-10-16 — Paso 33F validado / Paso 34A preparación de turnos fijos flexibles
+
 - La consulta de edición `get_admin_edit_slots_flexible` y los formularios del Admin se probaron localmente: duración 90/120 y horarios alternativos cada 30 minutos; las alternativas pasadas se ocultan correctamente. El usuario confirmó «Funciona perfecto todo».
 - Paso 34A: se prepara actualización exclusiva de `bp_admin_approve_fixed_request` para aceptar duraciones 90/120 e inicios cada `start_step_minutes` (30) hasta `last_start_time` (23:30). Se preservan autenticación Admin, bloqueo transaccional, validación de ventana, superposiciones con reservas y bloqueos, y aprobación atómica.
 - **Estado del SQL 34A:** ejecutado exitosamente en Supabase el 16/10/2026; confirmado por el usuario.
 - **Próximos pasos:** ajustar Edge Function `request-fixed-turn` para recibir/validar/guardar `durationMinutes`; después `js/reservas.js` para mantener visible el selector 90/120 en modo fijo y enviar el campo; probar solicitudes, correos, aprobación (con fechas futuras y rollback si corresponde) y reservas resultantes. No modificar el Admin de torneos ni las reservas manuales.
 
 ### 2026-10-16 — Paso 34B: Edge Function de solicitudes fijas 90/120 (preparada)
+
 - Se prepara `supabase/functions/request-fixed-turn/index.ts` tomando como base el código real de Supabase aportado por el usuario. Acepta `durationMinutes` numérico (90 o 120), con 90 como valor por defecto para compatibilidad con la web pública todavía no actualizada.
 - Guarda `duration_minutes` de cada solicitud en `fixed_turn_requests`, en lugar de utilizar la duración general `booking_settings.slot_duration_minutes`.
 - Conserva validaciones previas, Turnstile, creación de cliente, estado `pending`, y aviso existente por Resend (`RESEND_API_KEY`, `FIXED_TURN_FROM_EMAIL`, `FIXED_TURN_ADMIN_EMAIL`), sin aprobar automáticamente ni crear reservas.
 - **Estado actualizado el 16/10/2026:** publicado exitosamente en Supabase (confirmado por el usuario). Falta probar las solicitudes semanales reales con ambas duraciones. No hace falta SQL nuevo para este paso.
 
-
 ### 2026-10-16 — Paso 34C: turnero público con turnos fijos semanales de 90/120 minutos (parche preparado)
+
 - El usuario confirmó el despliegue exitoso de la Edge Function `request-fixed-turn` del Paso 34B. SQL 34A de aprobación también instalado anteriormente.
 - `js/reservas.js`: el selector de duración 90/120 continúa visible y habilitado al elegir «Solicitar turno fijo semanal»; ya no restablece 90 minutos al cambiar de tipo. Cambiar duración actualiza los horarios mediante `get_available_slots_flexible` y descarta un horario elegido previamente hasta volver a seleccionar uno válido.
 - Las solicitudes semanales envían `durationMinutes: selectedDuration` a `request-fixed-turn`, además de los campos previos. Se mantiene Turnstile, el aviso por Resend, la confirmación previa, el estado `pending` y la aprobación del administrador.
@@ -2214,8 +2233,8 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 - **Estado:** parche preparado, no publicado ni probado con Turnstile todavía. Probar primero interfaz con Live Server y luego publicar en Pages para ejecutar solicitud real desde dominio autorizado. Probar aprobación con período corto y verificar que cada reserva creada dure 120 minutos; limpiar las reservas de prueba con las herramientas administrativas apropiadas.
 - **Pendiente de seguridad/negocio:** la disponibilidad del primer día no garantiza la de todas las semanas; la aprobación SQL 34A debe validar cada fecha y rechazar la aprobación completa ante cualquier conflicto. No conceder turno fijo automáticamente desde la web.
 
-
 ### 2026-10-16 — Paso 35: horarios de primer/último inicio independientes por día (en curso)
+
 - El usuario aprobó reemplazar el antiguo «Desde/Hasta» en Admin por «Primer inicio/Último inicio», configurable para cada día, manteniendo reserva flexible 90/120 min, intervalos de 30 min y turnos que cruzan medianoche.
 - SQL 35A instalado y comprobado: `weekly_hours.last_start_time` agregado y sus 7 días inicializados a `23:30`; todos siguen abriendo `09:00`.
 - SQL 35B instalado: `get_available_slots_flexible` ahora consulta `weekly_hours.last_start_time` por día, respetando reservas existentes y blockouts.
@@ -2226,8 +2245,8 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 - **Pendiente:** adaptar guardado SQL de configuración por día, pantalla Admin «Horarios y disponibilidad», lecturas/admin de horarios y cualquier validación de solicitudes de turnos fijos que use el límite antiguo. Ejecutar pruebas reales controladas antes de editar horarios desde Admin.
 - **Importante:** no modificar la configuración semanal mediante la pantalla antigua mientras no esté coordinada con SQL 35.
 
-
 ### 2026-10-16 — Paso 35G: guardado de horarios semanales independientes (SQL preparado)
+
 - El usuario confirmó Success al ejecutar SQL 35F; la aprobación de turnos fijos ya valida el último inicio por día.
 - Se preparó nueva función `save_admin_booking_config_flexible(p_window_months integer, p_days jsonb)`; NO sustituye aún `save_admin_booking_config`. Acepta siete días completos, cada uno con `weekday`, `is_open`, `opening_time` (primer inicio) y `last_start_time` (último inicio).
 - Validación y guardado atómicos; solo Admin autenticado; meses 1/2/3; horas alineadas a 00/30 y límite de 23:30; no cambia los datos hasta invocar la RPC desde el frontend.
@@ -2235,8 +2254,8 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 - **Estado del SQL 35G: pendiente de ejecución y confirmación por el usuario.** No modificar todavía la pantalla de horarios en producción.
 - Próximo paso tras Success: parche exclusivamente del Admin `admin/index.html`, `js/admin.js`, `css/admin.css` conectado a nueva RPC y lectura `last_start_time`; probar localmente, cambios por día y bloqueos; actualizar esta misma bitácora.
 
-
 ### 2026-10-16 — Paso 35H: Pantalla Admin de horarios por día (parche preparado)
+
 - SQL 35G `save_admin_booking_config_flexible(p_window_months, p_days)` instalado con éxito en Supabase; confirmado por el usuario. La versión anterior `save_admin_booking_config` se conserva sin alteraciones.
 - `admin/index.html`: sustituye los títulos «Desde/Hasta» por «Primer inicio/Último inicio», ahora configurables por cada día en intervalos de 30 minutos, último máximo 23:30. Se reemplaza el selector general 60/90/120 por un texto informativo «90 o 120 minutos».
 - `js/admin.js`: lee `weekly_hours.last_start_time` de cada día; guarda los siete días y ventana 1/2/3 meses mediante la nueva RPC `save_admin_booking_config_flexible`. Validación de horas y guardado transaccional; se mantiene el diálogo de confirmación.
@@ -2245,11 +2264,25 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 - **Pruebas pendientes**: cargar configuración local con Live Server (7 días 09:00–23:30); cambiar únicamente el último inicio de un día futuro a 20:00, guardar y verificar disponibilidad 90/120 en público/Admin y que el bloqueo excepcional siga respetándose; restaurar 23:30 al concluir; revisar móvil; después hacer commit/push.
 - **Atención**: el campo legado `weekly_hours.closing_time` no se modifica, por diseño de SQL 35G; revisar dependencias antiguas si se reactivan flujos previos.
 
-
 ### 2026-10-16 — Paso 35I: selector horario de 24 horas en Admin (parche preparado)
+
 - Se sustituyen solo los 14 campos de «Primer inicio / Último inicio» de la configuración semanal por selectores HTML que muestran inequívocamente HH:MM (00:00, 00:30, ... 23:30), sin AM/PM independientemente de la configuración del navegador.
 - Las opciones permanecen limitadas a :00 y :30, acordes con SQL 35G (que rechaza 08:45); 08:45 NO es admitido por el backend ni generaría la secuencia de inicio estándar.
 - `js/admin.js` genera las opciones en formato 24 horas, rellena los valores guardados desde `weekly_hours` y sigue enviando el mismo JSON a `save_admin_booking_config_flexible`.
 - `css/admin.css` actualiza el aspecto responsive del selector horario y conserva la disposición móvil de 35H.
 - No se modifican Supabase, bloqueos, turnos fijos, duración ni reservas; tampoco los campos de hora del módulo de bloqueos.
 - Pendiente: probar con Live Server en escritorio y móvil, guardar un día de prueba con límite distinto, comprobar turnero público y Admin, restaurar 23:30; commit/push solo después.
+
+## 16/10/2026 — Revisión integral previa a uso real (ZIP 18:07) — estado de lanzamiento
+
+- **Base auditada:** `BoulevardPadel(20261016-180733).zip` extraído y revisado, con `index.html`, `reservar.html`, Admin, JS/CSS, `supabase/`, `.git` y la bitácora única. El usuario informó que los últimos cambios ya están confirmados y publicados por GitHub/Cloudflare; esta auditoría es estática, no una prueba de extremo a extremo en producción.
+- **SQL 35A–35G:** usuario confirmó `Success` para 35A, 35B, 35C, 35D, 35E, 35F y 35G. Los siete `weekly_hours` se inicializaron con `opening_time=09:00`, `last_start_time=23:30`. El frontend 35H/35I ya lee `weekly_hours.last_start_time` y guarda mediante `save_admin_booking_config_flexible`; captura del 16/10 confirma selectores 24 h con 09:00/23:30. **Aún falta prueba de guardar un día distinto, comprobar efecto en público/Admin, y restaurar valores.**
+- **Reservas:** comprobado previamente por el usuario el envío común público, disponibilidad 90/120, aviso Resend y cancelación/liberación; en Admin, alta de 120 minutos, edición y consulta flexible con horarios de 30 minutos. La comprobación del código actual confirma RPC `get_available_slots_flexible`, `create_admin_booking_flexible`, `get_admin_edit_slots_flexible` y `update_admin_booking_flexible`. Tras cambio de límites diarios todavía falta prueba de guardado por día y rechazo de horarios posteriores al límite.
+- **Turnos fijos:** el usuario reportó que el formulario 34C envía solicitud con duración 90/120 y muestra las acciones de aprobación y rechazo en Admin. SQL 34A y 35F fueron instalados con éxito. **Verificar, antes de considerar cerrada la prueba integral, que la aprobación de una solicitud de 120 min para varias semanas crea TODAS las reservas con duración correcta, y que los bloqueos impiden aprobar períodos conflictivos.** No alterar solicitud real del cliente sin confirmar.
+- **Bloqueos/cierres:** `js/admin.js` conserva la comprobación `bp_admin_blockout_conflicts`, creación `bp_admin_create_blockout`, lista `bp_admin_list_blockouts`, desactivación `bp_admin_disable_blockout`; el turnero público usa `get_available_slots_flexible`, cuya definición 35B filtra los bloqueos activos, y `create_booking_flexible` 35C también valida `blockouts`. **El funcionamiento con los cambios 35 no fue probado en vivo en esta auditoría.** Hacer prueba reversible: crear un bloqueo en una fecha libre futura, verificar horarios superpuestos desaparezcan para 90 y 120 tanto en público como Admin, desactivarlo y verificar restauración; probar rechazo por conflicto con reserva existente sin modificarla.
+- **Incidencia encontrada en código fuente local/GitHub (alta prioridad para módulo Torneos):** el archivo `supabase/functions/register-tournament-pair/index.ts` del ZIP contiene código de `request-fixed-turn` que inserta en `fixed_turn_requests`; su ubicación/nombre es incorrecto. La última versión histórica reconocible de la función de inscripción de parejas se recuperó del commit Git `e3428f8` y se adjunta para revisión/restauración local. **NO desplegar ciegamente** el archivo recuperado: comparar primero con el código actualmente desplegado en Supabase. El error local no prueba que la Edge Function remota esté incorrecta; las inscripciones reales se probaron previamente.
+- **Código Edge no versionado como corresponde:** el ZIP no incluye `supabase/functions/create-booking-secure/index.ts` ni `supabase/functions/request-fixed-turn/index.ts` en sus rutas correctas. El usuario optó por postergar el respaldo completo de Supabase hasta finalizar el proyecto, pero antes del desarrollo de Torneos conviene normalizar estos fuentes locales, para que futuros despliegues sean reproducibles.
+- **Pendiente funcional confirmado para eventual cambio de ventana:** `js/reservas.js` (función `fixedLastAllowedDate`) y `reservar.html` siguen fijando **2 meses** para turnos fijos; la nueva configuración Admin ofrece ventana 1/2/3 meses. Coordinar el límite público y su validación servidor antes de que el dueño cambie a 1 o 3 meses. Evitar prometer que el selector de meses ya gobierna los períodos fijos.
+- **No probado / no afirmar:** existencia de datos reales en tablas, limpieza de todas las pruebas, seguridad de todos los RPC con roles externos, configuraciones de horarios transnocturnos con inicio posterior a 00:00 (no soportadas), y cupo concurrente de inscripciones de torneos.
+- **Plan de aceptación previo al sábado 17/10:** (1) ensayo reversible del guardado de horario por día, restitución 09:00–23:30; (2) ensayo reversible de cierre excepcional con un día/hora sin reservas, comprobación de conflictos y liberación; (3) inventario SQL de solo lectura de reservas, solicitudes fijas, bloqueos y datos de torneos; (4) eliminación selectiva de filas de prueba únicamente tras revisión explícita, preservando tablas/configuración, historial y todo dato real; (5) confirmar acceso Admin, aviso mail, reservas 90/120 y despliegue Pages. Mantener Torneos/fixture como fase separada.
+- **Comprobación técnica local:** `node --check` exitoso para `js/*.js`; no equivale a test de navegador ni a prueba RLS/SQL en producción. El proyecto incluye carpeta `.git` dentro del ZIP: innecesaria en futuros intercambios si GitHub ya respalda el repositorio.

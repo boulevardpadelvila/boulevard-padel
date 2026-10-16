@@ -68,7 +68,11 @@
     return "En curso";
   }
   function categoryName(t) {
-    return t.bp_tournament_categories?.name || t.category_name || "Categoría por confirmar";
+    return (
+      t.bp_tournament_categories?.name ||
+      t.category_name ||
+      "Categoría por confirmar"
+    );
   }
   function appendResults(container, items) {
     const list = make("div", "public-tournament-results");
@@ -77,9 +81,15 @@
       const meta = make("div", "public-tournament-result__meta");
       meta.append(make("span", "", item.stage), make("span", "", item.date));
       article.append(meta);
-      article.append(make("div", "public-tournament-result__teams", item.teams));
-      article.append(make("span", "public-tournament-result__score", item.score));
-      article.append(make("span", "public-tournament-result__winner", item.winner));
+      article.append(
+        make("div", "public-tournament-result__teams", item.teams),
+      );
+      article.append(
+        make("span", "public-tournament-result__score", item.score),
+      );
+      article.append(
+        make("span", "public-tournament-result__winner", item.winner),
+      );
       list.append(article);
     });
     container.append(list);
@@ -96,7 +106,13 @@
     block.rows.forEach((row) => {
       const tr = document.createElement("tr");
       row.forEach((cell, index) => {
-        const td = make("td", index === 0 && block.columns[0] === "Pos." ? "public-tournament-table__pos" : "", cell);
+        const td = make(
+          "td",
+          index === 0 && block.columns[0] === "Pos."
+            ? "public-tournament-table__pos"
+            : "",
+          cell,
+        );
         tr.append(td);
       });
       tbody.append(tr);
@@ -107,28 +123,63 @@
   }
   function detailBlock(t) {
     const details = make("details", "public-tournament-more");
-    const summary = make("summary", "public-tournament-more__summary", "Ver resultados y posiciones");
+    const summary = make(
+      "summary",
+      "public-tournament-more__summary",
+      "Ver resultados y posiciones",
+    );
     const content = make("div", "public-tournament-more__body");
     const matches = make("section", "public-tournament-data");
     matches.append(make("h4", "", "Resultados de partidos"));
-    matches.append(make("p", "public-tournament-data__empty", "Los resultados aparecerán aquí cuando la organización los registre."));
+    matches.append(
+      make(
+        "p",
+        "public-tournament-data__empty",
+        "Los resultados aparecerán aquí cuando la organización los registre.",
+      ),
+    );
     const standings = make("section", "public-tournament-data");
-    standings.append(make("h4", "", t.format === "knockout" ? "Cuadro eliminatorio" : "Tabla de posiciones"));
+    standings.append(
+      make(
+        "h4",
+        "",
+        t.format === "knockout" ? "Cuadro eliminatorio" : "Tabla de posiciones",
+      ),
+    );
     if (t.format === "knockout") {
-      standings.append(make("p", "public-tournament-data__empty", "Los cruces y ganadores estarán disponibles cuando se programe el cuadro."));
+      standings.append(
+        make(
+          "p",
+          "public-tournament-data__empty",
+          "Los cruces y ganadores estarán disponibles cuando se programe el cuadro.",
+        ),
+      );
     } else {
       const scroller = make("div", "public-tournament-table-scroll");
       const table = make("table", "public-tournament-table");
-      const caption = make("caption", "", "Estructura prevista; sin posiciones oficiales todavía");
+      const caption = make(
+        "caption",
+        "",
+        "Estructura prevista; sin posiciones oficiales todavía",
+      );
       const thead = document.createElement("thead");
       const head = document.createElement("tr");
-      for (const col of ["Pareja", "PJ", "PG", "PP", "Pts"]) head.append(make("th", "", col));
+      for (const col of ["Pareja", "PJ", "PG", "PP", "Pts"])
+        head.append(make("th", "", col));
       thead.append(head);
       const tbody = document.createElement("tbody");
       const tr = document.createElement("tr");
-      const td = make("td", "public-tournament-table__pending", "Tabla pendiente de resultados");
-      td.colSpan = 5; tr.append(td); tbody.append(tr);
-      table.append(caption, thead, tbody); scroller.append(table); standings.append(scroller);
+      const td = make(
+        "td",
+        "public-tournament-table__pending",
+        "Tabla pendiente de resultados",
+      );
+      td.colSpan = 5;
+      tr.append(td);
+      tbody.append(tr);
+      table.append(caption, thead, tbody);
+      scroller.append(table);
+      standings.append(scroller);
     }
     content.append(matches, standings);
     details.append(summary, content);
@@ -137,16 +188,46 @@
   function cardFor(t) {
     const card = make("article", "public-tournament-card");
     const top = make("div", "public-tournament-card__top");
-    top.append(make("span", "public-tournament-card__state", competitionState(t)));
-    top.append(make("span", "public-tournament-card__format", labels[t.format] || t.format));
+    top.append(
+      make("span", "public-tournament-card__state", competitionState(t)),
+    );
+    top.append(
+      make(
+        "span",
+        "public-tournament-card__format",
+        labels[t.format] || t.format,
+      ),
+    );
     card.append(top, make("h3", "", t.name));
-    card.append(make("p", "public-tournament-card__category", t.bp_tournament_categories?.name || "Categoría por confirmar"));
-    card.append(make("p", "public-tournament-card__dates", `${dateText(t.starts_on)} — ${dateText(t.ends_on)}`));
+    card.append(
+      make(
+        "p",
+        "public-tournament-card__category",
+        t.bp_tournament_categories?.name || "Categoría por confirmar",
+      ),
+    );
+    card.append(
+      make(
+        "p",
+        "public-tournament-card__dates",
+        `${dateText(t.starts_on)} — ${dateText(t.ends_on)}`,
+      ),
+    );
     if (!isFinished(t)) {
-      const state = make("p", "public-tournament-card__registration", t.status === "registration_open" ? "Inscripciones abiertas" : "Inscripciones no disponibles");
+      const state = make(
+        "p",
+        "public-tournament-card__registration",
+        t.status === "registration_open"
+          ? "Inscripciones abiertas"
+          : "Inscripciones no disponibles",
+      );
       card.append(state);
       if (t.status === "registration_open") {
-        const button = make("button", "button button--dark", "Inscribir pareja");
+        const button = make(
+          "button",
+          "button button--dark",
+          "Inscribir pareja",
+        );
         button.type = "button";
         button.addEventListener("click", () => open(t));
         card.append(button);
@@ -165,9 +246,15 @@
     const selected = currentTab === "finished" ? finished : current;
     list.replaceChildren();
     if (!selected.length) {
-      list.append(make("p", "public-tournaments__empty", currentTab === "finished"
-        ? "Todavía no hay competencias finalizadas publicadas."
-        : "Por ahora no hay competencias vigentes ni próximas."));
+      list.append(
+        make(
+          "p",
+          "public-tournaments__empty",
+          currentTab === "finished"
+            ? "Todavía no hay competencias finalizadas publicadas."
+            : "Por ahora no hay competencias vigentes ni próximas.",
+        ),
+      );
       return;
     }
     selected.forEach((t) => list.append(cardFor(t)));
@@ -190,7 +277,9 @@
     try {
       const { data, error } = await supabaseClient
         .from("bp_tournaments")
-        .select("id,name,format,status,starts_on,ends_on,bp_tournament_categories(name)")
+        .select(
+          "id,name,format,status,starts_on,ends_on,bp_tournament_categories(name)",
+        )
         .eq("is_published", true)
         .order("starts_on", { ascending: true })
         .limit(50);
@@ -200,7 +289,9 @@
       status("");
     } catch (error) {
       console.error(error);
-      status("No se pudieron cargar los torneos. Intentá nuevamente más tarde.");
+      status(
+        "No se pudieron cargar los torneos. Intentá nuevamente más tarde.",
+      );
     }
   }
   form.addEventListener("submit", async (event) => {
@@ -211,8 +302,15 @@
     const phone = $("public-phone").value.trim();
     const errorBox = $("public-tournament-error");
     errorBox.textContent = "";
-    if (! [p1, p2].every((p) => p.length >= 3 && p.length <= 100 && p.includes(" ")) || p1.toLowerCase() === p2.toLowerCase() || !/^[+\d\s()\-]{6,30}$/.test(phone)) {
-      errorBox.textContent = "Ingresá nombre y apellido de ambos jugadores y un teléfono válido.";
+    if (
+      ![p1, p2].every(
+        (p) => p.length >= 3 && p.length <= 100 && p.includes(" "),
+      ) ||
+      p1.toLowerCase() === p2.toLowerCase() ||
+      !/^[+\d\s()\-]{6,30}$/.test(phone)
+    ) {
+      errorBox.textContent =
+        "Ingresá nombre y apellido de ambos jugadores y un teléfono válido.";
       return;
     }
     const token = form.querySelector('[name="cf-turnstile-response"]')?.value;
@@ -223,29 +321,39 @@
     loading = true;
     $("public-tournament-send").disabled = true;
     try {
-      const { data, error } = await supabaseClient.functions.invoke("register-tournament-pair", {
-        body: {
-          tournamentId: selection.id,
-          player1_name: p1,
-          player2_name: p2,
-          contact_phone: phone,
-          turnstileToken: token,
+      const { data, error } = await supabaseClient.functions.invoke(
+        "register-tournament-pair",
+        {
+          body: {
+            tournamentId: selection.id,
+            player1_name: p1,
+            player2_name: p2,
+            contact_phone: phone,
+            turnstileToken: token,
+          },
         },
-      });
+      );
       if (error || !data?.ok) {
         let message = data?.error;
-        if (!message && error?.context && typeof error.context.json === "function") {
+        if (
+          !message &&
+          error?.context &&
+          typeof error.context.json === "function"
+        ) {
           try {
             message = (await error.context.json()).error;
           } catch (_e) {
             /* network error */
           }
         }
-        throw new Error(message || "No se pudo enviar la inscripción. Intentá nuevamente.");
+        throw new Error(
+          message || "No se pudo enviar la inscripción. Intentá nuevamente.",
+        );
       }
       closeAfterSuccess();
     } catch (error) {
-      errorBox.textContent = error.message || "No se pudo completar la inscripción.";
+      errorBox.textContent =
+        error.message || "No se pudo completar la inscripción.";
       tokenReset();
     } finally {
       loading = false;
@@ -258,7 +366,9 @@
     selection = null;
     form.reset();
     tokenReset();
-    status("Solicitud recibida correctamente. Quedó pendiente de aprobación del administrador.");
+    status(
+      "Solicitud recibida correctamente. Quedó pendiente de aprobación del administrador.",
+    );
   }
   load();
 })();

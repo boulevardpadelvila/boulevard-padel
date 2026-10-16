@@ -119,17 +119,19 @@ function updateDurationButtons() {
   });
 }
 
-durationButtons.forEach((button) => button.addEventListener("click", async () => {
-  const requested = Number(button.dataset.bookingDuration);
-  if (requested === selectedDuration) return;
-  selectedDuration = requested;
-  updateDurationButtons();
-  resetDetailsStep();
-  if (selectedDate) {
-    showTimeMessage("Consultando horarios disponibles...");
-    await loadAvailableSlots(selectedDate);
-  }
-}));
+durationButtons.forEach((button) =>
+  button.addEventListener("click", async () => {
+    const requested = Number(button.dataset.bookingDuration);
+    if (requested === selectedDuration) return;
+    selectedDuration = requested;
+    updateDurationButtons();
+    resetDetailsStep();
+    if (selectedDate) {
+      showTimeMessage("Consultando horarios disponibles...");
+      await loadAvailableSlots(selectedDate);
+    }
+  }),
+);
 
 /* =========================================================
 
@@ -420,12 +422,20 @@ async function selectDate(button, dateISO) {
 async function loadAvailableSlots(dateISO) {
   const requestNumber = ++availabilityRequestNumber;
   const duration = selectedDuration;
-  const { data, error } = await supabaseClient.rpc("get_available_slots_flexible", {
-    p_date: dateISO,
-    p_duration_minutes: duration,
-  });
+  const { data, error } = await supabaseClient.rpc(
+    "get_available_slots_flexible",
+    {
+      p_date: dateISO,
+      p_duration_minutes: duration,
+    },
+  );
   // Una respuesta vieja no puede sobrescribir la fecha/duración actual.
-  if (requestNumber !== availabilityRequestNumber || selectedDate !== dateISO || selectedDuration !== duration) return;
+  if (
+    requestNumber !== availabilityRequestNumber ||
+    selectedDate !== dateISO ||
+    selectedDuration !== duration
+  )
+    return;
 
   if (error) {
     console.error("Error consultando horarios:", error);
@@ -509,7 +519,8 @@ function selectTime(button, slot) {
 
   if (summaryDate) summaryDate.textContent = readableDate;
 
-  if (summaryTime) summaryTime.textContent = `${readableTime} a ${formatTime(slot.end_time)} hs`;
+  if (summaryTime)
+    summaryTime.textContent = `${readableTime} a ${formatTime(slot.end_time)} hs`;
 
   if (summaryCourt) {
     summaryCourt.textContent = slot.court_name || "Cancha 1";

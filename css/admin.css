@@ -1174,7 +1174,9 @@ input:focus {
   outline: 3px solid #81906380;
   outline-offset: 2px;
 }
-.admin-weekly-day:has(.admin-switch input:not(:checked)) .admin-weekly-time select {
+.admin-weekly-day:has(.admin-switch input:not(:checked))
+  .admin-weekly-time
+  select {
   opacity: 0.4;
   pointer-events: none;
 }
@@ -1856,8 +1858,14 @@ input:focus {
   .booking-editor__fields--reservation {
     grid-template-columns: repeat(6, minmax(0, 1fr));
   }
-  .booking-editor__fields--reservation > div:nth-child(-n+3) { grid-column: span 2; min-width: 0; }
-  .booking-editor__fields--reservation > div:nth-child(n+4) { grid-column: span 3; min-width: 0; }
+  .booking-editor__fields--reservation > div:nth-child(-n + 3) {
+    grid-column: span 2;
+    min-width: 0;
+  }
+  .booking-editor__fields--reservation > div:nth-child(n + 4) {
+    grid-column: span 3;
+    min-width: 0;
+  }
 }
 
 /* Paso 35H — Horarios independientes por día.

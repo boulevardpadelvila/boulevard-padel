@@ -1,368 +1,172 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-
-// Boulevard Pádel — Solicitudes públicas de turnos fijos.
-// Las solicitudes quedan pendientes de aprobación.
-// Nunca se crea una reserva confirmada desde esta función.
-// Paso 34B: duración individual de 90 o 120 minutos.
-
-const HEADERS = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Content-Type': 'application/json'
-};
-
-const reply = (status: number, body: Record<string, unknown>) =>
+// Boulevard Pádel — registro público de parejas. Desplegar con verify_jwt = false.
+// Secrets obligatorios: TURNSTILE_SECRET_KEY y SUPABASE_SERVICE_ROLE_KEY.
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+const allowedOrigins = new Set([
+  "https://boulevard-padel.pages.dev",
+  "http://127.0.0.1:5500",
+  "http://localhost:5500",
+]);
+const json = (
+  status: number,
+  body: Record<string, unknown>,
+  origin: string | null,
+) =>
   new Response(JSON.stringify(body), {
     status,
-    headers: HEADERS
+    headers: {
+      "Content-Type": "application/json; charset=utf-8",
+      "Cache-Control": "no-store",
+      Vary: "Origin",
+      ...(origin && allowedOrigins.has(origin)
+        ? { "Access-Control-Allow-Origin": origin }
+        : {}),
+      "Access-Control-Allow-Headers":
+        "authorization, apikey, content-type, x-client-info",
+      "Access-Control-Allow-Methods": "POST, OPTIONS",
+    },
   });
-
+const tidy = (v: unknown) =>
+  typeof v === "string" ? v.trim().replace(/\s+/g, " ") : "";
 Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: HEADERS });
-  }
-
-  if (req.method !== 'POST') {
-    return reply(405, { error: 'Método no permitido' });
-  }
-
-  try {
-    const {
-      fullName,
-      phone,
-      startsAt,
-      durationMinutes,
-      durationType,
-      endDate,
-      notes,
-      turnstileToken
-    } = await req.json();
-
-    const name = String(fullName || '').trim();
-    const tel = String(phone || '').trim();
-    const note = String(notes || '').trim();
-
-    // Compatibilidad con el turnero previo: los envíos sin duración siguen siendo de 90 min.
-    const duration = durationMinutes === undefined ? 90 : durationMinutes;
-    if (!Number.isInteger(duration) || ![90, 120].includes(duration)) {
-      return reply(400, { error: 'La duración debe ser de 90 o 120 minutos' });
-    }
-
-    // 1. Validaciones iniciales
-    if (
-      name.length < 3 ||
-      name.length > 120 ||
-      !/^[0-9]{10,14}$/.test(tel) ||
-      note.length > 500
-    ) {
-      return reply(400, {
-        error: 'Revisá los datos personales.'
-      });
-    }
-
-    if (!['defined', 'indefinite'].includes(durationType)) {
-      return reply(400, {
-        error: 'Duración inválida'
-      });
-    }
-
-    if (
-      durationType === 'defined' &&
-      !/^\d{4}-\d{2}-\d{2}$/.test(String(endDate || ''))
-    ) {
-      return reply(400, {
-        error: 'Indicá una fecha final válida'
-      });
-    }
-
-    if (durationType === 'indefinite' && endDate != null) {
-      return reply(400, {
-        error: 'La duración indeterminada no lleva fecha final'
-      });
-    }
-
-    // 2. Verificación de Cloudflare Turnstile
-    if (!turnstileToken) {
-      return reply(400, {
-        error: 'Completá la verificación de seguridad'
-      });
-    }
-
-    const turnstileSecret = Deno.env.get('TURNSTILE_SECRET_KEY');
-
-    if (!turnstileSecret) {
-      console.error('Falta TURNSTILE_SECRET_KEY');
-
-      return reply(503, {
-        error: 'La verificación de seguridad no está configurada'
-      });
-    }
-
-    const verification = await fetch(
-      'https://challenges.cloudflare.com/turnstile/v0/siteverify',
-      {
-        method: 'POST',
-        body: new URLSearchParams({
-          secret: turnstileSecret,
-          response: String(turnstileToken)
-        })
-      }
+  const origin = req.headers.get("origin");
+  if (req.method === "OPTIONS")
+    return allowedOrigins.has(origin ?? "")
+      ? json(200, {}, origin)
+      : json(403, { error: "Origen no permitido." }, origin);
+  if (req.method !== "POST")
+    return json(405, { error: "Método no permitido." }, origin);
+  if (!allowedOrigins.has(origin ?? ""))
+    return json(403, { error: "Origen no permitido." }, origin);
+  const turnstileSecret = Deno.env.get("TURNSTILE_SECRET_KEY");
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  if (!turnstileSecret || !serviceKey || !supabaseUrl)
+    return json(
+      503,
+      { error: "Inscripciones temporalmente no disponibles." },
+      origin,
     );
-
-    const verificationResult = await verification.json();
-
-    if (!verificationResult.success) {
-      console.warn('Turnstile rechazó la verificación');
-
-      return reply(403, {
-        error: 'Verificación de seguridad incorrecta'
-      });
-    }
-
-    // 3. Conexión con Supabase
-    const supabaseUrl = Deno.env.get('SUPABASE_URL');
-    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-
-    if (!supabaseUrl || !serviceRoleKey) {
-      console.error('Faltan credenciales internas de Supabase');
-
-      return reply(503, {
-        error: 'No se pudo conectar con el sistema de reservas'
-      });
-    }
-
-    const db = createClient(supabaseUrl, serviceRoleKey, {
-      auth: { persistSession: false }
+  let payload: Record<string, unknown>;
+  try {
+    payload = await req.json();
+  } catch {
+    return json(400, { error: "Solicitud inválida." }, origin);
+  }
+  const tournamentId = tidy(payload.tournamentId);
+  const player1_name = tidy(payload.player1_name);
+  const player2_name = tidy(payload.player2_name);
+  const contact_phone = tidy(payload.contact_phone);
+  const token = tidy(payload.turnstileToken);
+  if (
+    !/^[0-9a-f]{8}-[0-9a-f-]{27,36}$/i.test(tournamentId) ||
+    ![player1_name, player2_name].every(
+      (n) => n.length >= 3 && n.length <= 100 && n.includes(" "),
+    ) ||
+    player1_name.toLocaleLowerCase() === player2_name.toLocaleLowerCase() ||
+    !/^[+\d\s()\-]{6,30}$/.test(contact_phone) ||
+    !token ||
+    token.length > 2500
+  )
+    return json(
+      400,
+      { error: "Revisá los nombres, apellidos y teléfono ingresados." },
+      origin,
+    );
+  try {
+    const ip = req.headers.get("cf-connecting-ip") ?? "";
+    const form = new URLSearchParams({
+      secret: turnstileSecret,
+      response: token,
     });
-
-    // 4. Comprobar fecha de inicio
-    const start = new Date(String(startsAt || ''));
-
-    if (
-      Number.isNaN(start.getTime()) ||
-      start <= new Date()
-    ) {
-      return reply(400, {
-        error: 'El turno debe comenzar en el futuro'
-      });
-    }
-
-    // 5. Consultar configuración real
-    const {
-      data: settings,
-      error: settingsError
-    } = await db
-      .from('booking_settings')
-      .select(
-        'timezone, fixed_turn_requests_enabled'
-      )
-      .eq('id', 1)
-      .single();
-
-    // IMPORTANTE: distinguir error de consulta de función deshabilitada
-    if (settingsError) {
-      console.error(
-        'Error consultando booking_settings:',
-        settingsError
+    if (ip) form.set("remoteip", ip);
+    const response = await fetch(
+      "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+      {
+        method: "POST",
+        body: form,
+      },
+    );
+    if (!response.ok)
+      return json(
+        503,
+        { error: "No se pudo comprobar la seguridad. Intentá nuevamente." },
+        origin,
       );
-
-      return reply(503, {
-        error: 'No se pudo consultar la configuración del turnero'
-      });
-    }
-
-    if (!settings) {
-      console.error('No se encontró booking_settings id=1');
-
-      return reply(503, {
-        error: 'No se encontró la configuración del turnero'
-      });
-    }
-
-    if (!settings.fixed_turn_requests_enabled) {
-      return reply(400, {
-        error: 'Solicitudes de turnos fijos no habilitadas'
-      });
-    }
-
-    // 6. Obtener fecha y horario local de Argentina
-    const localParts = new Intl.DateTimeFormat('en-CA', {
-      timeZone: settings.timezone,
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      hourCycle: 'h23'
-    }).formatToParts(start);
-
-    const part = (type: string) =>
-      localParts.find((item) => item.type === type)?.value || '';
-
-    const dateLocal =
-      `${part('year')}-${part('month')}-${part('day')}`;
-
-    const weekday =
-      ((new Date(dateLocal + 'T12:00:00Z').getUTCDay() + 6) % 7) + 1;
-
-    const hour =
-      `${part('hour')}:${part('minute')}:00`;
-
-    // 7. Validar duración determinada
-    if (durationType === 'defined') {
-      const finalDate = new Date(String(endDate) + 'T12:00:00Z');
-      const initialDate = new Date(dateLocal + 'T12:00:00Z');
-
-      const span = finalDate.getTime() - initialDate.getTime();
-
-      if (
-        !Number.isFinite(span) ||
-        span < 0 ||
-        span > 366 * 86400000
-      ) {
-        return reply(400, {
-          error: 'Elegí una fecha final válida, dentro de los próximos 12 meses'
-        });
-      }
-    }
-
-    // 8. Obtener cancha activa
-    const {
-      data: court,
-      error: courtError
-    } = await db
-      .from('courts')
-      .select('id')
-      .eq('active', true)
-      .order('created_at')
-      .limit(1)
-      .single();
-
-    if (courtError || !court) {
-      console.error('Error consultando courts:', courtError);
-
-      return reply(503, {
-        error: 'Cancha no disponible'
-      });
-    }
-
-    // 9. Registrar cliente
-    const {
-      data: customer,
-      error: customerError
-    } = await db
-      .from('customers')
-      .upsert(
+    const verify = await response.json();
+    const host = new URL(origin!).hostname;
+    if (!verify.success || verify.hostname !== host)
+      return json(
+        400,
         {
-          full_name: name,
-          phone: tel
+          error:
+            "Verificación de seguridad vencida o incorrecta. Volvé a intentarlo.",
         },
-        { onConflict: 'phone' }
-      )
-      .select('id')
-      .single();
-
-    if (customerError || !customer) {
-      console.error('Error registrando cliente:', customerError);
-
-      return reply(500, {
-        error: 'No pudimos registrar al cliente'
-      });
-    }
-
-    // 10. Registrar solicitud pendiente con duración individual de 90/120 min
-    const {
-      data: request,
-      error: requestError
-    } = await db
-      .from('fixed_turn_requests')
-      .insert({
-        customer_id: customer.id,
-        court_id: court.id,
-        weekday,
-        start_time: hour,
-        duration_minutes: duration,
-        duration_type: durationType,
-        start_date: dateLocal,
-        end_date: durationType === 'defined' ? endDate : null,
-        status: 'pending',
-        customer_notes: note || null
-      })
-      .select('id')
-      .single();
-
-    if (requestError || !request) {
-      console.error(
-        'Error registrando fixed_turn_requests:',
-        requestError
+        origin,
       );
 
-      return reply(500, {
-        error: 'No pudimos registrar la solicitud'
-      });
-    }
-
-    // 11. Avisar por correo al administrador
-    // El correo es un aviso simple, sin información personal.
-    const resendKey = Deno.env.get('RESEND_API_KEY');
-    const from = Deno.env.get('FIXED_TURN_FROM_EMAIL');
-    const to = Deno.env.get('FIXED_TURN_ADMIN_EMAIL');
-
-    if (resendKey && from && to) {
-      try {
-        const sent = await fetch(
-          'https://api.resend.com/emails',
-          {
-            method: 'POST',
-            headers: {
-              Authorization: `Bearer ${resendKey}`,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              from,
-              to: [to],
-              subject: 'Boulevard Pádel — Acciones pendientes',
-              text:
-                'Hay una nueva solicitud de turno fijo pendiente de aprobación.\n\n' +
-                'Ingresá al panel de administración para revisarla:\n' +
-                'https://boulevard-padel.pages.dev/admin/'
-            })
-          }
-        );
-
-        if (!sent.ok) {
-          console.error(
-            'Aviso por correo falló:',
-            sent.status,
-            await sent.text()
-          );
-        }
-      } catch (emailError) {
-        console.error(
-          'No se pudo enviar el correo:',
-          emailError
-        );
-      }
-    } else {
-      console.warn(
-        'Notificación pendiente: faltan secretos de correo'
-      );
-    }
-
-    // 12. Respuesta correcta
-    // La solicitud existe, pero todavía NO está aprobada.
-    return reply(200, {
-      success: true,
-      requestId: request.id,
-      message: 'Solicitud enviada. Queda pendiente de aprobación.'
+    const db = createClient(supabaseUrl, serviceKey, {
+      auth: { persistSession: false },
     });
-
+    const { data: competition, error: competitionError } = await db
+      .from("bp_tournaments")
+      .select("id,status,is_published,max_pairs")
+      .eq("id", tournamentId)
+      .maybeSingle();
+    if (competitionError) throw competitionError;
+    if (
+      !competition ||
+      !competition.is_published ||
+      competition.status !== "registration_open"
+    )
+      return json(
+        409,
+        { error: "Las inscripciones de este torneo no están abiertas." },
+        origin,
+      );
+    // Se considera el cupo de solicitudes pendientes y aprobadas.
+    if (competition.max_pairs != null) {
+      const { count, error } = await db
+        .from("bp_tournament_pairs")
+        .select("id", { count: "exact", head: true })
+        .eq("tournament_id", tournamentId)
+        .in("status", ["pending", "approved"]);
+      if (error) throw error;
+      if ((count ?? 0) >= competition.max_pairs)
+        return json(
+          409,
+          { error: "Se alcanzó el cupo de inscripciones." },
+          origin,
+        );
+    }
+    const { error: insertError } = await db.from("bp_tournament_pairs").insert({
+      tournament_id: tournamentId,
+      player1_name,
+      player2_name,
+      contact_phone,
+      status: "pending",
+      source: "web",
+    });
+    if (insertError?.code === "23505")
+      return json(
+        409,
+        { error: "Esta pareja ya tiene una inscripción registrada." },
+        origin,
+      );
+    if (insertError) throw insertError;
+    return json(
+      201,
+      {
+        ok: true,
+        message: "Solicitud recibida. Está pendiente de aprobación.",
+      },
+      origin,
+    );
   } catch (error) {
-    console.error('Error general en request-fixed-turn:', error);
-
-    return reply(500, {
-      error: 'No pudimos procesar la solicitud. Intentá nuevamente.'
-    });
+    console.error("register-tournament-pair failed", error);
+    return json(
+      500,
+      { error: "No pudimos registrar la inscripción. Intentá nuevamente." },
+      origin,
+    );
   }
 });

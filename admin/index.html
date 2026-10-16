@@ -296,7 +296,9 @@
               </button>
             </div>
             <form id="new-booking-form">
-              <div class="booking-editor__fields booking-editor__fields--reservation">
+              <div
+                class="booking-editor__fields booking-editor__fields--reservation"
+              >
                 <div>
                   <label for="new-booking-date">Fecha</label
                   ><input id="new-booking-date" type="date" required />
@@ -371,7 +373,9 @@
             </div>
             <p id="edit-booking-code" class="reservation-code"></p>
             <form id="edit-booking-form">
-              <div class="booking-editor__fields booking-editor__fields--reservation">
+              <div
+                class="booking-editor__fields booking-editor__fields--reservation"
+              >
                 <div>
                   <label for="edit-booking-date">Fecha</label
                   ><input id="edit-booking-date" type="date" required />
@@ -583,14 +587,16 @@
               <div>
                 <h2 id="admin-weekly-title">Horarios semanales</h2>
                 <p>
-                  Activá los días y elegí cuándo empieza el primer y el último turno. Una reserva puede terminar después de medianoche.
+                  Activá los días y elegí cuándo empieza el primer y el último
+                  turno. Una reserva puede terminar después de medianoche.
                 </p>
               </div>
               <span class="admin-config__court">Cancha 1</span>
             </div>
             <div class="admin-weekly-list">
               <div class="admin-weekly-head" aria-hidden="true">
-                <span>Día</span><span>Abre</span><span>Primer inicio</span><span>Último inicio</span>
+                <span>Día</span><span>Abre</span><span>Primer inicio</span
+                ><span>Último inicio</span>
               </div>
               <div class="admin-weekly-day" data-weekday="1">
                 <strong>Lunes</strong>
@@ -600,11 +606,21 @@
                 </label>
                 <label class="admin-weekly-time admin-weekly-time--start">
                   <span class="admin-weekly-time__caption">Primer inicio</span>
-                  <select class="admin-weekly-time__select" aria-label="Primer inicio Lunes"><option value="09:00">09:00</option></select>
+                  <select
+                    class="admin-weekly-time__select"
+                    aria-label="Primer inicio Lunes"
+                  >
+                    <option value="09:00">09:00</option>
+                  </select>
                 </label>
                 <label class="admin-weekly-time admin-weekly-time--end">
                   <span class="admin-weekly-time__caption">Último inicio</span>
-                  <select class="admin-weekly-time__select" aria-label="Último inicio Lunes"><option value="23:30">23:30</option></select>
+                  <select
+                    class="admin-weekly-time__select"
+                    aria-label="Último inicio Lunes"
+                  >
+                    <option value="23:30">23:30</option>
+                  </select>
                 </label>
               </div>
               <div class="admin-weekly-day" data-weekday="2">
@@ -615,11 +631,21 @@
                 </label>
                 <label class="admin-weekly-time admin-weekly-time--start">
                   <span class="admin-weekly-time__caption">Primer inicio</span>
-                  <select class="admin-weekly-time__select" aria-label="Primer inicio Martes"><option value="09:00">09:00</option></select>
+                  <select
+                    class="admin-weekly-time__select"
+                    aria-label="Primer inicio Martes"
+                  >
+                    <option value="09:00">09:00</option>
+                  </select>
                 </label>
                 <label class="admin-weekly-time admin-weekly-time--end">
                   <span class="admin-weekly-time__caption">Último inicio</span>
-                  <select class="admin-weekly-time__select" aria-label="Último inicio Martes"><option value="23:30">23:30</option></select>
+                  <select
+                    class="admin-weekly-time__select"
+                    aria-label="Último inicio Martes"
+                  >
+                    <option value="23:30">23:30</option>
+                  </select>
                 </label>
               </div>
               <div class="admin-weekly-day" data-weekday="3">
@@ -630,11 +656,21 @@
                 </label>
                 <label class="admin-weekly-time admin-weekly-time--start">
                   <span class="admin-weekly-time__caption">Primer inicio</span>
-                  <select class="admin-weekly-time__select" aria-label="Primer inicio Miércoles"><option value="09:00">09:00</option></select>
+                  <select
+                    class="admin-weekly-time__select"
+                    aria-label="Primer inicio Miércoles"
+                  >
+                    <option value="09:00">09:00</option>
+                  </select>
                 </label>
                 <label class="admin-weekly-time admin-weekly-time--end">
                   <span class="admin-weekly-time__caption">Último inicio</span>
-                  <select class="admin-weekly-time__select" aria-label="Último inicio Miércoles"><option value="23:30">23:30</option></select>
+                  <select
+                    class="admin-weekly-time__select"
+                    aria-label="Último inicio Miércoles"
+                  >
+                    <option value="23:30">23:30</option>
+                  </select>
                 </label>
               </div>
               <div class="admin-weekly-day" data-weekday="4">
@@ -645,11 +681,21 @@
                 </label>
                 <label class="admin-weekly-time admin-weekly-time--start">
                   <span class="admin-weekly-time__caption">Primer inicio</span>
-                  <select class="admin-weekly-time__select" aria-label="Primer inicio Jueves"><option value="09:00">09:00</option></select>
+                  <select
+                    class="admin-weekly-time__select"
+                    aria-label="Primer inicio Jueves"
+                  >
+                    <option value="09:00">09:00</option>
+                  </select>
                 </label>
                 <label class="admin-weekly-time admin-weekly-time--end">
                   <span class="admin-weekly-time__caption">Último inicio</span>
-                  <select class="admin-weekly-time__select" aria-label="Último inicio Jueves"><option value="23:30">23:30</option></select>
+                  <select
+                    class="admin-weekly-time__select"
+                    aria-label="Último inicio Jueves"
+                  >
+                    <option value="23:30">23:30</option>
+                  </select>
                 </label>
               </div>
               <div class="admin-weekly-day" data-weekday="5">
@@ -660,11 +706,21 @@
                 </label>
                 <label class="admin-weekly-time admin-weekly-time--start">
                   <span class="admin-weekly-time__caption">Primer inicio</span>
-                  <select class="admin-weekly-time__select" aria-label="Primer inicio Viernes"><option value="09:00">09:00</option></select>
+                  <select
+                    class="admin-weekly-time__select"
+                    aria-label="Primer inicio Viernes"
+                  >
+                    <option value="09:00">09:00</option>
+                  </select>
                 </label>
                 <label class="admin-weekly-time admin-weekly-time--end">
                   <span class="admin-weekly-time__caption">Último inicio</span>
-                  <select class="admin-weekly-time__select" aria-label="Último inicio Viernes"><option value="23:30">23:30</option></select>
+                  <select
+                    class="admin-weekly-time__select"
+                    aria-label="Último inicio Viernes"
+                  >
+                    <option value="23:30">23:30</option>
+                  </select>
                 </label>
               </div>
               <div class="admin-weekly-day" data-weekday="6">
@@ -675,11 +731,21 @@
                 </label>
                 <label class="admin-weekly-time admin-weekly-time--start">
                   <span class="admin-weekly-time__caption">Primer inicio</span>
-                  <select class="admin-weekly-time__select" aria-label="Primer inicio Sábado"><option value="09:00">09:00</option></select>
+                  <select
+                    class="admin-weekly-time__select"
+                    aria-label="Primer inicio Sábado"
+                  >
+                    <option value="09:00">09:00</option>
+                  </select>
                 </label>
                 <label class="admin-weekly-time admin-weekly-time--end">
                   <span class="admin-weekly-time__caption">Último inicio</span>
-                  <select class="admin-weekly-time__select" aria-label="Último inicio Sábado"><option value="23:30">23:30</option></select>
+                  <select
+                    class="admin-weekly-time__select"
+                    aria-label="Último inicio Sábado"
+                  >
+                    <option value="23:30">23:30</option>
+                  </select>
                 </label>
               </div>
               <div class="admin-weekly-day" data-weekday="7">
@@ -690,11 +756,21 @@
                 </label>
                 <label class="admin-weekly-time admin-weekly-time--start">
                   <span class="admin-weekly-time__caption">Primer inicio</span>
-                  <select class="admin-weekly-time__select" aria-label="Primer inicio Domingo"><option value="09:00">09:00</option></select>
+                  <select
+                    class="admin-weekly-time__select"
+                    aria-label="Primer inicio Domingo"
+                  >
+                    <option value="09:00">09:00</option>
+                  </select>
                 </label>
                 <label class="admin-weekly-time admin-weekly-time--end">
                   <span class="admin-weekly-time__caption">Último inicio</span>
-                  <select class="admin-weekly-time__select" aria-label="Último inicio Domingo"><option value="23:30">23:30</option></select>
+                  <select
+                    class="admin-weekly-time__select"
+                    aria-label="Último inicio Domingo"
+                  >
+                    <option value="23:30">23:30</option>
+                  </select>
                 </label>
               </div>
             </div>
@@ -1156,7 +1232,8 @@
           <span class="admin-save-dialog__icon" aria-hidden="true">✓</span>
           <h2 id="admin-save-dialog-title">Guardar configuración</h2>
           <p id="admin-save-dialog-description">
-            ¿Confirmás los cambios de días, primeros y últimos inicios y período de reservas?
+            ¿Confirmás los cambios de días, primeros y últimos inicios y período
+            de reservas?
           </p>
           <p class="admin-save-dialog__hint">
             Las reservas existentes no se cancelan automáticamente.

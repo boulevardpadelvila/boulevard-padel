@@ -1455,11 +1455,16 @@ dialog.fixed-request-dialog:modal {
 }
 
 /* Turnero flexible: duración e inicios de media hora (Paso 32E). */
-.booking-duration { margin: 0 0 22px; }
-.booking-duration[hidden] { display: none; }
-.booking-duration__label, .booking-time-hint {
+.booking-duration {
+  margin: 0 0 22px;
+}
+.booking-duration[hidden] {
+  display: none;
+}
+.booking-duration__label,
+.booking-time-hint {
   color: var(--color-muted);
-  font-size: .94rem;
+  font-size: 0.94rem;
   margin: 0 0 10px;
 }
 .booking-duration__choices {
@@ -1468,7 +1473,7 @@ dialog.fixed-request-dialog:modal {
   gap: 10px;
   padding: 4px;
   border-radius: 14px;
-  background: rgba(15, 17, 13, .04);
+  background: rgba(15, 17, 13, 0.04);
 }
 .booking-duration__option {
   min-height: 46px;
@@ -1483,7 +1488,12 @@ dialog.fixed-request-dialog:modal {
 .booking-duration__option.is-active {
   background: var(--color-surface);
   color: var(--color-dark);
-  box-shadow: 0 1px 5px rgba(0, 0, 0, .08);
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.08);
 }
-.booking-duration__option:focus-visible { outline: 2px solid var(--color-olive); outline-offset: 2px; }
-.booking-time-hint { margin-bottom: 12px; }
+.booking-duration__option:focus-visible {
+  outline: 2px solid var(--color-olive);
+  outline-offset: 2px;
+}
+.booking-time-hint {
+  margin-bottom: 12px;
+}
