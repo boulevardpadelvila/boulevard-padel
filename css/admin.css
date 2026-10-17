@@ -1935,3 +1935,9 @@ input:focus {
   font-variant-numeric: tabular-nums;
   cursor: pointer;
 }
+
+/* 17/10/2026 — Estado visual de turnos que alcanzaron su hora de fin. */
+.dashboard .reservation-status--finished {
+  background: #e7e8e5;
+  color: #50584e;
+}

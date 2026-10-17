@@ -52,6 +52,47 @@
   let reservationsRequest = 0;
   let loadedReservations = [];
   let viewingCancelled = false;
+  let reservationCompletionTimer = null;
+
+  // «Finalizada» es un estado visual calculado. PostgreSQL conserva
+  // «confirmed» para no alterar RPC, historial ni exclusión de solapamientos.
+  const reservationDisplayStatus = (item, now = Date.now()) => {
+    if (item.status === "completed") return "finished";
+    if (
+      item.status === "confirmed" &&
+      new Date(item.ends_at).getTime() <= now
+    ) return "finished";
+    return item.status;
+  };
+
+  function scheduleReservationCompletionRefresh() {
+    if (reservationCompletionTimer !== null) {
+      clearTimeout(reservationCompletionTimer);
+      reservationCompletionTimer = null;
+    }
+    if (viewingCancelled) return;
+    const now = Date.now();
+    const nextEnd = loadedReservations
+      .filter((item) => item.status === "confirmed")
+      .map((item) => new Date(item.ends_at).getTime())
+      .filter((end) => Number.isFinite(end) && end > now)
+      .sort((a, b) => a - b)[0];
+    if (nextEnd === undefined) return;
+    // Limitar la espera evita los límites del temporizador en navegadores.
+    const delay = Math.max(100, Math.min(nextEnd - now + 80, 3600000));
+    reservationCompletionTimer = setTimeout(() => {
+      reservationCompletionTimer = null;
+      renderReservations(loadedReservations);
+      scheduleReservationCompletionRefresh();
+    }, delay);
+  }
+
+  // Si la pestaña estuvo suspendida, actualizar las etiquetas al regresar.
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState !== "visible" || viewingCancelled) return;
+    if (loadedReservations.length) renderReservations(loadedReservations);
+    scheduleReservationCompletionRefresh();
+  });
   const argentinaDay = (date) => {
     const parts = Object.fromEntries(
       dateFormatter
@@ -77,18 +118,21 @@
     list.replaceChildren();
     safeText(
       $("reservations-count"),
-      `${rows.length} ${rows.length === 1 ? "reserva encontrada" : "reservas encontradas"}${viewingCancelled ? " · Canceladas" : " · Activas"}`,
+      `${rows.length} ${rows.length === 1 ? "reserva encontrada" : "reservas encontradas"}${viewingCancelled ? " · Canceladas" : " · Confirmadas y finalizadas"}`,
     );
     if (!rows.length) {
       const empty = document.createElement("p");
       empty.className = "empty-state";
       empty.textContent = viewingCancelled
         ? "No hay reservas canceladas para esta fecha."
-        : "No hay reservas activas para esta fecha.";
+        : "No hay reservas para esta fecha.";
       list.append(empty);
       return;
     }
+    const now = Date.now();
     for (const item of rows) {
+      const displayStatus = reservationDisplayStatus(item, now);
+      const canManage = displayStatus === "confirmed";
       const card = document.createElement("article");
       card.className = "reservation-card";
       const top = document.createElement("div");
@@ -99,14 +143,16 @@
         `${timeFormatter.format(new Date(item.starts_at))} a ${timeFormatter.format(new Date(item.ends_at))}`,
       );
       const status = document.createElement("span");
-      status.className = "reservation-status";
+      status.className =
+        "reservation-status" +
+        (displayStatus === "finished" ? " reservation-status--finished" : "");
       const statuses = {
         confirmed: "Confirmada",
         cancelled: "Cancelada",
-        completed: "Completada",
+        finished: "Finalizada",
         no_show: "No asistió",
       };
-      safeText(status, statuses[item.status] || item.status || "Sin estado");
+      safeText(status, statuses[displayStatus] || displayStatus || "Sin estado");
       top.append(schedule, status);
       const name = document.createElement("h3");
       safeText(
@@ -142,9 +188,11 @@
         button.type = "button";
         button.className = `reservation-action reservation-action--${modifier}`;
         button.textContent = label;
-        button.disabled = item.status !== "confirmed";
+        button.disabled = !canManage;
         button.title = button.disabled
-          ? "Solo reservas confirmadas"
+          ? displayStatus === "finished"
+            ? "Este turno ya finalizó"
+            : "Solo reservas confirmadas"
           : `${label} esta reserva`;
         if (!button.disabled)
           button.addEventListener("click", () =>
@@ -172,7 +220,10 @@
         .select(
           "id, reservation_code, starts_at, ends_at, status, notes, booking_name, booking_phone, customers(full_name,phone), courts(*)",
         )
-        .eq("status", viewingCancelled ? "cancelled" : "confirmed")
+        [viewingCancelled ? "eq" : "in"](
+          "status",
+          viewingCancelled ? "cancelled" : ["confirmed", "completed"],
+        )
         .gte("starts_at", from)
         .lt("starts_at", until)
         .order("starts_at", { ascending: true });
@@ -180,9 +231,12 @@
       if (requestId !== reservationsRequest) return;
       loadedReservations = data || [];
       renderReservations(loadedReservations);
+      scheduleReservationCompletionRefresh();
       display("reservations-message", "");
     } catch (error) {
       if (requestId !== reservationsRequest) return;
+      loadedReservations = [];
+      scheduleReservationCompletionRefresh();
       $("reservations-list").replaceChildren();
       safeText($("reservations-count"), "");
       display(
@@ -1146,8 +1200,23 @@
     ended: "Finalizado",
   };
   const fixedList = $("admin-fixed-list");
-  let fixedHideInactive = false;
-  const fixedInactiveStatuses = new Set(["rejected", "cancelled", "ended"]);
+  let fixedShowHistory = false;
+  let fixedRenderedDay = argentinaDay(new Date());
+  // Los turnos aprobados con período determinado vencen después del último
+  // día inclusive (en Argentina), aunque su estado SQL siga siendo «approved».
+  const fixedIsExpired = (item, today) =>
+    item.status === "approved" &&
+    item.duration_type === "defined" &&
+    /^\d{4}-\d{2}-\d{2}$/.test(String(item.end_date || "")) &&
+    item.end_date < today;
+  const fixedInHistory = (item, today) =>
+    item.status !== "pending" &&
+    (item.status !== "approved" || fixedIsExpired(item, today));
+  function updateFixedHistoryButton() {
+    const button = $("admin-fixed-history");
+    button.textContent = fixedShowHistory ? "Ver vigentes" : "Ver historial";
+    button.setAttribute("aria-pressed", String(fixedShowHistory));
+  }
   function fixedCell(label, value) {
     const d = document.createElement("div"),
       dt = document.createElement("dt"),
@@ -1200,20 +1269,26 @@
       return;
     }
     display("admin-fixed-message", "");
+    const today = argentinaDay(new Date());
+    fixedRenderedDay = today;
     const visible = (data || []).filter(
-      (item) => !fixedHideInactive || !fixedInactiveStatuses.has(item.status),
+      (item) => fixedInHistory(item, today) === fixedShowHistory,
     );
+    const count = $("admin-fixed-count");
+    count.textContent = fixedShowHistory
+      ? `${visible.length} ${visible.length === 1 ? "registro en el historial" : "registros en el historial"}`
+      : `${visible.length} ${visible.length === 1 ? "turno vigente o solicitud pendiente" : "turnos vigentes o solicitudes pendientes"}`;
     if (!visible.length) {
       const empty = document.createElement("p");
       empty.className = "admin-fixed__empty";
-      empty.textContent =
-        data?.length && fixedHideInactive
-          ? "No hay turnos activos ni pendientes. Podés volver a mostrar el historial."
-          : "Todavía no hay solicitudes de turnos fijos.";
+      empty.textContent = fixedShowHistory
+        ? "Todavía no hay solicitudes rechazadas, canceladas ni turnos finalizados."
+        : "No hay turnos fijos vigentes ni solicitudes pendientes de aprobación.";
       fixedList.append(empty);
       return;
     }
     for (const item of visible) {
+      const expired = fixedIsExpired(item, today);
       const card = document.createElement("article");
       card.className = "admin-fixed__item";
       const head = document.createElement("div");
@@ -1221,8 +1296,9 @@
       const tag = document.createElement("span");
       tag.className =
         "admin-fixed__status" +
-        (item.status === "pending" ? " admin-fixed__status--pending" : "");
-      tag.textContent = fixedStatus[item.status] || item.status;
+        (item.status === "pending" ? " admin-fixed__status--pending" : "") +
+        (fixedShowHistory ? " admin-fixed__status--history" : "");
+      tag.textContent = expired ? "Finalizado" : fixedStatus[item.status] || item.status;
       const when = document.createElement("strong");
       when.textContent = `${fixedDays[item.weekday]} · ${fixedHour(item.start_time)}`;
       head.append(when, tag);
@@ -1256,7 +1332,7 @@
           ? "Avisar por WhatsApp"
           : "Contactar por WhatsApp";
       actions.append(whatsapp);
-      if (item.status === "approved") {
+      if (item.status === "approved" && !expired) {
         const release = document.createElement("button");
         release.type = "button";
         release.className = "secondary";
@@ -1461,16 +1537,20 @@
     );
   }
 
-  $("admin-fixed-clear").addEventListener("click", () => {
-    fixedHideInactive = !fixedHideInactive;
-    const button = $("admin-fixed-clear");
-    button.textContent = fixedHideInactive
-      ? "Mostrar historial"
-      : "Limpiar vista";
-    button.setAttribute("aria-pressed", String(fixedHideInactive));
+  $("admin-fixed-history").addEventListener("click", () => {
+    fixedShowHistory = !fixedShowHistory;
+    updateFixedHistoryButton();
     loadFixedRequests();
   });
   $("admin-fixed-refresh").addEventListener("click", loadFixedRequests);
+  updateFixedHistoryButton();
+  // Al comenzar otro día local, los períodos aprobados vencidos pasan al historial.
+  setInterval(() => {
+    if (fixedRenderedDay !== argentinaDay(new Date()) &&
+        !$("admin-fijos-view").hidden && !$("dashboard-panel").hidden) {
+      loadFixedRequests();
+    }
+  }, 60000);
 
   // Navegación entre reservas y maquetas visuales; no realiza escrituras.
   const setAdminSection = (section) => {
@@ -1499,7 +1579,16 @@
   $("admin-tab-torneos").addEventListener("click", () =>
     setAdminSection("torneos"),
   );
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible" &&
+        !$("admin-fijos-view").hidden && !$("dashboard-panel").hidden &&
+        fixedRenderedDay !== argentinaDay(new Date())) {
+      loadFixedRequests();
+    }
+  });
   $("admin-tab-fijos").addEventListener("click", () => {
+    fixedShowHistory = false;
+    updateFixedHistoryButton();
     setAdminSection("fijos");
     loadFixedRequests();
   });
@@ -1508,7 +1597,7 @@
   $("show-cancelled").addEventListener("click", async () => {
     viewingCancelled = !viewingCancelled;
     $("show-cancelled").textContent = viewingCancelled
-      ? "Ver activas"
+      ? "Ver reservas"
       : "Ver canceladas";
     $("show-cancelled").setAttribute("aria-pressed", String(viewingCancelled));
     await loadReservations();
@@ -1695,6 +1784,8 @@
       closeCancelBooking();
       ++reservationsRequest;
       await supabaseClient.auth.signOut();
+      loadedReservations = [];
+      scheduleReservationCompletionRefresh();
       $("reservations-list").replaceChildren();
       display("login-message", "");
       show("login-panel");

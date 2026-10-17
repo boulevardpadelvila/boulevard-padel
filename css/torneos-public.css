@@ -16,9 +16,13 @@
   line-height: 1.1;
 }
 .public-tournaments__intro {
-  max-width: 660px;
+  /* Mismo ancho que la grilla de torneos; sin límite de 660px. */
+  max-width: none;
   margin: 16px 0 30px;
   color: var(--color-muted);
+}
+@media (min-width: 1150px) {
+  .public-tournaments__intro { white-space: nowrap; }
 }
 .public-tournaments__list {
   display: grid;
