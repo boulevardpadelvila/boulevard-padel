@@ -2315,3 +2315,12 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 - Se reemplaza la apertura de las 6 fotografías en pestaña nueva por un **diálogo nativo `<dialog>`** superpuesto a la página, con imagen ampliada sin recortar, nombre del artículo y botón X en la esquina superior derecha. También admite Escape y clic fuera del diálogo. Al cerrar devuelve el foco al enlace de la foto. A falta de soporte JS/dialog, se conserva el enlace tradicional a la imagen.
 - Archivo nuevo y aislado `js/indumentaria.js`; `index.html` usa `<script src="js/indumentaria.js"></script>`; las imágenes siguen en `assets/img/indum_acces/` del proyecto, no duplicadas en el parche. Sin SQL, Edge Functions, Supabase, Admin ni cambios en `js/reservas.js`.
 - **Prueba antes de publicar:** verificar ambos textos a ancho completo en PC y responsive sin desbordar; clicar 2 o más productos, comprobar modal y X/Escape/clic fuera, que el resto de la página permanece visible al cerrar, los seis botones WhatsApp y el formulario de torneos intactos; luego commit/push.
+
+
+## 17/10/2026 — Paso 36C: Contacto a pantalla completa en escritorio
+- Problema observado en el sitio publicado: al hacer clic en «Contacto» (ancla `#contacto`) quedaba visible una franja clara inferior perteneciente a la nueva sección «Indumentaria y +».
+- Causa: `.contact` en `css/styles.css` calculaba la altura mínima como `calc(100svh - 78px - 110px)`, descontando 110 px extras del diseño anterior, cuando el footer seguía inmediatamente a Contacto.
+- Ajuste puntual: `.contact { min-height: calc(100svh - var(--header-height)); }`, alineado con el `scroll-padding-top` del encabezado fijo y la regla ya usada por Torneos.
+- Se mantiene `@media (max-width: 900px) { .contact { min-height: auto; } }` para permitir desplazamiento natural en tabletas/celulares, sin recortar textos ni botones.
+- Archivos del parche: exclusivamente `css/styles.css` y esta única `BITACORA_DESARROLLO.md`; no se cambian `index.html`, catálogos, JS, Supabase ni turnero.
+- Prueba pendiente: copiar ambos archivos, abrir Live Server, hacer clic en «Contacto» desde el menú en escritorio y confirmar que el borde inferior visible sigue siendo oscuro; comprobar que «Indumentaria y +» funciona al hacer clic y que el responsive móvil permanece correcto. Publicar con commit/push solo luego de comprobar.

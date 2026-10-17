@@ -683,7 +683,7 @@ button {
 ========================================================= */
 
 .contact {
-  min-height: calc(100svh - 78px - 110px);
+  min-height: calc(100svh - var(--header-height));
 
   display: flex;
   align-items: center;
