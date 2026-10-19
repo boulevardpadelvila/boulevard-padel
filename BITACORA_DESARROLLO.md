@@ -2340,3 +2340,12 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 - **Panel Admin:** el contacto con jugadores de turno fijo ya utiliza `web.whatsapp.com/send` con mensajes específicos; no se modifica su código. No se cambian reservas, funciones SQL, Supabase, autenticación ni estructuras.
 - **Pruebas estáticas:** nueve enlaces públicos a WhatsApp (8 Boulevard + 1 TecnoGestión), sin `tel:` residual; siete textos de producto permanecen intactos. Confirmar manualmente en Linux/Chrome, celular y Admin con Live Server antes de publicar. WhatsApp o el navegador podrían seguir mostrando avisos propios que el sitio no puede controlar.
 - **Archivos del parche:** `index.html`, `js/whatsapp-links.js`, esta bitácora única. **SQL: ninguno; no ejecutar ni guardar consultas.**
+
+
+## 19/10/2026 — Catálogo Indumentaria y +: camperas unisex
+- Fuente: ZIP de trabajo `BoulevardPadel(20261019-171208).zip`. Ambas imágenes `CAMPERA_UNISEX1.jpeg` y `CAMPERA_UNISEX2.jpeg` ya existen en `assets/img/indum_acces/`.
+- Se incorporan dos fichas `Campera Unisex`, variantes `Negra` y `Blanca y rosa`, después de las remeras/short y antes de `Tubo de Pelotas`, para mostrar primero ropa y luego accesorios.
+- Cada ficha reutiliza el diseño existente: ampliación de fotografía mediante el visor, carga diferida y consulta WhatsApp con mensaje y producto diferenciados.
+- No se cambian estilos, JS ni imágenes existentes; se mantiene el catálogo responsive y las funcionalidades previas.
+- Archivos del parche: solo `index.html` y esta bitácora maestra. Las fotos ya están en la carpeta del proyecto, por lo que NO se duplican.
+- Prueba antes de publicar: comprobar las 9 fichas, el orden, las dos fotos ampliadas y los enlaces de WhatsApp en PC y celular; luego commit/push.
