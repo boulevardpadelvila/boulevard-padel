@@ -2349,3 +2349,14 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 - No se cambian estilos, JS ni imágenes existentes; se mantiene el catálogo responsive y las funcionalidades previas.
 - Archivos del parche: solo `index.html` y esta bitácora maestra. Las fotos ya están en la carpeta del proyecto, por lo que NO se duplican.
 - Prueba antes de publicar: comprobar las 9 fichas, el orden, las dos fotos ampliadas y los enlaces de WhatsApp en PC y celular; luego commit/push.
+
+
+## 19/10/2026 — Panel Admin / Reservas: botón «Hoy»
+- **Fuente:** ZIP completo `BoulevardPadel(20261019-234401).zip`; revisión de `admin/index.html`, `js/admin.js`, `css/admin.css` y la bitácora maestra. El ZIP de origen incluye una fotografía `assets/img/indum_acces/CAMPERA_UNISEX1.jpeg` con error de verificación CRC; no forma parte de este parche y no se altera.
+- Se incorpora un botón secundario **«Hoy»**, inmediatamente a la izquierda de **«+ Nueva reserva»** en el encabezado de Reservas.
+- Al pulsarlo, se establece la fecha del día actual en la zona horaria `America/Argentina/Cordoba`, se vuelve a la semana de hoy, se muestra/selecciona la tarjeta correspondiente (también en móviles con desplazamiento horizontal) y se consulta el listado usando la función existente `loadReservations()`.
+- Se conserva el filtro actual de reservas/canceladas y el estado e historial de cada reserva. No se modifica la creación, edición, reprogramación, cancelación, disponibilidad, turnos fijos, Supabase, políticas RLS, SQL ni Edge Functions.
+- En pantallas de hasta 620 px, la barra de cuatro acciones se organiza en **dos columnas y dos filas**, evitando cuatro botones apretados. En escritorio permanecen en una fila si hay ancho suficiente.
+- **Archivos del parche:** `admin/index.html`, `js/admin.js`, `css/admin.css` y esta única `BITACORA_DESARROLLO.md`. Sin archivos adicionales ni copias de bitácora. **SQL: ninguno; no ejecutar ni guardar consultas.**
+- **Pruebas realizadas sin tocar producción:** `node --check js/admin.js`, validación de IDs HTML únicos y pruebas automatizadas con Chromium y datos simulados a anchos de 1365, 390 y 320 px. Se avanzó varias semanas y se verificó el retorno al jueves 22/10/2026 (fecha simulada), tarjeta de hoy visible, consulta de la fecha correcta, ausencia de desbordes y conservación de «Ver canceladas»; sin excepciones JS.
+- **Pendiente validar en navegador con cuenta Admin real y SIN editar reservas:** desplazarse por fechas, presionar «Hoy», comprobar el día y listado correctos; repetir en celular y revisar que los cuatro botones funcionen. Realizar commit/push únicamente después de la confirmación del usuario.

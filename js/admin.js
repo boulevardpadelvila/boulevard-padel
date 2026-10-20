@@ -1594,6 +1594,23 @@
   });
   $("reservations-date").value = argentinaDay(new Date());
   syncDateCards();
+  // Volver a hoy sin modificar filtros ni reservas; también muestra la tarjeta
+  // del día en celulares, donde solo caben unas pocas fechas por pantalla.
+  $("reservations-today").addEventListener("click", () => {
+    const today = argentinaDay(new Date());
+    $("reservations-date").value = today;
+    firstVisibleDate = mondayOf(parseDay(today));
+    loadReservations();
+    requestAnimationFrame(() => {
+      const card = dateCardsHost.querySelector('.admin-date-card[aria-pressed="true"]');
+      if (!card) return;
+      const containerRect = dateCardsHost.getBoundingClientRect();
+      const cardRect = card.getBoundingClientRect();
+      if (cardRect.left < containerRect.left || cardRect.right > containerRect.right) {
+        dateCardsHost.scrollLeft += cardRect.left - containerRect.left;
+      }
+    });
+  });
   $("show-cancelled").addEventListener("click", async () => {
     viewingCancelled = !viewingCancelled;
     $("show-cancelled").textContent = viewingCancelled
