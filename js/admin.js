@@ -52,46 +52,54 @@
   let reservationsRequest = 0;
   let loadedReservations = [];
   let viewingCancelled = false;
-  let reservationCompletionTimer = null;
+  let reservationStatusTimer = null;
 
-  // «Finalizada» es un estado visual calculado. PostgreSQL conserva
-  // «confirmed» para no alterar RPC, historial ni exclusión de solapamientos.
+  // «Jugando» y «Finalizada» son estados visuales calculados según los
+  // horarios de la reserva. PostgreSQL conserva su estado original: no se
+  // alteran RPC, disponibilidad, cancelaciones ni historial.
   const reservationDisplayStatus = (item, now = Date.now()) => {
     if (item.status === "completed") return "finished";
-    if (
-      item.status === "confirmed" &&
-      new Date(item.ends_at).getTime() <= now
-    ) return "finished";
-    return item.status;
+    if (item.status !== "confirmed") return item.status;
+    const start = new Date(item.starts_at).getTime();
+    const end = new Date(item.ends_at).getTime();
+    if (Number.isFinite(end) && end <= now) return "finished";
+    if (Number.isFinite(start) && Number.isFinite(end) &&
+        start <= now && now < end) return "playing";
+    return "confirmed";
   };
 
-  function scheduleReservationCompletionRefresh() {
-    if (reservationCompletionTimer !== null) {
-      clearTimeout(reservationCompletionTimer);
-      reservationCompletionTimer = null;
+  // Refrescar el estado exactamente al comenzar y al terminar cada turno,
+  // sin consultar ni modificar Supabase. También sirve si hay varios turnos.
+  function scheduleReservationStatusRefresh() {
+    if (reservationStatusTimer !== null) {
+      clearTimeout(reservationStatusTimer);
+      reservationStatusTimer = null;
     }
     if (viewingCancelled) return;
     const now = Date.now();
-    const nextEnd = loadedReservations
+    const nextChange = loadedReservations
       .filter((item) => item.status === "confirmed")
-      .map((item) => new Date(item.ends_at).getTime())
-      .filter((end) => Number.isFinite(end) && end > now)
+      .flatMap((item) => [
+        new Date(item.starts_at).getTime(),
+        new Date(item.ends_at).getTime(),
+      ])
+      .filter((timestamp) => Number.isFinite(timestamp) && timestamp > now)
       .sort((a, b) => a - b)[0];
-    if (nextEnd === undefined) return;
-    // Limitar la espera evita los límites del temporizador en navegadores.
-    const delay = Math.max(100, Math.min(nextEnd - now + 80, 3600000));
-    reservationCompletionTimer = setTimeout(() => {
-      reservationCompletionTimer = null;
+    if (nextChange === undefined) return;
+    // El límite de una hora evita los topes de temporizador del navegador.
+    const delay = Math.max(100, Math.min(nextChange - now + 80, 3600000));
+    reservationStatusTimer = setTimeout(() => {
+      reservationStatusTimer = null;
       renderReservations(loadedReservations);
-      scheduleReservationCompletionRefresh();
+      scheduleReservationStatusRefresh();
     }, delay);
   }
 
-  // Si la pestaña estuvo suspendida, actualizar las etiquetas al regresar.
+  // Al regresar a una pestaña suspendida, recalcular inmediatamente.
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState !== "visible" || viewingCancelled) return;
     if (loadedReservations.length) renderReservations(loadedReservations);
-    scheduleReservationCompletionRefresh();
+    scheduleReservationStatusRefresh();
   });
   const argentinaDay = (date) => {
     const parts = Object.fromEntries(
@@ -118,7 +126,7 @@
     list.replaceChildren();
     safeText(
       $("reservations-count"),
-      `${rows.length} ${rows.length === 1 ? "reserva encontrada" : "reservas encontradas"}${viewingCancelled ? " · Canceladas" : " · Confirmadas y finalizadas"}`,
+      `${rows.length} ${rows.length === 1 ? "reserva encontrada" : "reservas encontradas"}${viewingCancelled ? " · Canceladas" : " · Confirmadas, jugando y finalizadas"}`,
     );
     if (!rows.length) {
       const empty = document.createElement("p");
@@ -132,7 +140,7 @@
     const now = Date.now();
     for (const item of rows) {
       const displayStatus = reservationDisplayStatus(item, now);
-      const canManage = displayStatus === "confirmed";
+      const canManage = item.status === "confirmed" && displayStatus !== "finished";
       const card = document.createElement("article");
       card.className = "reservation-card";
       const top = document.createElement("div");
@@ -145,9 +153,11 @@
       const status = document.createElement("span");
       status.className =
         "reservation-status" +
-        (displayStatus === "finished" ? " reservation-status--finished" : "");
+        (displayStatus === "finished" ? " reservation-status--finished" :
+         displayStatus === "playing" ? " reservation-status--playing" : "");
       const statuses = {
         confirmed: "Confirmada",
+        playing: "Jugando",
         cancelled: "Cancelada",
         finished: "Finalizada",
         no_show: "No asistió",
@@ -231,12 +241,12 @@
       if (requestId !== reservationsRequest) return;
       loadedReservations = data || [];
       renderReservations(loadedReservations);
-      scheduleReservationCompletionRefresh();
+      scheduleReservationStatusRefresh();
       display("reservations-message", "");
     } catch (error) {
       if (requestId !== reservationsRequest) return;
       loadedReservations = [];
-      scheduleReservationCompletionRefresh();
+      scheduleReservationStatusRefresh();
       $("reservations-list").replaceChildren();
       safeText($("reservations-count"), "");
       display(
@@ -1802,7 +1812,7 @@
       ++reservationsRequest;
       await supabaseClient.auth.signOut();
       loadedReservations = [];
-      scheduleReservationCompletionRefresh();
+      scheduleReservationStatusRefresh();
       $("reservations-list").replaceChildren();
       display("login-message", "");
       show("login-panel");

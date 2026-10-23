@@ -1943,3 +1943,10 @@ input:focus {
   background: #e7e8e5;
   color: #50584e;
 }
+
+/* 22/10/2026 — Reserva dentro de su horario de juego (solo estado visual). */
+.dashboard .reservation-status--playing {
+  background: #dcead1;
+  color: #2e5a32;
+  border: 1px solid #b5cfa9;
+}
