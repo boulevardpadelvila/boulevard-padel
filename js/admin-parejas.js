@@ -6,6 +6,16 @@
   const list = $("torneos-pairs-list");
   const dialog = $("torneos-pair-dialog");
   const submit = $("torneos-pair-save");
+  /* BVPadel parche 17 - cupos visibles en Admin */
+  const addButton = $("torneos-pairs-add");
+  const capacityView = document.createElement("div");
+  capacityView.id = "torneos-pairs-capacity";
+  capacityView.className = "torneos-pairs-capacity";
+  capacityView.setAttribute("role", "status");
+  capacityView.setAttribute("aria-live", "polite");
+  capacityView.hidden = true;
+  addButton.before(capacityView);
+  let tournamentLimits = new Map();
   const feedback = (msg) => {
     $("torneos-pairs-feedback").textContent = msg;
   };
@@ -48,6 +58,59 @@
     card.append(icon, strong, p);
     list.append(card);
   }
+  // Las pendientes y aprobadas ocupan cupo; las rechazadas no.
+  function renderCapacity(occupied = null, failed = false) {
+    capacityView.replaceChildren();
+    addButton.textContent = "+ Agregar pareja";
+    if (!current) {
+      capacityView.hidden = true;
+      addButton.disabled = true;
+      return;
+    }
+    if (failed) {
+      capacityView.hidden = false;
+      capacityView.textContent = "No se pudo verificar el cupo. Actualizá e intentá nuevamente.";
+      addButton.disabled = true;
+      return;
+    }
+    if (occupied === null) {
+      // Hasta recibir los datos del servidor, no habilitar el botón.
+      capacityView.hidden = true;
+      addButton.disabled = true;
+      return;
+    }
+    const max = tournamentLimits.get(current);
+    if (max === undefined) {
+      renderCapacity(null, true);
+      return;
+    }
+    if (max === null) {
+      // Compatibilidad con torneos antiguos sin cupo definido.
+      capacityView.hidden = true;
+      addButton.disabled = false;
+      return;
+    }
+    const full = occupied >= max;
+    capacityView.hidden = false;
+    const head = document.createElement("div");
+    head.className = "torneos-pairs-capacity__head";
+    const title = document.createElement("span");
+    title.textContent = "Cupos ocupados";
+    const total = document.createElement("strong");
+    total.textContent = `${occupied} de ${max} parejas`;
+    head.append(title, total);
+    const bar = document.createElement("progress");
+    bar.max = max;
+    bar.value = Math.min(occupied, max);
+    bar.setAttribute("aria-label", "Cupos ocupados del torneo");
+    const notice = document.createElement("p");
+    notice.textContent = full
+      ? "Cupo completo. No se pueden agregar más parejas."
+      : `Quedan ${max - occupied} ${max - occupied === 1 ? "lugar disponible" : "lugares disponibles"}.`;
+    capacityView.append(head, bar, notice);
+    addButton.disabled = full;
+    if (full) addButton.textContent = `Cupo completo — ${occupied}/${max} parejas`;
+  }
   function button(text, handler, danger = false) {
     const b = document.createElement("button");
     b.type = "button";
@@ -63,20 +126,21 @@
     const previous = select.value || current;
     const { data, error } = await supabaseClient
       .from("bp_tournaments")
-      .select("id,name,starts_on")
+      .select("id,name,starts_on,max_pairs")
       .order("created_at", { ascending: false })
       .limit(100);
     if (error) throw error;
+    tournamentLimits = new Map((data || []).map((t) => [t.id, t.max_pairs]));
     select.replaceChildren(new Option("Seleccionar torneo", ""));
     for (const t of data || []) select.add(new Option(t.name, t.id));
     if ((data || []).some((t) => t.id === previous)) select.value = previous;
     current = select.value;
-    $("torneos-pairs-add").disabled = !current;
+    renderCapacity();
     await loadPairs();
   }
   async function loadPairs() {
     current = select.value;
-    $("torneos-pairs-add").disabled = !current;
+    renderCapacity();
     $("torneos-pairs-count").textContent = current ? "…" : "—";
     if (!current) {
       empty(
@@ -86,15 +150,26 @@
       return;
     }
     await verifyAdmin();
-    const { data, error } = await supabaseClient
-      .from("bp_tournament_pairs")
-      .select(
-        "id,player1_name,player2_name,contact_phone,status,source,created_at",
-      )
-      .eq("tournament_id", current)
-      .order("created_at", { ascending: true })
-      .limit(300);
-    if (error) throw error;
+    const tournamentId = current;
+    const [{ data, error }, { count, error: countError }] = await Promise.all([
+      supabaseClient
+        .from("bp_tournament_pairs")
+        .select("id,player1_name,player2_name,contact_phone,status,source,created_at")
+        .eq("tournament_id", tournamentId)
+        .order("created_at", { ascending: true })
+        .limit(300),
+      supabaseClient
+        .from("bp_tournament_pairs")
+        .select("id", { count: "exact", head: true })
+        .eq("tournament_id", tournamentId)
+        .in("status", ["pending", "approved"]),
+    ]);
+    if (select.value !== tournamentId) return;
+    if (error || countError) {
+      renderCapacity(null, true);
+      throw error || countError;
+    }
+    renderCapacity(count ?? 0);
     const pairs = data || [];
     $("torneos-pairs-count").textContent = String(pairs.length);
     if (!pairs.length) {
@@ -148,7 +223,7 @@
     editing = null;
   });
   function openCreate() {
-    if (!current) return;
+    if (!current || addButton.disabled) return;
     editing = null;
     $("torneos-pair-player1").value = "";
     $("torneos-pair-player2").value = "";
@@ -244,6 +319,9 @@
     return { player1_name, player2_name, contact_phone };
   }
   function readableError(error) {
+    if (error.code === "23514" &&
+        /cupo|capacity/i.test(`${error.message || ""} ${error.details || ""} ${error.hint || ""}`))
+      return new Error("Cupo completo. No se pueden agregar más parejas.");
     if (error.code === "23505")
       return new Error(
         "Esta pareja ya tiene una inscripción pendiente o aprobada en el torneo.",
@@ -268,6 +346,10 @@
       console.error(error);
       $("torneos-pair-dialog-error").textContent =
         error.message || "Error al guardar.";
+      if (error.message === "Cupo completo. No se pueden agregar más parejas.") {
+        // Otro administrador pudo ocupar el último cupo mientras estaba abierto el diálogo.
+        await loadPairs().catch((refreshError) => console.error(refreshError));
+      }
     } finally {
       busy = false;
       submit.disabled = false;

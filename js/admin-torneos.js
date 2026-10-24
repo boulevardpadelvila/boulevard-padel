@@ -29,7 +29,9 @@
       !success &&
       ((message.startsWith("Editando «") && message.endsWith("».")) ||
         message === "Edición cancelada." ||
-        message === "Guardando torneo…");
+        message === "Guardando torneo…" ||
+        message.startsWith("Cupo completo:") ||
+        message === "No se pudo verificar el cupo. Actualizá la vista e intentá nuevamente.");
     notice.classList.toggle("torneo-feedback--duplicate", duplicate);
     notice.classList.toggle("torneo-feedback--success", success);
     notice.classList.toggle("torneo-feedback--info", informative);
@@ -580,12 +582,34 @@
       },
     });
   }
-  function toggleRegistration(t) {
+  /* BVPadel parche 18 - aviso de cupo antes de abrir */
+  async function toggleRegistration(t) {
     if (isFinished(t)) {
       feedback("No se pueden modificar las inscripciones de un torneo finalizado.");
       return;
     }
     const opening = !registrationOpen(t);
+    // Antes de mostrar el formulario, comprobar cuántas plazas están ocupadas.
+    // La protección definitiva sigue siendo el trigger de Supabase.
+    if (opening && t.max_pairs != null) {
+      try {
+        await adminSession();
+        const { count, error } = await supabaseClient
+          .from("bp_tournament_pairs")
+          .select("id", { count: "exact", head: true })
+          .eq("tournament_id", t.id)
+          .in("status", ["pending", "approved"]);
+        if (error || count == null) throw error || new Error("Sin contador");
+        if (count >= t.max_pairs) {
+          feedback(`Cupo completo: ${count} de ${t.max_pairs} parejas. Liberá un lugar o ampliá el cupo para abrir inscripciones.`);
+          return;
+        }
+      } catch (err) {
+        console.error("No se pudo comprobar el cupo", err);
+        feedback("No se pudo verificar el cupo. Actualizá la vista e intentá nuevamente.");
+        return;
+      }
+    }
     openModal({
       title: opening ? "Abrir inscripciones" : "Cerrar inscripciones",
       description: opening
@@ -632,6 +656,10 @@
           .eq("id", t.id)
           .eq("status", t.status)
           .select("id");
+        if (error?.code === "23514" &&
+            /cupo|capacity/i.test(`${error.message || ""} ${error.details || ""}`)) {
+          throw new Error("El cupo está completo. Liberá un lugar o ampliá el cupo para abrir inscripciones.");
+        }
         if (error || data?.length !== 1)
           throw new Error("No se pudo actualizar la inscripción. Actualizá la vista e intentá nuevamente.");
         await loadTournaments();
