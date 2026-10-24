@@ -109,18 +109,32 @@ Deno.serve(async (req) => {
     });
     const { data: competition, error: competitionError } = await db
       .from("bp_tournaments")
-      .select("id,status,is_published,max_pairs")
+      .select("id,status,is_published,max_pairs,ends_on,registration_closes_at")
       .eq("id", tournamentId)
       .maybeSingle();
     if (competitionError) throw competitionError;
+    // Cierre efectivo sin tareas programadas. Validar siempre en el servidor.
+    const argDateParts = Object.fromEntries(
+      new Intl.DateTimeFormat("en-US", {
+        timeZone: "America/Argentina/Cordoba",
+        year: "numeric", month: "2-digit", day: "2-digit",
+      }).formatToParts(new Date()).map((part) => [part.type, part.value]),
+    );
+    const argentinaToday = `${argDateParts.year}-${argDateParts.month}-${argDateParts.day}`;
+    const closingTimestamp = competition?.registration_closes_at
+      ? Date.parse(competition.registration_closes_at)
+      : null;
     if (
       !competition ||
       !competition.is_published ||
-      competition.status !== "registration_open"
+      competition.status !== "registration_open" ||
+      competition.ends_on < argentinaToday ||
+      (closingTimestamp !== null &&
+        (!Number.isFinite(closingTimestamp) || Date.now() >= closingTimestamp))
     )
       return json(
         409,
-        { error: "Las inscripciones de este torneo no están abiertas." },
+        { error: "Las inscripciones de este torneo están cerradas." },
         origin,
       );
     // Se considera el cupo de solicitudes pendientes y aprobadas.

@@ -457,3 +457,211 @@
 #torneos-pair-fields[hidden] {
   display: none !important;
 }
+
+/* BVPadel: botones de categorías alineados (parche local) */
+.torneo-category-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+  margin-top: 12px;
+}
+
+.torneo-category-actions .torneos-outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-width: 0;
+  margin-top: 0;
+  padding: 10px 8px;
+  text-align: center;
+}
+
+.torneo-category-actions svg {
+  flex-shrink: 0;
+}
+
+#torneo-categories-panel[hidden] {
+  display: none !important;
+}
+
+@media (max-width: 520px) {
+  .torneo-category-actions {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* BVPadel: panel administrar categorias - parche 02 */
+.torneo-categories-panel {
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid #d9dacd;
+  border-radius: 10px;
+  background: #fbfbf8;
+}
+.torneo-categories-panel > p {
+  margin: 0 0 10px;
+  color: #626957;
+  font-size: 12px;
+  line-height: 1.5;
+}
+#torneo-categories-list {
+  max-height: 345px;
+  overflow-y: auto;
+}
+.torneo-category-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 12px 0;
+  border-top: 1px solid #e5e7dc;
+}
+.torneo-category-item__detail {
+  flex: 1 1 125px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.torneo-category-item__detail strong {
+  display: block;
+  font-size: 12px;
+  color: #2b3025;
+}
+.torneo-category-item__meta {
+  margin: 3px 0 0;
+  font-size: 11px;
+  color: #66705c;
+  line-height: 1.4;
+}
+.torneo-category-item__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.torneo-category-item__actions .torneos-entry__button {
+  padding: 8px 10px;
+  min-height: 34px;
+  font-size: 11px;
+}
+.torneo-category-item__protected {
+  margin: 0;
+  font-size: 10px;
+  color: #6e765d;
+}
+.torneo-category-item__error {
+  color: #9f302c;
+  font-size: 12px;
+}
+
+/* BVPadel: estado vacio de categorias - parche 03 */
+#torneo-categories-list .torneo-categories-empty {
+  margin: 2px 0 0;
+  padding: 12px 10px;
+  background: #f2f3eb;
+  color: #616957;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.4;
+  text-align: center;
+}
+
+/* BVPadel: aviso de nombre duplicado - parche visual */
+#torneo-feedback.torneo-feedback--duplicate {
+  padding: 12px 14px;
+  margin: 14px 0 12px;
+  border: 1px solid #edcaca;
+  border-left: 4px solid #bb3535;
+  border-radius: 9px;
+  background: #fff4f3;
+  color: #982b2b;
+  font: 600 13px/1.5 Inter, Arial, sans-serif;
+}
+
+/* BVPadel: avisos de exito - parche 06 */
+#torneo-feedback.torneo-feedback--success {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 14px 0 12px;
+  padding: 12px 14px;
+  border: 1px solid #c9dec9;
+  border-left: 4px solid #477d53;
+  border-radius: 9px;
+  background: #f3f8f1;
+  color: #285439;
+  font: 600 13px/1.5 Inter, Arial, sans-serif;
+}
+#torneo-feedback.torneo-feedback--success::before {
+  content: "✓";
+  display: grid;
+  place-items: center;
+  flex: 0 0 21px;
+  width: 21px;
+  height: 21px;
+  border-radius: 50%;
+  background: #dcebdc;
+  color: #285439;
+  font: 800 13px/1 Inter, Arial, sans-serif;
+}
+
+/* BVPadel: avisos informativos - parche 07 */
+#torneo-feedback.torneo-feedback--info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 14px 0 12px;
+  padding: 12px 14px;
+  border: 1px solid #c8dcf1;
+  border-left: 4px solid #3478b9;
+  border-radius: 9px;
+  background: #f2f7fd;
+  color: #24567f;
+  font: 600 13px/1.5 Inter, Arial, sans-serif;
+}
+#torneo-feedback.torneo-feedback--info::before {
+  content: "i";
+  display: grid;
+  place-items: center;
+  flex: 0 0 21px;
+  width: 21px;
+  height: 21px;
+  border-radius: 50%;
+  background: #dceaf8;
+  color: #24567f;
+  font: 800 13px/1 Inter, Arial, sans-serif;
+}
+
+/* BVPadel: recuperacion opcional de categorias eliminadas. */
+#torneo-categories-list .torneo-category-toggle {
+  display: block;
+  border: 0;
+  background: transparent;
+  color: #526443;
+  font: 600 11px/1.5 Inter, Arial, sans-serif;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  padding: 9px 2px;
+  margin-top: 4px;
+  cursor: pointer;
+}
+#torneo-categories-list .torneo-category-toggle:focus-visible {
+  outline: 2px solid #7d8258;
+  outline-offset: 3px;
+  border-radius: 3px;
+}
+
+/* BVPadel - Parche 13: estado vacio de torneos */
+/* La lista normal de torneos y los avisos rojo/verde/azul no se alteran. */
+#torneos-list > p {
+  margin: 12px 0 0;
+  padding: 12px 14px;
+  background: #f2f3eb;
+  border-radius: 9px;
+  color: #616957;
+  font: 600 12px/1.5 Inter, Arial, sans-serif;
+  text-align: center;
+}

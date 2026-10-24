@@ -3,7 +3,36 @@
   "use strict";
   const $ = (id) => document.getElementById(id);
   const feedback = (message) => {
-    $("torneo-feedback").textContent = message;
+    const notice = $("torneo-feedback");
+    notice.textContent = message;
+    // Los estilos son exclusivos: error rojo, exito verde o aviso informativo azul.
+    const duplicate =
+      message === "Ya existe un torneo con ese nombre. Elegí otro para identificar correctamente esta competencia.";
+    const successMessages = new Set([
+      "Cambios guardados correctamente.",
+      "Torneo creado correctamente. Sigue oculto al público.",
+      "Torneo eliminado correctamente.",
+      "Torneo finalizado correctamente.",
+      "Torneo publicado.",
+      "Torneo ocultado.",
+      "Inscripciones cerradas correctamente.",
+      "Inscripciones abiertas. El torneo se publicó automáticamente.",
+      "Categoría creada correctamente.",
+      "Categoría actualizada correctamente.",
+      "Categoría eliminada correctamente.",
+      "Categoría restaurada correctamente.",
+      "Categoría eliminada de las opciones. Los torneos existentes se conservan.",
+    ]);
+    const success = !duplicate && successMessages.has(message);
+    const informative =
+      !duplicate &&
+      !success &&
+      ((message.startsWith("Editando «") && message.endsWith("».")) ||
+        message === "Edición cancelada." ||
+        message === "Guardando torneo…");
+    notice.classList.toggle("torneo-feedback--duplicate", duplicate);
+    notice.classList.toggle("torneo-feedback--success", success);
+    notice.classList.toggle("torneo-feedback--info", informative);
   };
   const names = {
     league: "Liga · Todos contra todos",
@@ -17,6 +46,33 @@
     in_progress: "En juego",
     completed: "Finalizado",
   };
+  // Reglas de fechas en el huso argentino, independientemente del navegador.
+  function localToday() {
+    const values = Object.fromEntries(
+      new Intl.DateTimeFormat("en-US", {
+        timeZone: "America/Argentina/Cordoba",
+        year: "numeric", month: "2-digit", day: "2-digit",
+      }).formatToParts(new Date()).map((part) => [part.type, part.value]),
+    );
+    return `${values.year}-${values.month}-${values.day}`;
+  }
+  function isFinished(t) {
+    return t.status === "completed" || t.ends_on < localToday();
+  }
+  function registrationOpen(t) {
+    return t.status === "registration_open" && !isFinished(t) &&
+      (!t.registration_closes_at || Date.now() < Date.parse(t.registration_closes_at));
+  }
+  function closingDateInArgentina(iso) {
+    if (!iso) return "";
+    const values = Object.fromEntries(
+      new Intl.DateTimeFormat("en-US", {
+        timeZone: "America/Argentina/Cordoba",
+        year: "numeric", month: "2-digit", day: "2-digit",
+      }).formatToParts(new Date(iso)).map((part) => [part.type, part.value]),
+    );
+    return `${values.year}-${values.month}-${values.day}`;
+  }
   let busy = false,
     editing = null,
     records = [],
@@ -47,6 +103,9 @@
     value = "",
     confirm = "Aceptar",
     danger = false,
+    inputType = "text",
+    inputMin = "",
+    inputMax = "",
     action,
   }) {
     $("torneo-dialog-title").textContent = title;
@@ -54,7 +113,11 @@
     const field = $("torneo-dialog-field");
     field.hidden = !label;
     $("torneo-dialog-label").textContent = label;
-    $("torneo-dialog-input").value = value;
+    const modalInput = $("torneo-dialog-input");
+    modalInput.type = inputType;
+    modalInput.min = inputMin;
+    modalInput.max = inputMax;
+    modalInput.value = value;
     $("torneo-dialog-message").textContent = "";
     $("torneo-dialog-accept").textContent = confirm;
     $("torneo-dialog-accept").classList.toggle("torneo-danger", danger);
@@ -88,6 +151,17 @@
       $("torneo-dialog-accept").disabled = false;
     }
   });
+  function ensureEditingRetiredCategory(t) {
+    if (!t?.category_id) return;
+    const select = $("torneo-category");
+    if ([...select.options].some((option) => option.value === t.category_id)) return;
+    // Se muestra solo al editar el torneo que ya la utiliza, nunca en el alta.
+    const name = t.bp_tournament_categories?.name || "Categoría histórica";
+    const option = new Option(`${name} (histórica)`, t.category_id);
+    option.dataset.retiredCategory = "true";
+    select.add(option);
+  }
+
   async function loadCategories(selected = "") {
     const { data, error } = await supabaseClient
       .from("bp_tournament_categories")
@@ -98,8 +172,217 @@
     const select = $("torneo-category");
     select.replaceChildren(new Option("Seleccionar categoría", ""));
     for (const c of data || []) select.add(new Option(c.name, c.id));
+    if (editing) ensureEditingRetiredCategory(records.find((t) => t.id === editing));
     if (selected) select.value = selected;
   }
+  /* BVPadel: administrar categorias - parche 02 */
+  const categoryPanel = $("torneo-categories-panel");
+  const categoryManageButton = $("torneo-manage-categories");
+  let showEliminatedCategories = false;
+
+  function categoryInfo(message, className = "") {
+    const element = document.createElement("p");
+    element.className = className;
+    element.textContent = message;
+    return element;
+  }
+
+  async function refreshCategoryViews(selectedCategory = null) {
+    const selected = selectedCategory === null
+      ? $("torneo-category").value
+      : selectedCategory;
+    await loadCategories(selected);
+    await loadTournaments();
+    if (!categoryPanel.hidden) await loadCategoryManagement();
+  }
+
+  function editCategory(category) {
+    openModal({
+      title: "Editar categoría",
+      description: `Corregí el nombre de «${category.name}». Los torneos relacionados conservarán su categoría.`,
+      label: "Nombre de la categoría",
+      value: category.name,
+      confirm: "Guardar cambios",
+      action: async (input) => {
+        const name = input.trim().replace(/\s+/g, " ");
+        if (name.length < 2 || name.length > 80)
+          throw new Error("Ingresá entre 2 y 80 caracteres.");
+        if (name === category.name) return;
+        await adminSession();
+        const { data, error } = await supabaseClient
+          .from("bp_tournament_categories")
+          .update({ name })
+          .eq("id", category.id)
+          .select("id");
+        if (error?.code === "23505")
+          throw new Error("Ya existe una categoría con ese nombre.");
+        if (error || data?.length !== 1)
+          throw new Error("No se pudo editar la categoría. Actualizá e intentá nuevamente.");
+        await refreshCategoryViews();
+        feedback("Categoría actualizada correctamente.");
+      },
+    });
+  }
+
+  function deleteCategory(category) {
+    const hasTournaments = category.tournamentsCount > 0;
+    openModal({
+      title: "Eliminar categoría",
+      description: hasTournaments
+        ? `¿Eliminar «${category.name}» de las opciones disponibles? Los torneos existentes conservarán sus datos y resultados.`
+        : `¿Eliminar definitivamente «${category.name}»? No tiene torneos asociados. Esta acción no se puede deshacer.`,
+      confirm: "Eliminar categoría",
+      danger: true,
+      action: async () => {
+        await adminSession();
+        let preservedHistory = hasTournaments;
+        if (!hasTournaments) {
+          // ON DELETE RESTRICT evita perder datos si aparecio un torneo en paralelo.
+          const { data, error } = await supabaseClient
+            .from("bp_tournament_categories")
+            .delete()
+            .eq("id", category.id)
+            .select("id");
+          if (error?.code === "23503") {
+            // El uso cambio desde que se mostro la lista: conservar el historial.
+            preservedHistory = true;
+          } else if (error || data?.length !== 1) {
+            throw new Error("No se pudo eliminar la categoría. Actualizá e intentá nuevamente.");
+          }
+        }
+        if (preservedHistory) {
+          const { data, error } = await supabaseClient
+            .from("bp_tournament_categories")
+            .update({ active: false })
+            .eq("id", category.id)
+            .eq("active", true)
+            .select("id");
+          if (error || data?.length !== 1)
+            throw new Error("No se pudo eliminar la categoría de las opciones. Actualizá e intentá nuevamente.");
+        }
+        const selected = $("torneo-category").value === category.id
+          ? ""
+          : $("torneo-category").value;
+        await refreshCategoryViews(selected);
+        feedback(preservedHistory
+          ? "Categoría eliminada de las opciones. Los torneos existentes se conservan."
+          : "Categoría eliminada correctamente.");
+      },
+    });
+  }
+
+  function restoreCategory(category) {
+    openModal({
+      title: "Restaurar categoría",
+      description: `«${category.name}» volverá a estar disponible para nuevos torneos.`,
+      confirm: "Restaurar categoría",
+      action: async () => {
+        await adminSession();
+        const { data, error } = await supabaseClient
+          .from("bp_tournament_categories")
+          .update({ active: true })
+          .eq("id", category.id)
+          .eq("active", false)
+          .select("id");
+        if (error || data?.length !== 1)
+          throw new Error("No se pudo restaurar la categoría. Actualizá e intentá nuevamente.");
+        await refreshCategoryViews();
+        feedback("Categoría restaurada correctamente.");
+      },
+    });
+  }
+
+  async function loadCategoryManagement() {
+    const list = $("torneo-categories-list");
+    list.replaceChildren(categoryInfo("Cargando categorías…"));
+    try {
+      await adminSession();
+      const { data, error } = await supabaseClient
+        .from("bp_tournament_categories")
+        .select("id,name,active")
+        .order("name");
+      if (error) throw error;
+      const categories = await Promise.all((data || []).map(async (category) => {
+        const result = await supabaseClient
+          .from("bp_tournaments")
+          .select("id", { count: "exact", head: true })
+          .eq("category_id", category.id);
+        if (result.error || !Number.isInteger(result.count))
+          throw result.error || new Error("No se pudo verificar el uso de una categoría.");
+        return { ...category, tournamentsCount: result.count };
+      }));
+      const active = categories.filter((category) => category.active);
+      const inactive = categories.filter((category) => !category.active);
+      list.replaceChildren();
+
+      function appendCategory(category) {
+        const row = document.createElement("div");
+        row.className = "torneo-category-item";
+        const detail = document.createElement("div");
+        detail.className = "torneo-category-item__detail";
+        const title = document.createElement("strong");
+        title.textContent = category.name;
+        const meta = categoryInfo(
+          `${category.active ? "Disponible" : "Eliminada de las opciones"} · ${category.tournamentsCount === 0
+            ? "Sin torneos asociados"
+            : `${category.tournamentsCount} torneo(s) asociado(s)`}`,
+          "torneo-category-item__meta",
+        );
+        detail.append(title, meta);
+        const controls = document.createElement("div");
+        controls.className = "torneo-category-item__actions";
+        if (category.active) {
+          controls.append(action("Editar", () => editCategory(category)));
+          controls.append(action(
+            "Eliminar",
+            () => deleteCategory(category),
+            "torneos-entry__button--danger",
+          ));
+        } else {
+          controls.append(action("Restaurar", () => restoreCategory(category)));
+        }
+        row.append(detail, controls);
+        list.append(row);
+      }
+
+      if (!active.length) {
+        list.append(categoryInfo("Aún no hay categorías disponibles.", "torneo-categories-empty"));
+      }
+      for (const category of active) appendCategory(category);
+
+      if (inactive.length) {
+        const toggle = document.createElement("button");
+        toggle.type = "button";
+        toggle.className = "torneo-category-toggle";
+        toggle.textContent = showEliminatedCategories
+          ? "Ocultar eliminadas"
+          : `Ver eliminadas (${inactive.length})`;
+        toggle.setAttribute("aria-expanded", String(showEliminatedCategories));
+        toggle.addEventListener("click", () => {
+          showEliminatedCategories = !showEliminatedCategories;
+          loadCategoryManagement();
+        });
+        list.append(toggle);
+        if (showEliminatedCategories) {
+          for (const category of inactive) appendCategory(category);
+        }
+      }
+    } catch (error) {
+      console.error(error);
+      list.replaceChildren(categoryInfo(
+        "No se pudieron consultar las categorías. Verificá la sesión y volvé a abrir este panel.",
+        "torneo-category-item__error",
+      ));
+    }
+  }
+
+  categoryManageButton.addEventListener("click", async () => {
+    const open = categoryPanel.hidden;
+    categoryPanel.hidden = !open;
+    categoryManageButton.setAttribute("aria-expanded", String(open));
+    if (open) await loadCategoryManagement();
+  });
+
   const date = (iso) =>
     iso ? iso.split("-").reverse().join("/") : "Sin fecha";
   function action(label, fn, style = "") {
@@ -114,7 +397,7 @@
     const { data, error } = await supabaseClient
       .from("bp_tournaments")
       .select(
-        "id,name,category_id,format,status,is_published,starts_on,ends_on,max_pairs,bp_tournament_categories(name)",
+        "id,name,category_id,format,status,is_published,starts_on,ends_on,max_pairs,registration_closes_at,bp_tournament_categories(name)",
       )
       .order("created_at", { ascending: false })
       .limit(100);
@@ -138,7 +421,7 @@
       const title = document.createElement("strong");
       title.textContent = t.name;
       const meta = document.createElement("p");
-      meta.textContent = `${t.bp_tournament_categories?.name || "Sin categoría"} · ${names[t.format] || t.format} · ${date(t.starts_on)} a ${date(t.ends_on)} · ${states[t.status] || t.status} · ${t.is_published ? "Publicado" : "Oculto"}`;
+      meta.textContent = `${t.bp_tournament_categories?.name || "Sin categoría"} · ${names[t.format] || t.format} · ${date(t.starts_on)} a ${date(t.ends_on)} · ${isFinished(t) ? "Finalizado" : (t.status === "registration_open" && !registrationOpen(t) ? "Inscripciones cerradas por fecha" : (states[t.status] || t.status))} · ${t.is_published ? "Publicado" : "Oculto"}`;
       const actions = document.createElement("div");
       actions.className = "torneos-entry__actions";
       actions.append(
@@ -148,16 +431,20 @@
         ),
       );
       if (
+        !isFinished(t) &&
         ["draft", "registration_open", "registration_closed"].includes(t.status)
       ) {
         actions.append(
           action(
-            t.status === "registration_open"
+            registrationOpen(t)
               ? "Cerrar inscripciones"
               : "Abrir inscripciones",
             () => toggleRegistration(t),
           ),
         );
+      }
+      if (!isFinished(t)) {
+        actions.append(action("Finalizar", () => finalizeTournament(t)));
       }
       actions.append(
         action("Eliminar", () => remove(t), "torneos-entry__button--danger"),
@@ -184,10 +471,13 @@
     $("torneo-edit-cancel").hidden = true;
     $("torneo-name").value = "";
     $("torneo-category").value = "";
+    [...$("torneo-category").options].filter((option) => option.dataset.retiredCategory === "true").forEach((option) => option.remove());
     $("torneo-format").value = "groups_knockout";
     $("torneo-start").value = "";
     $("torneo-end").value = "";
-    $("torneo-state").value = "draft";
+    const stateSelect = $("torneo-state");
+    stateSelect.querySelectorAll('option[data-temporary-torneo-state="true"]').forEach((option) => option.remove());
+    stateSelect.value = "draft";
     setPairs(12);
   }
   function edit(t) {
@@ -196,11 +486,19 @@
     $("torneo-create-button").textContent = "Guardar cambios";
     $("torneo-edit-cancel").hidden = false;
     $("torneo-name").value = t.name;
+    ensureEditingRetiredCategory(t);
     $("torneo-category").value = t.category_id;
     $("torneo-format").value = t.format;
     $("torneo-start").value = t.starts_on;
     $("torneo-end").value = t.ends_on;
-    $("torneo-state").value = t.status;
+    const stateSelect = $("torneo-state");
+    stateSelect.querySelectorAll('option[data-temporary-torneo-state="true"]').forEach((option) => option.remove());
+    if (![...stateSelect.options].some((option) => option.value === t.status)) {
+      const option = new Option(states[t.status] || t.status, t.status);
+      option.dataset.temporaryTorneoState = "true";
+      stateSelect.add(option);
+    }
+    stateSelect.value = t.status;
     setPairs(t.max_pairs);
     feedback(`Editando «${t.name}».`);
     $("torneo-name").focus();
@@ -249,12 +547,13 @@
             "No se pudo guardar. Verificá que no exista otra con el mismo nombre.",
           );
         await loadCategories(data.id);
+        if (!categoryPanel.hidden) await loadCategoryManagement();
         feedback("Categoría creada correctamente.");
       },
     }),
   );
   async function togglePublication(t) {
-    if (t.is_published && t.status === "registration_open") {
+    if (t.is_published && registrationOpen(t)) {
       feedback("Primero cerrá las inscripciones y después ocultá el torneo.");
       return;
     }
@@ -282,41 +581,92 @@
     });
   }
   function toggleRegistration(t) {
-    const opening = t.status !== "registration_open";
-    if (opening && !t.is_published) {
-      feedback(
-        "Primero publicá el torneo. No se abren inscripciones de torneos ocultos.",
-      );
+    if (isFinished(t)) {
+      feedback("No se pueden modificar las inscripciones de un torneo finalizado.");
       return;
     }
+    const opening = !registrationOpen(t);
     openModal({
       title: opening ? "Abrir inscripciones" : "Cerrar inscripciones",
       description: opening
-        ? `¿Habilitar las inscripciones de «${t.name}»? Podrás cerrarlas cuando quieras. El formulario público todavía no está disponible.`
-        : `¿Cerrar las inscripciones de «${t.name}»? Las parejas ya registradas se conservarán.`,
-      confirm: opening ? "Abrir inscripciones" : "Cerrar inscripciones",
+        ? `«${t.name}» se publicará automáticamente. Podés elegir una fecha límite de cierre (inclusive) o dejarla vacía para cerrar manualmente. Hora argentina.`
+        : `¿Cerrar ahora las inscripciones de «${t.name}»? El torneo seguirá publicado y no estará finalizado.`,
+      label: opening ? "Fecha de cierre (opcional)" : "",
+      inputType: opening ? "date" : "text",
+      inputMin: opening ? localToday() : "",
+      inputMax: opening ? t.ends_on : "",
+      value: opening && t.registration_closes_at && registrationOpen(t)
+        ? closingDateInArgentina(t.registration_closes_at) : "",
+      confirm: opening ? "Abrir y publicar" : "Cerrar inscripciones",
+      action: async (dateString) => {
+        await adminSession();
+        const now = new Date();
+        if (opening && dateString &&
+          (!/^\d{4}-\d{2}-\d{2}$/.test(dateString) ||
+           dateString < localToday() || dateString > t.ends_on)) {
+          throw new Error("Elegí una fecha entre hoy y el fin del torneo, o dejala vacía.");
+        }
+        const closing = opening
+          ? (dateString ? new Date(`${dateString}T23:59:59.999-03:00`).toISOString() : null)
+          : now.toISOString();
+        if (opening && closing && Date.parse(closing) <= Date.now()) {
+          throw new Error("La fecha de cierre ya venció. Elegí otra.");
+        }
+        // Se controla la versión previa para no pisar cambios de otro administrador.
+        const payload = opening
+          ? {
+              status: "registration_open",
+              is_published: true,
+              registration_opens_at: now.toISOString(),
+              registration_closes_at: closing,
+              updated_at: now.toISOString(),
+            }
+          : {
+              status: "registration_closed",
+              registration_closes_at: closing,
+              updated_at: now.toISOString(),
+            };
+        const { data, error } = await supabaseClient
+          .from("bp_tournaments")
+          .update(payload)
+          .eq("id", t.id)
+          .eq("status", t.status)
+          .select("id");
+        if (error || data?.length !== 1)
+          throw new Error("No se pudo actualizar la inscripción. Actualizá la vista e intentá nuevamente.");
+        await loadTournaments();
+        feedback(opening
+          ? "Inscripciones abiertas. El torneo se publicó automáticamente."
+          : "Inscripciones cerradas correctamente.");
+      },
+    });
+  }
+  // Finalización anticipada explícita. No cambia la visibilidad pública.
+  function finalizeTournament(t) {
+    if (isFinished(t)) {
+      feedback("El torneo ya está finalizado.");
+      return;
+    }
+    openModal({
+      title: "Finalizar torneo",
+      description: `¿Marcar «${t.name}» como finalizado? Se cerrarán sus inscripciones. El torneo conservará sus datos y su visibilidad actual.`,
+      confirm: "Finalizar torneo",
       action: async () => {
         await adminSession();
-        // El filtro por estado evita sobrescribir una actualización concurrente.
         const { data, error } = await supabaseClient
           .from("bp_tournaments")
           .update({
-            status: opening ? "registration_open" : "registration_closed",
+            status: "completed",
             updated_at: new Date().toISOString(),
           })
           .eq("id", t.id)
           .eq("status", t.status)
           .select("id");
         if (error || data?.length !== 1)
-          throw new Error(
-            "No se pudo cambiar el estado. Actualizá la vista e intentá nuevamente.",
-          );
+          throw new Error("No se pudo finalizar el torneo. Actualizá la vista e intentá nuevamente.");
+        if (editing === t.id) resetForm();
         await loadTournaments();
-        feedback(
-          opening
-            ? "Inscripciones abiertas en el Admin. El formulario público se habilitará en el siguiente paso."
-            : "Inscripciones cerradas correctamente.",
-        );
+        feedback("Torneo finalizado correctamente.");
       },
     });
   }
@@ -342,6 +692,17 @@
         feedback("Torneo eliminado correctamente.");
       },
     });
+  }
+  // Aviso inmediato con los torneos cargados; Supabase aplica la regla definitiva.
+  const DUPLICATE_TOURNAMENT_MESSAGE =
+    "Ya existe un torneo con ese nombre. Elegí otro para identificar correctamente esta competencia.";
+  function tournamentNameExists(name) {
+    const normalizedName = name.trim().toLocaleLowerCase("es-AR");
+    return records.some(
+      (t) =>
+        t.id !== editing &&
+        t.name.trim().toLocaleLowerCase("es-AR") === normalizedName,
+    );
   }
   $("torneo-create-button").addEventListener("click", async () => {
     if (busy) return;
@@ -372,6 +733,11 @@
       );
       return;
     }
+    if (tournamentNameExists(name)) {
+      feedback(DUPLICATE_TOURNAMENT_MESSAGE);
+      $("torneo-name").focus();
+      return;
+    }
     busy = true;
     $("torneo-create-button").disabled = true;
     feedback("Guardando torneo…");
@@ -387,10 +753,14 @@
         max_pairs,
         updated_at: new Date().toISOString(),
       };
+      // Los datos generales nunca deben cambiar el estado del torneo.
+      // Abrir/cerrar inscripciones y finalizar son acciones independientes.
+      const editPayload = { ...payload };
+      delete editPayload.status;
       const result = editing
         ? await supabaseClient
             .from("bp_tournaments")
-            .update(payload)
+            .update(editPayload)
             .eq("id", editing)
             .select("id")
         : await supabaseClient
@@ -401,6 +771,9 @@
               match_format: "Mejor de 3 sets",
             })
             .select("id");
+      // El indice unico en Supabase protege incluso ante escrituras simultaneas.
+      if (result.error?.code === "23505")
+        throw new Error(DUPLICATE_TOURNAMENT_MESSAGE);
       if (result.error || result.data?.length !== 1)
         throw result.error || new Error("No se confirmó la escritura.");
       const wasEditing = Boolean(editing);
@@ -413,7 +786,11 @@
       );
     } catch (e) {
       console.error(e);
-      feedback("No se pudo guardar el torneo. Revisá los datos o la sesión.");
+      feedback(
+        e.message === DUPLICATE_TOURNAMENT_MESSAGE
+          ? e.message
+          : "No se pudo guardar el torneo. Revisá los datos o la sesión.",
+      );
     } finally {
       busy = false;
       $("torneo-create-button").disabled = false;

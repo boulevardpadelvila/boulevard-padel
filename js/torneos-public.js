@@ -50,11 +50,20 @@
 
   const dateText = (value) => value.split("-").reverse().join("/");
   function localToday() {
-    const d = new Date();
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    const values = Object.fromEntries(
+      new Intl.DateTimeFormat("en-US", {
+        timeZone: "America/Argentina/Cordoba",
+        year: "numeric", month: "2-digit", day: "2-digit",
+      }).formatToParts(new Date()).map((part) => [part.type, part.value]),
+    );
+    return `${values.year}-${values.month}-${values.day}`;
   }
   function isFinished(t) {
     return t.status === "completed" || t.ends_on < localToday();
+  }
+  function registrationOpen(t) {
+    return !isFinished(t) && t.status === "registration_open" &&
+      (!t.registration_closes_at || Date.now() < Date.parse(t.registration_closes_at));
   }
   function make(tag, className, content) {
     const el = document.createElement(tag);
@@ -217,12 +226,12 @@
       const state = make(
         "p",
         "public-tournament-card__registration",
-        t.status === "registration_open"
+        registrationOpen(t)
           ? "Inscripciones abiertas"
           : "Inscripciones no disponibles",
       );
       card.append(state);
-      if (t.status === "registration_open") {
+      if (registrationOpen(t)) {
         const button = make(
           "button",
           "button button--dark",
@@ -278,7 +287,7 @@
       const { data, error } = await supabaseClient
         .from("bp_tournaments")
         .select(
-          "id,name,format,status,starts_on,ends_on,bp_tournament_categories(name)",
+          "id,name,format,status,starts_on,ends_on,registration_closes_at,bp_tournament_categories(name)",
         )
         .eq("is_published", true)
         .order("starts_on", { ascending: true })
@@ -297,6 +306,10 @@
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
     if (loading || !selection) return;
+    if (!registrationOpen(selection)) {
+      $("public-tournament-error").textContent = "Las inscripciones de este torneo están cerradas.";
+      return;
+    }
     const p1 = $("public-player1").value.trim().replace(/\s+/g, " ");
     const p2 = $("public-player2").value.trim().replace(/\s+/g, " ");
     const phone = $("public-phone").value.trim();
