@@ -37,11 +37,15 @@
     list.replaceChildren();
     const card = document.createElement("div");
     card.className = "torneos-empty";
+    const icon = document.createElement("span");
+    icon.className = "torneos-empty__icon";
+    icon.setAttribute("aria-hidden", "true");
+    icon.textContent = "👥";
     const strong = document.createElement("strong");
     strong.textContent = title;
     const p = document.createElement("p");
     p.textContent = detail;
-    card.append(strong, p);
+    card.append(icon, strong, p);
     list.append(card);
   }
   function button(text, handler, danger = false) {
