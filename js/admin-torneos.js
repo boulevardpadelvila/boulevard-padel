@@ -58,8 +58,9 @@
     );
     return `${values.year}-${values.month}-${values.day}`;
   }
+  // BVPadel parche 42: fin estimado no finaliza automaticamente.
   function isFinished(t) {
-    return t.status === "completed" || t.ends_on < localToday();
+    return t.status === "completed";
   }
   function registrationOpen(t) {
     return t.status === "registration_open" && !isFinished(t) &&
@@ -423,7 +424,7 @@
       const title = document.createElement("strong");
       title.textContent = t.name;
       const meta = document.createElement("p");
-      meta.textContent = `${t.bp_tournament_categories?.name || "Sin categoría"} · ${names[t.format] || t.format} · ${date(t.starts_on)} a ${date(t.ends_on)} · ${isFinished(t) ? "Finalizado" : (t.status === "registration_open" && !registrationOpen(t) ? "Inscripciones cerradas por fecha" : (states[t.status] || t.status))} · ${t.is_published ? "Publicado" : "Oculto"}`;
+      meta.textContent = `${t.bp_tournament_categories?.name || "Sin categoría"} · ${names[t.format] || t.format} · ${date(t.starts_on)} a ${date(t.ends_on)} (fin estimado) · ${isFinished(t) ? "Finalizado" : (t.status === "registration_open" && !registrationOpen(t) ? "Inscripciones cerradas por fecha" : (states[t.status] || t.status))} · ${t.is_published ? "Publicado" : "Oculto"}`;
       const actions = document.createElement("div");
       actions.className = "torneos-entry__actions";
       actions.append(

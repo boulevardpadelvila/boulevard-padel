@@ -472,3 +472,105 @@
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
+
+/* BVPadel parche 41: lectura publica del fixture (sin horarios ni resultados). */
+.public-tournament-fixture {
+  width: 100%;
+  min-width: 0;
+  margin-top: 10px;
+  border-top: 1px solid var(--color-border);
+}
+.public-tournament-fixture__summary {
+  cursor: pointer;
+  padding: 15px 0 6px;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  font-weight: 800;
+  color: var(--color-text);
+}
+.public-tournament-fixture__summary:focus-visible {
+  outline: 2px solid var(--color-olive);
+  outline-offset: 3px;
+}
+.public-tournament-fixture__body { display: grid; gap: 14px; margin-top: 10px; min-width: 0; }
+.public-tournament-card .public-tournament-fixture__notice {
+  margin: 0;
+  font-size: 0.79rem;
+  line-height: 1.5;
+  color: var(--color-muted);
+}
+.public-tournament-fixture__round {
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: #f7f9f5;
+}
+.public-tournament-fixture__round-title {
+  font-size: 0.96rem;
+  font-weight: 800;
+  line-height: 1.35;
+  margin: 0 0 11px;
+  color: var(--color-text);
+}
+.public-tournament-fixture__groups {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 285px), 1fr));
+  gap: 11px;
+  min-width: 0;
+}
+.public-tournament-fixture__group { min-width: 0; }
+.public-tournament-fixture__group-title {
+  margin: 0 0 7px;
+  font-size: 0.83rem;
+  font-weight: 700;
+  line-height: 1.4;
+  color: var(--color-text);
+}
+.public-tournament-fixture__match {
+  min-width: 0;
+  margin: 0 0 7px;
+  padding: 9px 8px;
+  border: 1px solid var(--color-border);
+  border-radius: 9px;
+  background: var(--color-surface);
+}
+.public-tournament-card .public-tournament-fixture__number {
+  margin: 0 0 6px;
+  text-align: center;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--color-muted);
+}
+.public-tournament-fixture__versus-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 26px minmax(0, 1fr);
+  gap: 5px;
+  align-items: center;
+}
+.public-tournament-fixture__pair {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 0.77rem;
+  line-height: 1.4;
+  font-weight: 600;
+  color: var(--color-text);
+}
+.public-tournament-fixture__pair--first { text-align: right; align-items: flex-end; }
+.public-tournament-fixture__pair--second { text-align: left; align-items: flex-start; }
+.public-tournament-fixture__player { display: block; }
+.public-tournament-fixture__vs {
+  text-align: center;
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: var(--color-muted);
+}
+@media (max-width: 390px) {
+  .public-tournament-fixture__round { padding: 9px; }
+  .public-tournament-fixture__match { padding: 8px 5px; }
+  .public-tournament-fixture__versus-row { gap: 3px; }
+  .public-tournament-fixture__pair { font-size: 0.73rem; }
+}

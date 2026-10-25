@@ -17,6 +17,8 @@
   let currentTab = "current";
   /* BVPadel parche 28: grupos publicados en el sitio publico. */
   let publishedGroupsByTournament = new Map();
+  /* BVPadel parche 41: fixture de grupos, solo mediante vista publica segura. */
+  let publishedFixtureByTournament = new Map();
 
   function status(text) {
     feedback.textContent = text;
@@ -60,8 +62,9 @@
     );
     return `${values.year}-${values.month}-${values.day}`;
   }
+  // BVPadel parche 42: fin estimado no finaliza automaticamente.
   function isFinished(t) {
-    return t.status === "completed" || t.ends_on < localToday();
+    return t.status === "completed";
   }
   function registrationOpen(t) {
     return !isFinished(t) && t.status === "registration_open" &&
@@ -281,6 +284,101 @@
     return result;
   }
 
+  /* Parche 41: el navegador consulta solamente la vista autorizada.
+     La vista comprueba publicacion de torneo, grupos y fixture en Supabase. */
+  async function fetchPublishedFixture(visibleTournaments) {
+    const ids = visibleTournaments
+      .filter((t) => t.format === "groups_knockout")
+      .map((t) => t.id);
+    const matchesByTournament = new Map();
+    if (!ids.length) return matchesByTournament;
+
+    const pageSize = 500;
+    for (let from = 0; ; from += pageSize) {
+      const { data, error } = await supabaseClient
+        .from("bp_public_tournament_group_fixture")
+        .select("tournament_id,group_number,round_number,match_number,pair1_player1_name,pair1_player2_name,pair2_player1_name,pair2_player2_name")
+        .in("tournament_id", ids)
+        .order("tournament_id", { ascending: true })
+        .order("round_number", { ascending: true })
+        .order("group_number", { ascending: true })
+        .order("match_number", { ascending: true })
+        .range(from, from + pageSize - 1);
+      if (error) throw error;
+      for (const match of data || []) {
+        if (!matchesByTournament.has(match.tournament_id)) {
+          matchesByTournament.set(match.tournament_id, []);
+        }
+        matchesByTournament.get(match.tournament_id).push(match);
+      }
+      if (!data || data.length < pageSize) break;
+    }
+    return matchesByTournament;
+  }
+
+  function publishedFixtureBlock(t) {
+    if (t.format !== "groups_knockout") return null;
+    const matches = publishedFixtureByTournament.get(t.id);
+    if (!matches || !matches.length) return null;
+
+    const rounds = new Map();
+    for (const match of matches) {
+      const number = Number(match.round_number);
+      const groupNumber = Number(match.group_number);
+      if (!rounds.has(number)) rounds.set(number, new Map());
+      const groups = rounds.get(number);
+      if (!groups.has(groupNumber)) groups.set(groupNumber, []);
+      groups.get(groupNumber).push(match);
+    }
+
+    const details = make("details", "public-tournament-fixture");
+    const roundCount = rounds.size;
+    const summary = make(
+      "summary", "public-tournament-fixture__summary",
+      `Ver fixture · ${roundCount} ${roundCount === 1 ? "jornada" : "jornadas"} · ${matches.length} ${matches.length === 1 ? "partido" : "partidos"}`,
+    );
+    const body = make("div", "public-tournament-fixture__body");
+    body.append(make(
+      "p", "public-tournament-fixture__notice",
+      "Las fechas y los horarios se informarán cuando estén definidos.",
+    ));
+
+    for (const [roundNumber, groups] of [...rounds].sort((a, b) => a[0] - b[0])) {
+      const roundSection = make("section", "public-tournament-fixture__round");
+      roundSection.append(make("h4", "public-tournament-fixture__round-title", `Jornada ${roundNumber}`));
+      const groupGrid = make("div", "public-tournament-fixture__groups");
+
+      for (const [groupNumber, groupMatches] of [...groups].sort((a, b) => a[0] - b[0])) {
+        const groupSection = make("section", "public-tournament-fixture__group");
+        groupSection.append(make("h5", "public-tournament-fixture__group-title", `Grupo ${publicGroupLetter(groupNumber)}`));
+
+        for (const match of groupMatches.sort((a, b) => Number(a.match_number) - Number(b.match_number))) {
+          const article = make("article", "public-tournament-fixture__match");
+          article.append(make("p", "public-tournament-fixture__number", `Partido ${match.match_number}`));
+          const versus = make("div", "public-tournament-fixture__versus-row");
+          const pair1 = make("div", "public-tournament-fixture__pair public-tournament-fixture__pair--first");
+          const pair2 = make("div", "public-tournament-fixture__pair public-tournament-fixture__pair--second");
+          pair1.append(
+            make("span", "public-tournament-fixture__player", match.pair1_player1_name),
+            make("span", "public-tournament-fixture__player", match.pair1_player2_name),
+          );
+          pair2.append(
+            make("span", "public-tournament-fixture__player", match.pair2_player1_name),
+            make("span", "public-tournament-fixture__player", match.pair2_player2_name),
+          );
+          versus.append(pair1, make("span", "public-tournament-fixture__vs", "VS"), pair2);
+          article.append(versus);
+          groupSection.append(article);
+        }
+        groupGrid.append(groupSection);
+      }
+      roundSection.append(groupGrid);
+      body.append(roundSection);
+    }
+    details.append(summary, body);
+    return details;
+  }
+
   function cardFor(t) {
     const card = make("article", "public-tournament-card");
     const top = make("div", "public-tournament-card__top");
@@ -306,7 +404,7 @@
       make(
         "p",
         "public-tournament-card__dates",
-        `${dateText(t.starts_on)} — ${dateText(t.ends_on)}`,
+        `Fechas previstas: ${dateText(t.starts_on)} — ${dateText(t.ends_on)}`,
       ),
     );
     if (!isFinished(t)) {
@@ -331,6 +429,8 @@
     }
     const groupsBlock = publishedGroupsBlock(t);
     if (groupsBlock) card.append(groupsBlock);
+    const fixtureBlock = publishedFixtureBlock(t);
+    if (fixtureBlock) card.append(fixtureBlock);
     card.append(detailBlock(t));
     return card;
   }
@@ -384,13 +484,21 @@
       if (error) throw error;
       tournamentsCache = data || [];
       publishedGroupsByTournament = new Map();
+      publishedFixtureByTournament = new Map();
+      const notices = [];
       try {
         publishedGroupsByTournament = await fetchPublishedGroups(tournamentsCache);
-        status("");
       } catch (groupsError) {
         console.error("No se pudieron cargar los grupos publicados", groupsError);
-        status("Los torneos están disponibles, pero no se pudieron consultar sus grupos. Recargá la página para intentarlo nuevamente.");
+        notices.push("No se pudieron consultar los grupos publicados.");
       }
+      try {
+        publishedFixtureByTournament = await fetchPublishedFixture(tournamentsCache);
+      } catch (fixtureError) {
+        console.error("No se pudo cargar el fixture publicado", fixtureError);
+        notices.push("No se pudieron consultar los fixtures publicados.");
+      }
+      status(notices.length ? `${notices.join(" ")} Recargá la página para intentarlo nuevamente.` : "");
       render();
     } catch (error) {
       console.error(error);
