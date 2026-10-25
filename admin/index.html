@@ -1244,12 +1244,25 @@
                   ><span>3. Eliminatorias</span>
                 </div>
                 <p class="torneos-hint">
-                  El fixture estará disponible cuando haya parejas y una
-                  modalidad definida.
+                  Organizá primero los grupos. El fixture y las eliminatorias se
+                  habilitarán en los siguientes pasos.
                 </p>
-                <button type="button" class="torneos-outline" disabled>
-                  Administrar fixture
-                </button>
+                <div id="torneos-groups-panel" class="torneos-groups-panel">
+                  <p id="torneos-groups-context" class="torneos-groups-context">
+                    Seleccioná arriba una competencia para administrar sus grupos.
+                  </p>
+                  <div id="torneos-groups-setup" class="torneos-groups-setup" hidden>
+                    <label for="torneos-groups-count">Cantidad de grupos</label>
+                    <select id="torneos-groups-count" aria-label="Cantidad de grupos"></select>
+                    <p id="torneos-groups-summary" class="torneos-groups-summary"></p>
+                    <button type="button" class="torneos-outline" id="torneos-groups-draw" disabled>
+                      Sortear grupos
+                    </button>
+                  </div>
+                  <p id="torneos-groups-feedback" class="torneos-groups-feedback"
+                     role="status" aria-live="polite"></p>
+                  <div id="torneos-groups-list" class="torneos-groups-list"></div>
+                </div>
               </section>
             </div>
           </div>
@@ -1423,5 +1436,6 @@
     <script src="../js/admin.js" defer></script>
     <script src="../js/admin-torneos.js" defer></script>
     <script src="../js/admin-parejas.js" defer></script>
+    <script src="../js/admin-grupos.js" defer></script>
   </body>
 </html>

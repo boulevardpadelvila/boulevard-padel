@@ -1,6 +1,6 @@
 # Bitácora de Desarrollo — Boulevard Pádel
 
-> **Estado vigente (24/10/2026; Torneos aún con cambios locales sin publicar):** gestión de categorías y validación de nombres únicos de torneos implementadas y probadas localmente. Consultas SQL 36–38 ejecutadas en Supabase; pendiente comprobar la lectura pública anónima de categorías históricas. Los resultados reales, fixtures y eliminatorias todavía forman parte del desarrollo posterior. Las entradas anteriores reflejan el estado histórico de cada fecha.
+> **Estado vigente al cierre del 24/10/2026 (cambios locales pendientes de GitHub):** módulo Torneos y Campeonatos con cupos protegidos, sorteo/reorganización/publicación de grupos, lectura pública de grupos y fixture de fase de grupos generado/publicable. Correcciones controladas de grupos y fixture con motivo e historial, permitidas solo antes del primer partido disputado. Torneo de prueba `PRUEBA Inscripciones 2027` oculto en el sitio público; grupos y fixture publicados internamente tras corrección y regeneración confirmadas por el responsable. Fixture: 2 grupos de 4, 3 jornadas, 12 partidos; sin horarios ni resultados. SQL 39–52 aplicado en Supabase; parches 20–33 probados localmente. **Pendientes:** edición individual de cruces/jornadas, fixture público, programación y resultados, tablas, eliminatorias y ligas. Las entradas anteriores conservan el estado histórico de su fecha.
 
 ## Documento maestro del proyecto
 
@@ -2406,3 +2406,63 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 - **Archivos locales modificados en esta entrega:** `css/admin-torneos.css`, `js/admin-parejas.js`, `js/admin-torneos.js` y esta bitácora. Los tres cambios de código quedaron sin errores en `git diff --check` antes de agregar esta entrada.
 - **Pendientes:** comprobar el caso de cupo completo desde el sitio público y mejorar, si corresponde, el mensaje de la Edge Function para `23514`; verificar visualización y cambios de cupo con distintos tamaños de pantalla; continuar luego con grupos, fixture y eliminatorias. Mantener separado el cambio de visibilidad pública de los estados de inscripción.
 - **Estado de publicación:** cambios de código de los parches 15–18 probados localmente, pendientes de commit/push a `main` al momento de redactar esta entrada. La consulta N° 39 ya fue aplicada en Supabase.
+
+## 24/10/2026 — Cierre de jornada: grupos, fixture y correcciones controladas (parches 20–33)
+
+- **Fecha de actualización:** 24/10/2026. **Motivo:** registrar el desarrollo y las pruebas del módulo de Torneos y Campeonatos antes del commit/push, conservar las decisiones deportivas y establecer el punto exacto para retomar.
+- **Estado de la información:** **CONFIRMADO por pruebas del responsable en el Admin local y resultados SQL compartidos**, salvo las verificaciones identificadas expresamente como **PENDIENTES**. Las funciones SQL se instalaron en Supabase real y devolvieron `Success. No rows returned`; no se ha comprobado independientemente que todos los textos SQL hayan quedado guardados en el historial del SQL Editor. El código frontend de los parches 20–33 permanece en la computadora local hasta el push de cierre.
+
+### Decisiones deportivas confirmadas
+
+- Competencias con grupos y eliminatorias: sorteo usando **parejas realmente aprobadas**, no cupo máximo; cantidad de grupos elegida por Admin. Mínimo **3 parejas por grupo** y diferencia de tamaño **máxima de 1**. Se permite mover una pareja si conserva el equilibrio o intercambiar dos parejas para mantener las cantidades. Los grupos se publican por separado del torneo.
+- Cada grupo juega todos contra todos **una vez**; con 4 parejas hay 6 partidos en 3 jornadas, dos partidos por jornada. En el torneo de prueba: **2 grupos / 8 parejas / 12 partidos / 3 jornadas**. La generación de fixture no asigna fechas, horarios ni canchas ni crea reservas.
+- **Regla estructural definitiva:** Martín puede iniciar correcciones de grupos o fixture publicados solo si **no hay ningún encuentro jugado ni W.O. registrado**. Desde el primer partido resuelto se bloquean cambios de integrantes de grupo, composición de grupos, cruces y jornadas. Esto **no** impide programar/reprogramar horarios y canchas ni registrar/corregir resultados mediante controles administrativos futuros.
+- **Corregir fixture:** motivo obligatorio, copia del estado anterior en bitácora privada, retira solo publicación del fixture y **conserva partidos y grupos**. **Corregir grupos:** motivo obligatorio, guarda la distribución y fixture previos, retira publicaciones de grupos/fixture, elimina los partidos pendientes para regenerarlos; conserva grupos y asignaciones para su reorganización.
+- La versión visual **elegida y confirmada** para los enfrentamientos es el **Parche 31**: nombres de la pareja izquierda alineados a la derecha, los de la pareja derecha a la izquierda, ambos próximos al «VS» centrado. Los nombres de jugadores dentro de los grupos se muestran en dos líneas sin `/`.
+
+### Supabase: SQL N° 40–52 aplicados
+
+- **40:** tablas privadas de grupos/asignaciones, relaciones, RLS y `groups_published_at`.
+- **41–42:** sorteo inicial privado y nuevo sorteo privado con controles de aprobación/equilibrio.
+- **43:** movimiento/intercambio validado de parejas.
+- **44:** publicación validada de grupos independiente de `is_published`.
+- **45:** vista `bp_public_tournament_groups`, que expone exclusivamente `tournament_id`, `group_number`, `player1_name`, `player2_name`, solo cuando el torneo es visible y los grupos están publicados.
+- **46:** cuatro triggers para proteger los grupos, las asignaciones, las parejas y la publicación.
+- **47:** tabla privada `bp_tournament_group_matches`, identificadores de rivales y jornadas, controles de unicidad y RLS para Admin.
+- **48:** generador de fixture todos contra todos, con jornadas y sin encuentros duplicados; instalación no genera partidos.
+- **49:** publicación independiente y protegida del fixture (`fixture_published_at`).
+- **50:** bloqueo deportivo desde partido jugado/W.O., cuatro triggers adicionales activos y tabla privada de historial/revisiones.
+- **51:** inicio seguro de corrección de fixture con motivo, instantánea e interrupción temporal de publicación sin borrar partidos.
+- **52:** inicio seguro de corrección de grupos con motivo, instantánea y retiro controlado de partidos pendientes.
+- **Estado de guardado en SQL Editor:** se indicó guardar cada consulta de instalación con su nombre numerado; **PENDIENTE** constatar el inventario final de consultas guardadas, de ser necesario. **No hay SQL nuevo que ejecutar por este cierre.**
+
+### Frontend local: parches 20–33
+
+- **20–24:** sorteo privado de grupos en Admin, confirmaciones, resorteo, controles e integración visual de «Volver a sortear» y «Publicar grupos».
+- **25–27:** mover/intercambiar parejas, nombres en dos líneas y publicación confirmada de grupos.
+- **28:** «Ver grupos» en el sitio público, visualización segura mediante la vista limitada, sin teléfonos.
+- **29:** sección «Fixture de grupos», generación confirmada de partidos y presentación por jornadas.
+- **30–31:** dos alternativas de alineación de nombres; quedó **aprobada la N° 31**.
+- **32:** botón «Publicar fixture» con confirmación.
+- **33:** botones «Corregir grupos» y «Corregir fixture», diálogo con motivo obligatorio y bloqueo visual al haber partidos disputados; Supabase también verifica las restricciones.
+- Archivos del frontend local pendientes de subir según último `git status`: `admin/index.html`, `css/admin-torneos.css`, `css/torneos-public.css`, `js/torneos-public.js` y archivo nuevo `js/admin-grupos.js`. Esta actualización suma `BITACORA_DESARROLLO.md`. **Ningún otro archivo debe agregarse por accidente al commit.**
+
+### Pruebas efectivamente confirmadas
+
+- Supabase: 4 triggers de publicación de grupos y 4 triggers de bloqueo deportivo **ACTIVOS**; consulta de privacidad devolvió 4 campos de la vista, 0 filas para torneo oculto y `anon` sin SELECT directo a las tablas de grupos/asignaciones.
+- Prueba inicial: 8 parejas en 2 grupos de 4; sorteo/resorteo, intercambio y publicación de grupos. Al mostrar temporalmente el torneo, el sitio local exhibió ambos grupos con nombres y sin datos de contacto; luego se **ocultó nuevamente**. Vista previa móvil de grupos validada visualmente; **PENDIENTE** prueba con datos reales en dispositivo móvil.
+- Fixture inicial: 12 partidos, 3 jornadas, 6 partidos por grupo; consulta SQL confirmó **0 partidos cruzados entre grupos** y conteos correctos.
+- Publicación/corrección: ventanas de confirmación y cancelación probadas; primera publicación y posterior «Corregir fixture» conservaron 12 partidos con publicación privada. «Corregir grupos» conservó 8 asignaciones y dejó 0 partidos, de acuerdo con SQL. Se probó intercambio de parejas después de iniciar revisión, se republicaron grupos, se regeneró el fixture y el responsable confirmó **«Fixture publicado»** nuevamente.
+- **Estado actual informado al cierre:** `PRUEBA Inscripciones 2027` está **oculto** públicamente, con **grupos y fixture republicados** tras la corrección, dos grupos de cuatro y doce cruces; **PENDIENTE** consulta SQL final que confirme ese último estado luego de republicar. No hay resultados cargados ni reservas de canchas asociadas a este fixture.
+- Durante la jornada **no se modificaron** reservas, turnos fijos ni Edge Functions ajenas a Torneos. El resultado y los datos del sitio público deben seguir considerándose protegidos por las políticas y vistas aplicadas, pendientes de auditoría de seguridad más amplia.
+
+### Pendientes prioritarios para retomar
+
+1. **Edición individual de cruces y jornadas del fixture** cuando esté en revisión y no haya partidos disputados. Definir operación transaccional que conserve los doce cruces completos, sin duplicados ni parejas jugando dos veces por jornada; incluir registro de motivo/cambios. Actualmente «Corregir fixture» permite dejarlo privado, pero todavía **no hay editor individual**.
+2. **Lectura pública segura del fixture y visualización responsive** cuando fixture y torneo estén publicados, respetando alineación elegida del Parche 31. El sitio público muestra grupos, pero **no el fixture** todavía.
+3. Asignación manual de fechas, horarios y canchas (sin reservar automáticamente); carga/corrección de resultados; tabla de grupos en tiempo real con triunfo=2, derrota disputada=1, W.O.=0; clasificación y eliminatorias configurables. Modalidad Liga con tabla continua pendiente.
+4. Verificar en Supabase el estado definitivo del torneo tras la segunda publicación, y posteriormente ensayar controles negativos (evitar cambios estructurales tras partido `played`/`walkover`) **sin alterar partidos reales ni datos que no sean de prueba**. Verificar lectura en sesión anónima real y responsive con datos.
+5. Verificar que todos los cambios de esta jornada quedaron incluidos en un único commit/push de `main`; confirmar árbol Git limpio y Cloudflare Pages cuando corresponda. No publicar el torneo ficticio en producción para esta verificación.
+
+- **Publicación en GitHub:** **PENDIENTE al redactar esta entrada**; efectuar el commit/push desde la computadora local, pues los cambios recientes no están todavía en el repositorio remoto. Documentar el commit final al retomar, si hace falta.
+- **Fecha, motivo y estado:** este registro corresponde al cierre de la jornada 24/10/2026; confirmaciones y tareas pendientes quedan diferenciadas explícitamente arriba.

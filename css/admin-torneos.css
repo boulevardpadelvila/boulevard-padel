@@ -748,3 +748,332 @@
   margin: 0;
   line-height: 1.45;
 }
+
+/* BVPadel parche 20: sorteo privado de grupos. */
+.torneos-groups-panel {
+  margin-top: 14px;
+  min-width: 0;
+}
+.torneos-groups-context,
+.torneos-groups-summary,
+.torneos-groups-feedback {
+  margin: 0 0 12px;
+  font: 400 12px/1.55 Inter, Arial, sans-serif;
+  color: #5c6656;
+}
+.torneos-groups-feedback:empty { display: none; }
+.torneos-groups-feedback--error { color: #a12323; }
+.torneos-groups-feedback--success { color: #2d653b; }
+.torneos-groups-setup[hidden] { display: none !important; }
+.torneos-groups-setup label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 6px;
+  color: #30372b;
+}
+.torneos-groups-setup select {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 40px;
+  border: 1px solid #cfd6c7;
+  background: #fff;
+  border-radius: 9px;
+  color: #283229;
+  font: 500 13px Inter, Arial, sans-serif;
+  padding: 7px 10px;
+  margin-bottom: 8px;
+}
+.torneos-groups-setup .torneos-outline { margin: 1px 0 14px; }
+.torneos-groups-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr));
+  gap: 12px;
+}
+.torneos-group-card {
+  min-width: 0;
+  padding: 13px;
+  border-radius: 12px;
+  border: 1px solid #dfe6d8;
+  background: #fafbf7;
+}
+.torneos-group-card h3 {
+  margin: 0 0 10px;
+  font: 700 14px/1.4 Inter, Arial, sans-serif;
+  color: #303a2c;
+}
+.torneos-group-card h3 span {
+  display: block;
+  margin-top: 3px;
+  font-size: 11px;
+  font-weight: 400;
+  color: #697262;
+}
+.torneos-group-card ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 6px;
+}
+.torneos-group-card li {
+  padding: 8px;
+  background: #fff;
+  border: 1px solid #ebeee8;
+  border-radius: 7px;
+  overflow-wrap: anywhere;
+  font: 500 12px/1.45 Inter, Arial, sans-serif;
+}
+
+/* BVPadel parche 23: separacion del boton de sorteo y los grupos. */
+#torneos-groups-list {
+  margin-top: 18px;
+}
+
+/* BVPadel parche 24: boton publicar grupos junto al resorteo. */
+.torneos-groups-actions:not([hidden]) {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.torneos-groups-actions[hidden] {
+  display: none !important;
+}
+.torneos-groups-actions .torneos-outline {
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+}
+@media (max-width: 520px) {
+  .torneos-groups-actions:not([hidden]) {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* BVPadel parche 25: movimiento e intercambio manual de grupos. */
+.torneos-group-pair-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.torneos-group-pair-row > span {
+  flex: 1 1 120px;
+  min-width: 0;
+}
+.torneos-group-change-button {
+  border: 1px solid #cbd8c1;
+  border-radius: 7px;
+  background: #f5f8f1;
+  color: #3a5a39;
+  padding: 6px 8px;
+  font: 600 11px/1.35 Inter, Arial, sans-serif;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.torneos-group-change-button:hover,
+.torneos-group-change-button:focus-visible {
+  background: #e9f1e5;
+  border-color: #9cb79b;
+}
+.torneos-group-change-form .torneos-group-change-field {
+  display: block;
+  text-align: left;
+  margin: 13px 0;
+  color: #394739;
+  font: 700 12px/1.5 Inter, Arial, sans-serif;
+}
+.torneos-group-change-form .torneos-group-change-field[hidden] {
+  display: none !important;
+}
+.torneos-group-change-form select {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 42px;
+  margin-top: 5px;
+  padding: 8px 10px;
+  background: #fff;
+  color: #273328;
+  border: 1px solid #ccd7c6;
+  border-radius: 9px;
+  font: 500 13px Inter, Arial, sans-serif;
+}
+.torneos-group-change-form .torneos-group-change-hint {
+  text-align: left;
+  font-size: 12px;
+  color: #566851;
+  margin: 8px 0;
+}
+.torneos-group-change-form .torneos-group-change-error {
+  text-align: left;
+  color: #9b2727;
+  font-size: 12px;
+}
+.torneos-group-change-form .torneos-group-change-error:empty {
+  display: none;
+}
+
+/* BVPadel parche 26: nombres apilados en grupos. */
+.torneos-group-pair-label {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+.torneos-group-pair-player {
+  display: block;
+  line-height: 1.35;
+}
+.torneos-group-pair-note {
+  margin-top: 2px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #7b5a5a;
+}
+
+/* BVPadel parche 29: fixture de grupos en el Admin. */
+.torneos-fixture-panel[hidden] { display: none !important; }
+.torneos-fixture-panel {
+  margin-top: 24px;
+  padding-top: 19px;
+  border-top: 1px solid #e1e8db;
+}
+.torneos-fixture-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 9px;
+}
+.torneos-fixture-header h3 {
+  margin: 0;
+  color: #313d30;
+  font: 700 15px/1.4 Inter, Arial, sans-serif;
+}
+.torneos-fixture-header .torneos-outline {
+  margin: 0;
+  min-width: 0;
+  padding: 9px 13px;
+}
+.torneos-fixture-header .torneos-outline[hidden] { display: none !important; }
+.torneos-fixture-summary,
+.torneos-fixture-feedback {
+  margin: 0 0 11px;
+  font: 400 12px/1.55 Inter, Arial, sans-serif;
+  color: #586854;
+}
+.torneos-fixture-feedback:empty { display: none; }
+.torneos-fixture-feedback--error { color: #9e2d2d; }
+.torneos-fixture-feedback--success { color: #296a3b; }
+.torneos-fixture-list {
+  display: grid;
+  gap: 13px;
+}
+.torneos-fixture-round {
+  padding: 12px;
+  border: 1px solid #dde7d7;
+  border-radius: 11px;
+  background: #f7f9f5;
+  min-width: 0;
+}
+.torneos-fixture-round h4 {
+  margin: 0 0 12px;
+  color: #2a382b;
+  font: 700 13px/1.4 Inter, Arial, sans-serif;
+}
+.torneos-fixture-round-groups {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  gap: 12px;
+}
+.torneos-fixture-group { min-width: 0; }
+.torneos-fixture-group h5 {
+  margin: 0 0 7px;
+  color: #465944;
+  font: 700 12px/1.4 Inter, Arial, sans-serif;
+}
+.torneos-fixture-match {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) 26px minmax(0,1fr);
+  gap: 5px;
+  align-items: center;
+  padding: 9px 7px;
+  margin-bottom: 6px;
+  border-radius: 8px;
+  border: 1px solid #e3eadd;
+  background: #fff;
+}
+.torneos-fixture-pair {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: #243225;
+  font: 600 11px/1.4 Inter, Arial, sans-serif;
+}
+.torneos-fixture-versus {
+  color: #7d8e7c;
+  text-align: center;
+  font: 700 10px/1.4 Inter, Arial, sans-serif;
+}
+@media (max-width: 520px) {
+  .torneos-fixture-header { align-items: stretch; }
+  .torneos-fixture-header .torneos-outline { width: 100%; }
+  .torneos-fixture-match { gap: 4px; }
+}
+
+/* BVPadel parche 30: alinear a la derecha la segunda pareja del fixture. */
+.torneos-fixture-match > .torneos-fixture-pair:last-child {
+  text-align: right;
+  align-items: flex-end;
+}
+
+/* BVPadel parche 31: prueba visual - nombres desde el VS hacia afuera. */
+.torneos-fixture-match > .torneos-fixture-pair:first-child {
+  text-align: right;
+  align-items: flex-end;
+}
+.torneos-fixture-match > .torneos-fixture-pair:last-child {
+  text-align: left;
+  align-items: flex-start;
+}
+
+/* BVPadel parche 33: botones y motivo de correccion. */
+.torneos-groups-actions .torneos-groups-revise { grid-column: 1 / -1; }
+.torneos-groups-actions .torneos-groups-revise[hidden] { display: none !important; }
+.torneos-revision-form .torneos-revision-label {
+  display: block;
+  margin: 14px 0 6px;
+  font: 700 12px/1.5 Inter, Arial, sans-serif;
+  text-align: left;
+  color: #334233;
+}
+.torneos-revision-form textarea {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 85px;
+  resize: vertical;
+  padding: 10px;
+  border: 1px solid #cad6c4;
+  border-radius: 9px;
+  color: #29382c;
+  background: #fff;
+  font: 400 13px/1.5 Inter, Arial, sans-serif;
+}
+.torneos-revision-form .torneos-revision-help {
+  margin: 7px 0 11px;
+  text-align: left;
+  font: 400 11px/1.5 Inter, Arial, sans-serif;
+  color: #697667;
+}
+.torneos-revision-form .torneos-revision-error {
+  text-align: left;
+  color: #a12d2d;
+  font-size: 12px;
+}
+.torneos-revision-form .torneos-revision-error:empty { display: none; }

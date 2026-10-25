@@ -15,6 +15,8 @@
   let loading = false;
   let tournamentsCache = [];
   let currentTab = "current";
+  /* BVPadel parche 28: grupos publicados en el sitio publico. */
+  let publishedGroupsByTournament = new Map();
 
   function status(text) {
     feedback.textContent = text;
@@ -194,6 +196,91 @@
     details.append(summary, content);
     return details;
   }
+
+  // Se dibujan solo datos de la vista publica segura.
+  function publicGroupLetter(groupNumber) {
+    let n = Number(groupNumber);
+    let letters = "";
+    if (!Number.isSafeInteger(n) || n < 1) return String(groupNumber);
+    while (n > 0) {
+      n -= 1;
+      letters = String.fromCharCode(65 + n % 26) + letters;
+      n = Math.floor(n / 26);
+    }
+    return letters;
+  }
+  function publishedGroupsBlock(t) {
+    if (t.format !== "groups_knockout") return null;
+    const groups = publishedGroupsByTournament.get(t.id);
+    if (!groups || !groups.length) return null;
+
+    const details = make("details", "public-tournament-groups");
+    const title = make(
+      "summary", "public-tournament-groups__summary",
+      `Ver grupos · ${groups.length} ${groups.length === 1 ? "grupo" : "grupos"}`,
+    );
+    const grid = make("div", "public-tournament-groups__grid");
+    for (const group of groups) {
+      const section = make("section", "public-tournament-group");
+      section.append(make("h4", "public-tournament-group__title", `Grupo ${publicGroupLetter(group.number)}`));
+      section.append(make("p", "public-tournament-group__count", `${group.pairs.length} ${group.pairs.length === 1 ? "pareja" : "parejas"}`));
+      const members = make("ul", "public-tournament-group__pairs");
+      for (const pair of group.pairs) {
+        const entry = make("li", "public-tournament-group__pair");
+        entry.append(
+          make("span", "public-tournament-group__player", pair.player1_name),
+          make("span", "public-tournament-group__player", pair.player2_name),
+        );
+        members.append(entry);
+      }
+      section.append(members);
+      grid.append(section);
+    }
+    details.append(title, grid);
+    return details;
+  }
+  async function fetchPublishedGroups(visibleTournaments) {
+    const ids = visibleTournaments
+      .filter((t) => t.format === "groups_knockout")
+      .map((t) => t.id);
+    const grouped = new Map();
+    if (!ids.length) return grouped;
+
+    // Consulta publica y paginada para no truncar la lista si crecen los torneos.
+    const rows = [];
+    const pageSize = 500;
+    for (let from = 0; ; from += pageSize) {
+      const { data, error } = await supabaseClient
+        .from("bp_public_tournament_groups")
+        .select("tournament_id,group_number,player1_name,player2_name")
+        .in("tournament_id", ids)
+        .order("tournament_id", { ascending: true })
+        .order("group_number", { ascending: true })
+        .order("player1_name", { ascending: true })
+        .order("player2_name", { ascending: true })
+        .range(from, from + pageSize - 1);
+      if (error) throw error;
+      rows.push(...(data || []));
+      if (!data || data.length < pageSize) break;
+    }
+    for (const row of rows) {
+      if (!grouped.has(row.tournament_id)) grouped.set(row.tournament_id, new Map());
+      const byNumber = grouped.get(row.tournament_id);
+      if (!byNumber.has(row.group_number)) {
+        byNumber.set(row.group_number, { number: row.group_number, pairs: [] });
+      }
+      byNumber.get(row.group_number).pairs.push({
+        player1_name: row.player1_name,
+        player2_name: row.player2_name,
+      });
+    }
+    const result = new Map();
+    for (const [id, groups] of grouped) {
+      result.set(id, Array.from(groups.values()).sort((a, b) => a.number - b.number));
+    }
+    return result;
+  }
+
   function cardFor(t) {
     const card = make("article", "public-tournament-card");
     const top = make("div", "public-tournament-card__top");
@@ -242,6 +329,8 @@
         card.append(button);
       }
     }
+    const groupsBlock = publishedGroupsBlock(t);
+    if (groupsBlock) card.append(groupsBlock);
     card.append(detailBlock(t));
     return card;
   }
@@ -294,8 +383,15 @@
         .limit(50);
       if (error) throw error;
       tournamentsCache = data || [];
+      publishedGroupsByTournament = new Map();
+      try {
+        publishedGroupsByTournament = await fetchPublishedGroups(tournamentsCache);
+        status("");
+      } catch (groupsError) {
+        console.error("No se pudieron cargar los grupos publicados", groupsError);
+        status("Los torneos están disponibles, pero no se pudieron consultar sus grupos. Recargá la página para intentarlo nuevamente.");
+      }
       render();
-      status("");
     } catch (error) {
       console.error(error);
       status(

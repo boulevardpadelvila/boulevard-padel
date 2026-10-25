@@ -396,3 +396,71 @@
     padding: 17px;
   }
 }
+
+/* BVPadel parche 28: visualizacion publica de grupos. */
+.public-tournament-groups {
+  width: 100%;
+  min-width: 0;
+  border-top: 1px solid var(--color-border);
+  margin-top: 10px;
+}
+.public-tournament-groups__summary {
+  cursor: pointer;
+  padding: 15px 0 5px;
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: var(--color-text);
+}
+.public-tournament-groups__summary:focus-visible {
+  outline: 2px solid var(--color-olive);
+  outline-offset: 3px;
+}
+.public-tournament-groups__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+.public-tournament-group {
+  min-width: 0;
+  padding: 13px;
+  border-radius: 12px;
+  border: 1px solid var(--color-border);
+  background: #f7f9f4;
+}
+.public-tournament-group__title {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.35;
+  color: var(--color-text);
+}
+.public-tournament-card .public-tournament-group__count {
+  margin: 3px 0 10px;
+  color: var(--color-muted);
+  font-size: 0.77rem;
+}
+.public-tournament-group__pairs {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.public-tournament-group__pair {
+  min-width: 0;
+  padding: 9px 10px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  border-radius: 8px;
+  overflow-wrap: anywhere;
+}
+.public-tournament-group__player {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 600;
+  line-height: 1.45;
+  color: var(--color-text);
+}
+.public-tournament-group__player + .public-tournament-group__player {
+  margin-top: 2px;
+}
