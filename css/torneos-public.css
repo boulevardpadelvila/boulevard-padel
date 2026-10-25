@@ -464,3 +464,11 @@
 .public-tournament-group__player + .public-tournament-group__player {
   margin-top: 2px;
 }
+
+/* BVPadel parche 36: grupos publicos en hasta cuatro columnas. */
+/* El diseno auto-fit anterior permanece para tabletas y celulares. */
+@media (min-width: 1100px) {
+  .public-tournament-groups__grid:has(> .public-tournament-group:nth-child(n + 4)) {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}

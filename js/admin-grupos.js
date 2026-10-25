@@ -67,7 +67,14 @@
   reviseFixtureButton.textContent = "Corregir fixture";
   reviseFixtureButton.hidden = true;
   reviseFixtureButton.disabled = true;
-  fixtureHeader.append(fixtureHeading, fixtureButton, fixturePublishButton, reviseFixtureButton);
+  /* BVPadel parche 37: editor privado de cruces y jornadas por grupo. */
+  const fixtureEditButton = document.createElement("button");
+  fixtureEditButton.type = "button";
+  fixtureEditButton.className = "torneos-outline torneos-fixture-edit-open";
+  fixtureEditButton.textContent = "Editar cruces y jornadas";
+  fixtureEditButton.hidden = true;
+  fixtureEditButton.disabled = true;
+  fixtureHeader.append(fixtureHeading, fixtureButton, fixturePublishButton, reviseFixtureButton, fixtureEditButton);
   const fixtureSummary = document.createElement("p");
   fixtureSummary.className = "torneos-fixture-summary";
   const fixtureFeedback = document.createElement("p");
@@ -76,9 +83,71 @@
   fixtureFeedback.setAttribute("aria-live", "polite");
   const fixtureList = document.createElement("div");
   fixtureList.className = "torneos-fixture-list";
-  fixturePanel.append(fixtureHeader, fixtureSummary, fixtureFeedback, fixtureList);
+  const fixtureEditPanel = document.createElement("section");
+  fixtureEditPanel.className = "torneos-fixture-editor";
+  fixtureEditPanel.hidden = true;
+  fixtureEditPanel.innerHTML = `
+    <h4>Corregir partidos de un grupo</h4>
+    <p class="torneos-fixture-editor__help">Elegí las parejas, la jornada y el orden de cada partido. Los cambios se guardan juntos y deben conservar todos los enfrentamientos sin repetirlos.</p>
+    <label class="torneos-fixture-editor__field">Grupo a corregir
+      <select id="torneos-fixture-edit-group"></select>
+    </label>
+    <div id="torneos-fixture-edit-matches" class="torneos-fixture-editor__matches"></div>
+    <p id="torneos-fixture-edit-error" class="torneos-fixture-editor__error" role="status" aria-live="polite"></p>
+    <label class="torneos-fixture-editor__field" for="torneos-fixture-edit-reason">Motivo del cambio (obligatorio)
+      <textarea id="torneos-fixture-edit-reason" rows="3" minlength="5" maxlength="1000" placeholder="Ej.: Reorganizar la segunda jornada por pedido de los participantes"></textarea>
+    </label>
+    <div class="torneos-fixture-editor__actions">
+      <button type="button" class="torneos-outline" id="torneos-fixture-edit-cancel">Cancelar</button>
+      <button type="button" class="torneos-outline" id="torneos-fixture-edit-save" disabled>Guardar cambios del grupo</button>
+    </div>`;
+  fixturePanel.append(fixtureHeader, fixtureSummary, fixtureFeedback, fixtureEditPanel, fixtureList);
   groupList.after(fixturePanel);
+  const editGroupSelect = $("torneos-fixture-edit-group");
+  const editMatchesList = $("torneos-fixture-edit-matches");
+  const editError = $("torneos-fixture-edit-error");
+  const editReason = $("torneos-fixture-edit-reason");
+  const editSave = $("torneos-fixture-edit-save");
+  let fixtureSnapshot = null;
+  let fixtureEditedGroupId = null;
+  let fixtureEditOriginal = [];
+  let fixtureEditDraft = [];
+  let fixtureEditing = false;
   let fixtureGroupCount = 0;
+
+  /* BVPadel parche 39: confirmación visual propia para descartar cambios.
+     Se aplica tanto al salir del editor como al cambiar de grupo. */
+  const discardDialog = document.createElement("dialog");
+  discardDialog.id = "torneos-fixture-discard-dialog";
+  discardDialog.className = "admin-save-dialog torneos-fixture-discard-dialog";
+  discardDialog.setAttribute("aria-labelledby", "torneos-fixture-discard-title");
+  discardDialog.setAttribute("aria-describedby", "torneos-fixture-discard-description");
+  discardDialog.innerHTML = `
+    <div class="admin-save-dialog__body">
+      <span class="admin-save-dialog__icon" aria-hidden="true">!</span>
+      <h2 id="torneos-fixture-discard-title">Descartar cambios</h2>
+      <p id="torneos-fixture-discard-description"></p>
+      <div class="admin-save-dialog__actions">
+        <button type="button" class="secondary" id="torneos-fixture-discard-keep">Seguir editando</button>
+        <button type="button" class="primary" id="torneos-fixture-discard-accept">Descartar cambios</button>
+      </div>
+    </div>`;
+  document.body.append(discardDialog);
+  const discardDescription = $("torneos-fixture-discard-description");
+  const discardKeep = $("torneos-fixture-discard-keep");
+  const discardAccept = $("torneos-fixture-discard-accept");
+  discardKeep.addEventListener("click", () => discardDialog.close("keep"));
+  discardAccept.addEventListener("click", () => discardDialog.close("discard"));
+  function askDiscard(description) {
+    if (discardDialog.open) return Promise.resolve(false);
+    discardDescription.textContent = description;
+    discardDialog.returnValue = "";
+    return new Promise((resolve) => {
+      discardDialog.addEventListener("close", () => resolve(discardDialog.returnValue === "discard"), { once: true });
+      discardDialog.showModal();
+      discardKeep.focus();
+    });
+  }
 
   // Diálogo propio, aislado de las confirmaciones de Torneos y Parejas.
   const confirmDialog = document.createElement("dialog");
@@ -283,6 +352,10 @@
     fixturePublishButton.hidden = true;
     reviseFixtureButton.hidden = true;
     reviseFixtureButton.disabled = true;
+    closeFixtureEditor();
+    fixtureSnapshot = null;
+    fixtureEditButton.hidden = true;
+    fixtureEditButton.disabled = true;
     fixtureList.replaceChildren();
     fixtureSummary.textContent = "";
     fixtureFeedback.textContent = "";
@@ -509,6 +582,257 @@
     }
   }
 
+  /* BVPadel parche 37: guardado del grupo entero usando SQL N° 53.
+     El servidor vuelve a validar la propuesta y escribe todo en una transacción. */
+  function closeFixtureEditor() {
+    fixtureEditing = false;
+    fixtureEditedGroupId = null;
+    fixtureEditOriginal = [];
+    fixtureEditDraft = [];
+    fixtureEditPanel.hidden = true;
+    fixtureList.hidden = false;
+    editMatchesList.replaceChildren();
+    editGroupSelect.replaceChildren();
+    editReason.value = "";
+    editError.textContent = "";
+    editSave.disabled = true;
+    fixtureEditButton.textContent = "Editar cruces y jornadas";
+  }
+
+  function fixtureEditChanged() {
+    return fixtureEditDraft.some((match, index) => {
+      const original = fixtureEditOriginal[index];
+      return original && ["round_number", "match_number", "pair1_id", "pair2_id"]
+        .some((field) => match[field] !== original[field]);
+    });
+  }
+
+  function validateFixtureDraft() {
+    const matches = fixtureEditDraft;
+    if (!matches.length) return "No hay partidos para corregir.";
+    const knownPairs = new Set(fixtureEditOriginal.flatMap((m) => [m.pair1_id, m.pair2_id]));
+    const participants = knownPairs.size;
+    const rounds = participants % 2 === 0 ? participants - 1 : participants;
+    const perRound = Math.floor(participants / 2);
+    if (matches.length !== participants * (participants - 1) / 2)
+      return "El fixture del grupo no está completo.";
+    const usedPairs = new Set();
+    const usedSlots = new Set();
+    const playedPerRound = new Set();
+    for (const m of matches) {
+      if (!knownPairs.has(m.pair1_id) || !knownPairs.has(m.pair2_id) || m.pair1_id === m.pair2_id)
+        return "Cada partido debe enfrentar dos parejas diferentes del mismo grupo.";
+      if (!Number.isInteger(m.round_number) || m.round_number < 1 || m.round_number > rounds ||
+          !Number.isInteger(m.match_number) || m.match_number < 1 || m.match_number > perRound)
+        return "Seleccioná una jornada y posición válidas para cada partido.";
+      const matchKey = [m.pair1_id, m.pair2_id].sort().join("|");
+      if (usedPairs.has(matchKey)) return "Hay rivales que se enfrentan más de una vez. Revisá los cruces.";
+      usedPairs.add(matchKey);
+      const slotKey = `${m.round_number}:${m.match_number}`;
+      if (usedSlots.has(slotKey)) return "Hay dos partidos en la misma posición de una jornada. Intercambiá también el otro partido.";
+      usedSlots.add(slotKey);
+      for (const pair of [m.pair1_id, m.pair2_id]) {
+        const key = `${m.round_number}:${pair}`;
+        if (playedPerRound.has(key)) return "Una pareja aparece dos veces en la misma jornada.";
+        playedPerRound.add(key);
+      }
+    }
+    for (let round = 1; round <= rounds; round++)
+      for (let slot = 1; slot <= perRound; slot++)
+        if (!usedSlots.has(`${round}:${slot}`)) return "Falta una posición en las jornadas.";
+    return "";
+  }
+
+  function updateFixtureEditorStatus() {
+    const error = validateFixtureDraft();
+    const changed = fixtureEditChanged();
+    const reasonLength = editReason.value.trim().length;
+    editError.textContent = error || (!changed
+      ? "Realizá algún cambio para habilitar el guardado."
+      : reasonLength < 5 || reasonLength > 1000
+        ? "Escribí un motivo de 5 a 1000 caracteres para guardar."
+        : "Revisión válida. Podés guardar los cambios de este grupo.");
+    const ready = !error && changed && reasonLength >= 5 && reasonLength <= 1000;
+    editError.dataset.state = error ? "warning" : !changed ? "info" : !ready ? "warning" : "success";
+    editError.classList.toggle("torneos-fixture-editor__error--ok", ready);
+    editSave.disabled = busy || Boolean(error) || !changed || reasonLength < 5 || reasonLength > 1000;
+  }
+
+  function fixtureChoice(options, value, label, onChange) {
+    const wrap = document.createElement("label");
+    wrap.className = "torneos-fixture-editor__field";
+    wrap.append(document.createTextNode(label));
+    const select = document.createElement("select");
+    for (const optionData of options) {
+      const option = document.createElement("option");
+      option.value = String(optionData.value);
+      option.textContent = optionData.label;
+      select.append(option);
+    }
+    select.value = String(value);
+    select.addEventListener("change", () => onChange(select.value));
+    wrap.append(select);
+    return wrap;
+  }
+
+  function renderFixtureEditorGroup(groupId) {
+    if (!fixtureSnapshot || !fixtureEditing || busy) return;
+    const group = fixtureSnapshot.groups.find((g) => g.id === groupId);
+    if (!group) return;
+    fixtureEditedGroupId = groupId;
+    fixtureEditOriginal = fixtureSnapshot.matches
+      .filter((m) => m.group_id === groupId)
+      .sort((a, b) => a.round_number - b.round_number || a.match_number - b.match_number)
+      .map((m) => ({ ...m }));
+    fixtureEditDraft = fixtureEditOriginal.map((m) => ({ ...m }));
+    editMatchesList.replaceChildren();
+    editError.textContent = "";
+    editReason.value = "";
+    const groupPairIds = [...new Set(fixtureEditOriginal.flatMap((m) => [m.pair1_id, m.pair2_id]))];
+    const pairMap = new Map(fixtureSnapshot.pairs.map((p) => [p.id, p]));
+    const pairOptions = groupPairIds.map((id) => {
+      const p = pairMap.get(id);
+      return { value: id, label: p ? `${p.player1_name} / ${p.player2_name}` : "Pareja no disponible" };
+    });
+    const roundCount = groupPairIds.length % 2 === 0 ? groupPairIds.length - 1 : groupPairIds.length;
+    const perRound = Math.floor(groupPairIds.length / 2);
+    const roundOptions = Array.from({ length: roundCount }, (_, i) => ({ value: i + 1, label: `Jornada ${i + 1}` }));
+    const positionOptions = Array.from({ length: perRound }, (_, i) => ({ value: i + 1, label: `Partido ${i + 1}` }));
+    for (const round of roundOptions) {
+      const card = document.createElement("div");
+      card.className = "torneos-fixture-editor__round";
+      const heading = document.createElement("h5");
+      heading.textContent = round.label;
+      card.append(heading);
+      for (let i = 0; i < fixtureEditDraft.length; i++) {
+        const match = fixtureEditDraft[i];
+        if (match.round_number !== round.value) continue;
+        const row = document.createElement("div");
+        row.className = "torneos-fixture-editor__row";
+        row.append(
+          fixtureChoice(pairOptions, match.pair1_id, "Pareja 1", (value) => {
+            match.pair1_id = value; updateFixtureEditorStatus();
+          }),
+          fixtureChoice(pairOptions, match.pair2_id, "Pareja 2", (value) => {
+            match.pair2_id = value; updateFixtureEditorStatus();
+          }),
+          fixtureChoice(roundOptions, match.round_number, "Jornada", (value) => {
+            match.round_number = Number(value); updateFixtureEditorStatus();
+          }),
+          fixtureChoice(positionOptions, match.match_number, "Orden", (value) => {
+            match.match_number = Number(value); updateFixtureEditorStatus();
+          })
+        );
+        card.append(row);
+      }
+      editMatchesList.append(card);
+    }
+    updateFixtureEditorStatus();
+  }
+
+  function openFixtureEditor() {
+    if (busy || fixtureEditing || fixtureEditButton.hidden || fixtureEditButton.disabled ||
+        !fixtureSnapshot || fixtureSnapshot.tournamentId !== tournamentSelect.value) return;
+    fixtureEditing = true;
+    fixtureEditPanel.hidden = false;
+    fixtureList.hidden = true;
+    fixturePublishButton.disabled = true;
+    fixtureEditButton.disabled = true;
+    fixtureEditButton.textContent = "Editor abierto";
+    editGroupSelect.replaceChildren();
+    for (const group of fixtureSnapshot.groups) {
+      if (!fixtureSnapshot.matches.some((m) => m.group_id === group.id)) continue;
+      const option = document.createElement("option");
+      option.value = group.id;
+      option.textContent = `Grupo ${labelForGroup(group.group_number)}`;
+      editGroupSelect.append(option);
+    }
+    renderFixtureEditorGroup(editGroupSelect.value);
+    fixtureEditPanel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
+
+  editGroupSelect.addEventListener("change", async () => {
+    if (!fixtureEditing || busy) return;
+    const nextId = editGroupSelect.value;
+    if (nextId === fixtureEditedGroupId) return;
+    if (fixtureEditChanged() && !await askDiscard(
+      "Tenés cambios sin guardar en este grupo. Si cambiás de grupo, se perderán esas modificaciones."
+    )) {
+      editGroupSelect.value = fixtureEditedGroupId;
+      return;
+    }
+    if (!fixtureEditing || busy) return;
+    renderFixtureEditorGroup(nextId);
+  });
+  editReason.addEventListener("input", updateFixtureEditorStatus);
+  $("torneos-fixture-edit-cancel").addEventListener("click", async () => {
+    if (busy || !fixtureEditing) return;
+    if (fixtureEditChanged() && !await askDiscard(
+      "Tenés cambios sin guardar en este grupo. Si salís del editor, se perderán esas modificaciones."
+    )) return;
+    if (busy || !fixtureEditing) return;
+    closeFixtureEditor();
+    if (fixtureSnapshot) {
+      fixtureEditButton.disabled = false;
+      fixturePublishButton.disabled = false;
+    }
+  });
+  fixtureEditButton.addEventListener("click", openFixtureEditor);
+
+  editSave.addEventListener("click", async () => {
+    if (!fixtureEditing || busy || !fixtureSnapshot || !fixtureEditedGroupId ||
+        tournamentSelect.value !== fixtureSnapshot.tournamentId) return;
+    if (validateFixtureDraft() || !fixtureEditChanged()) return;
+    const reason = editReason.value.trim();
+    if (reason.length < 5 || reason.length > 1000) return;
+    busy = true;
+    editSave.disabled = true;
+    editGroupSelect.disabled = true;
+    editReason.disabled = true;
+    for (const field of editMatchesList.querySelectorAll("select")) field.disabled = true;
+    editError.textContent = "Guardando la corrección del grupo…";
+    editError.dataset.state = "info";
+    const tournamentId = fixtureSnapshot.tournamentId;
+    let serverError = "";
+    try {
+      const proposal = fixtureEditDraft.map((m) => ({
+        id: m.id, round_number: m.round_number, match_number: m.match_number,
+        pair1_id: m.pair1_id, pair2_id: m.pair2_id,
+      }));
+      const { error } = await supabaseClient.rpc("bp_tournament_save_group_fixture_revision", {
+        p_tournament_id: tournamentId,
+        p_group_id: fixtureEditedGroupId,
+        p_proposal: proposal,
+        p_reason: reason,
+        p_reset_schedule: false,
+      });
+      if (error) throw error;
+      busy = false;
+      closeFixtureEditor();
+      if (tournamentSelect.value !== tournamentId) return;
+      await refresh();
+      setFixtureFeedback("Corrección guardada y registrada. El fixture sigue privado: revisá todos los cruces antes de publicarlo.", "success");
+    } catch (error) {
+      console.error("No se pudo guardar la corrección del fixture", error);
+      if (tournamentSelect.value === tournamentId) {
+        serverError = error.message || "No se pudo guardar. Ningún cambio fue aplicado.";
+      }
+    } finally {
+      busy = false;
+      editGroupSelect.disabled = false;
+      editReason.disabled = false;
+      for (const field of editMatchesList.querySelectorAll("select")) field.disabled = false;
+      if (fixtureEditing) {
+        updateFixtureEditorStatus();
+        if (serverError) {
+          editError.textContent = serverError;
+          editError.dataset.state = "warning";
+          editError.classList.remove("torneos-fixture-editor__error--ok");
+        }
+      }
+    }
+  });
+
   async function loadFixture(tournamentId, groups, pairs, groupsPublished, fixturePublished, ready, seq) {
     fixturePanel.hidden = !groupsPublished;
     if (!groupsPublished) return;
@@ -520,7 +844,7 @@
     for (let from = 0; ; from += pageSize) {
       const { data, error } = await supabaseClient
         .from("bp_tournament_group_matches")
-        .select("id,group_id,round_number,match_number,pair1_id,pair2_id,match_status")
+        .select("id,group_id,round_number,match_number,pair1_id,pair2_id,match_status,scheduled_at,court_label")
         .eq("tournament_id", tournamentId)
         .order("round_number", { ascending: true })
         .order("group_id", { ascending: true })
@@ -534,6 +858,7 @@
         fixturePublishButton.disabled = true;
         fixturePublishButton.hidden = true;
         reviseFixtureButton.hidden = true;
+        fixtureEditButton.hidden = true;
         setFixtureFeedback("Revisá la conexión o los permisos del administrador.", "error");
         return null;
       }
@@ -550,6 +875,15 @@
       ? "Los cruces y las jornadas están publicados. Para revisarlos, elegí Corregir fixture."
       : "Publicar los enfrentamientos oficiales, previa confirmación.";
     const hasStarted = matches.some((m) => ["played", "walkover"].includes(m.match_status));
+    const hasSchedule = matches.some((m) => m.scheduled_at || m.court_label?.trim());
+    fixtureSnapshot = { tournamentId, groups, pairs, matches };
+    fixtureEditButton.hidden = fixturePublished || !matches.length;
+    fixtureEditButton.disabled = busy || !ready || hasStarted || hasSchedule;
+    fixtureEditButton.title = hasSchedule
+      ? "Hay partidos con fecha u horario/cancha asignados. Este editor no elimina programaciones."
+      : hasStarted
+        ? "No se permite reorganizar el fixture con partidos disputados."
+        : "Editar cruces y jornadas de un grupo con el fixture privado.";
     reviseFixtureButton.hidden = !fixturePublished;
     reviseFixtureButton.disabled = busy || hasStarted || !ready;
     reviseFixtureButton.title = hasStarted
@@ -632,6 +966,7 @@
       renderGroups(groups, assignments, pairs, published, !published && eligible && groups.length > 1);
       redraw.hidden = false;
       groupActions.hidden = false;
+      groupActions.classList.toggle("torneos-groups-actions--published", published);
       publishButton.textContent = published ? "Grupos publicados" : "Publicar grupos";
       publishButton.title = published
         ? "Los grupos ya están publicados y no pueden modificarse."
@@ -655,9 +990,9 @@
           : "Retirar los grupos de la publicación y rehacer el fixture pendiente.";
       if (published) {
         context.textContent = tournament.is_published
-          ? "Grupos publicados. Este torneo está visible en el sitio público."
-          : "Grupos publicados. El torneo sigue oculto en el sitio público.";
-        notice("Grupos publicados. Ya no se pueden mover parejas ni volver a sortear.");
+          ? "Grupos publicados. Torneo visible en el sitio público."
+          : "Grupos publicados. El torneo sigue oculto.";
+        notice();
       } else if (!eligible) {
         notice("Revisá las inscripciones, las asignaciones y el equilibrio de los grupos antes de publicarlos o volver a sortear.", "error");
       } else {
@@ -759,7 +1094,8 @@
       busy = false;
       if (tournamentSelect.value !== id) return;
       await refresh();
-      notice("Grupos publicados correctamente. La visibilidad del torneo no cambió.", "success");
+      // El mensaje único de publicación ya se muestra en el contexto de grupos.
+      notice();
     } catch (error) {
       console.error("No se pudieron publicar los grupos", error);
       busy = false;
