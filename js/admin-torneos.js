@@ -699,67 +699,138 @@
       },
     });
   }
-  // Parche 47: explicar por qué un torneo no se puede eliminar.
-  // Las inscripciones se eliminan individualmente desde su sección, nunca en cascada.
+  // Parche 48: eliminación integral, transaccional y autorizada desde Supabase.
+  // Las cantidades de la vista son informativas: la RPC vuelve a validar todo.
   async function remove(t) {
+    const notice = (title, description) => openModal({
+      title,
+      description,
+      confirm: "Entendido",
+      action: async () => {},
+    });
+    let actual;
+    let pairsCount;
+    let groupsCount;
+    let matchesCount;
+    let revisionCount;
+    let playedCount;
+    let scheduledCount;
     try {
       await adminSession();
-      const [pairsResult, groupsResult, revisionsResult] = await Promise.all([
-        supabaseClient.from("bp_tournament_pairs")
-          .select("id", { count: "exact", head: true }).eq("tournament_id", t.id),
-        supabaseClient.from("bp_tournament_groups")
-          .select("id", { count: "exact", head: true }).eq("tournament_id", t.id),
-        supabaseClient.from("bp_tournament_revision_log")
-          .select("id", { count: "exact", head: true }).eq("tournament_id", t.id),
-      ]);
-      if (pairsResult.error || groupsResult.error || revisionsResult.error ||
-          pairsResult.count == null || groupsResult.count == null || revisionsResult.count == null)
-        throw new Error("No se pudieron verificar las relaciones del torneo.");
-      if (pairsResult.count > 0) {
-        const quantity = pairsResult.count;
-        openModal({
-          title: "Primero eliminá las inscripciones",
-          description: `«${t.name}» tiene ${quantity} ${quantity === 1 ? "inscripción asociada" : "inscripciones asociadas"}, ` +
-            "aunque alguna esté rechazada. Entrá en «Inscripciones», seleccioná este torneo y eliminá cada inscripción con su confirmación. Después podrás eliminar el torneo, si no tiene otros datos relacionados.",
-          confirm: "Entendido",
-          action: async () => {},
-        });
-        return;
+      const [tournamentResult, pairs, groups, matches, revisions, played, scheduled] =
+        await Promise.all([
+          supabaseClient.from("bp_tournaments")
+            .select("id,name,status,is_published,groups_published_at,fixture_published_at")
+            .eq("id", t.id).maybeSingle(),
+          supabaseClient.from("bp_tournament_pairs")
+            .select("id", { count: "exact", head: true }).eq("tournament_id", t.id),
+          supabaseClient.from("bp_tournament_groups")
+            .select("id", { count: "exact", head: true }).eq("tournament_id", t.id),
+          supabaseClient.from("bp_tournament_group_matches")
+            .select("id", { count: "exact", head: true }).eq("tournament_id", t.id),
+          supabaseClient.from("bp_tournament_revision_log")
+            .select("id", { count: "exact", head: true }).eq("tournament_id", t.id),
+          supabaseClient.from("bp_tournament_group_matches")
+            .select("id", { count: "exact", head: true })
+            .eq("tournament_id", t.id).in("match_status", ["played", "walkover"]),
+          supabaseClient.from("bp_tournament_group_matches")
+            .select("id", { count: "exact", head: true })
+            .eq("tournament_id", t.id).eq("schedule_status", "scheduled"),
+        ]);
+      if (tournamentResult.error || pairs.error || groups.error || matches.error ||
+          revisions.error || played.error || scheduled.error ||
+          pairs.count == null || groups.count == null || matches.count == null ||
+          revisions.count == null || played.count == null || scheduled.count == null) {
+        throw new Error("No se pudo verificar el estado actual del torneo.");
       }
-      if (groupsResult.count > 0 || revisionsResult.count > 0) {
-        openModal({
-          title: "Torneo con datos deportivos o historial",
-          description: `«${t.name}» tiene grupos o un historial de modificaciones. ` +
-            "No se puede eliminar desde este botón sin revisar esos datos. El torneo y su historial permanecen protegidos.",
-          confirm: "Entendido",
-          action: async () => {},
-        });
-        return;
+      actual = tournamentResult.data;
+      if (!actual || actual.name !== t.name) {
+        throw new Error("El torneo ya no existe o cambió de nombre. Actualizá la lista.");
       }
-    } catch (err) {
-      console.error(err);
-      feedback("No se pudo comprobar si es seguro eliminar el torneo. Actualizá la vista e intentá nuevamente.");
+      pairsCount = pairs.count;
+      groupsCount = groups.count;
+      matchesCount = matches.count;
+      revisionCount = revisions.count;
+      playedCount = played.count;
+      scheduledCount = scheduled.count;
+    } catch (error) {
+      console.error("Error al verificar la eliminación del torneo:", error);
+      feedback(error.message || "No se pudo verificar el torneo. Actualizá y volvé a intentar.");
       return;
     }
+
+    if (actual.is_published) {
+      notice("Primero ocultá el torneo",
+        `«${actual.name}» está publicado. Ocultalo antes de solicitar su eliminación definitiva.`);
+      return;
+    }
+    if (playedCount > 0) {
+      notice("Torneo con resultados deportivos",
+        `«${actual.name}» tiene ${playedCount} partido(s) con resultados. ` +
+        "Su eliminación automática está bloqueada para conservar los resultados y el historial deportivo.");
+      return;
+    }
+    if (scheduledCount > 0) {
+      notice("Primero liberá los horarios",
+        `«${actual.name}» tiene ${scheduledCount} partido(s) programado(s). ` +
+        "Postergá esos encuentros para liberar la cancha antes de eliminar el torneo.");
+      return;
+    }
+    if (actual.groups_published_at && actual.status !== "registration_closed") {
+      notice("Torneo que requiere revisión",
+        "Este torneo tiene grupos publicados internamente y su estado actual no admite " +
+        "la revisión necesaria para eliminarlo. No se realizaron cambios.");
+      return;
+    }
+    if (actual.fixture_published_at && !actual.groups_published_at) {
+      notice("Publicación inconsistente",
+        "El fixture tiene un estado que requiere revisión técnica antes de eliminar el torneo.");
+      return;
+    }
+
     openModal({
-      title: "Eliminar torneo",
-      description: `¿Eliminar definitivamente «${t.name}»? Se comprobó que no tiene inscripciones, grupos ni historial de revisiones. Esta acción no se puede deshacer.`,
+      title: "Eliminar torneo completo",
+      description: `¿Eliminar definitivamente «${actual.name}»? Se borrarán ${pairsCount} ` +
+        `inscripción(es), ${groupsCount} grupo(s), ${matchesCount} partido(s) sin resultado ` +
+        `y ${revisionCount} registro(s) de revisión, además del historial de programación ` +
+        "y los bloqueos inactivos vinculados a esos partidos. No se tocarán reservas " +
+        "ni bloqueos independientes. Esta acción no se puede deshacer.",
       confirm: "Eliminar definitivamente",
       danger: true,
       action: async () => {
         await adminSession();
-        const { data, error } = await supabaseClient
-          .from("bp_tournaments")
-          .delete()
-          .eq("id", t.id)
-          .select("id");
-        if (error?.code === "23503")
-          throw new Error("No se puede eliminar: aparecieron inscripciones u otros registros asociados. Actualizá y volvé a revisar.");
-        if (error || data?.length !== 1)
-          throw new Error("No se pudo eliminar el torneo. Actualizá la vista e intentá nuevamente.");
+        const { data, error } = await supabaseClient.rpc(
+          "bp_admin_delete_tournament_safely",
+          { p_tournament_id: t.id, p_expected_name: actual.name },
+        );
+        if (error) {
+          const detail = String(error.message || "");
+          console.error("Supabase rechazó la eliminación del torneo:", error);
+          if (/resultados deportivos|partido disputado|ya comenzó/i.test(detail))
+            throw new Error("El torneo ya tiene resultados deportivos y no puede eliminarse automáticamente.");
+          if (/posterg|bloqueo activo|horarios|programad/i.test(detail))
+            throw new Error("Primero postergá los partidos programados para liberar los horarios de la cancha.");
+          if (/ocult|público|publicado/i.test(detail))
+            throw new Error("Primero ocultá el torneo al público.");
+          if (/nombre|ya no existe/i.test(detail))
+            throw new Error("El torneo cambió o ya no existe. Actualizá la lista.");
+          if (/revisión técnica|estado antes/i.test(detail))
+            throw new Error("El estado del torneo requiere una revisión técnica antes de eliminarlo.");
+          if (error.code === "42501")
+            throw new Error("No tenés permisos para eliminar este torneo.");
+          throw new Error("No se pudo eliminar el torneo. No se borraron datos parcialmente. Actualizá y volvé a intentar.");
+        }
+        if (data?.deleted !== true || data?.tournament_id !== t.id) {
+          throw new Error("Supabase no confirmó la eliminación. Actualizá la lista antes de reintentar.");
+        }
         if (editing === t.id) resetForm();
-        await loadTournaments();
-        feedback("Torneo eliminado correctamente.");
+        try {
+          await loadTournaments();
+          feedback("Torneo eliminado correctamente.");
+        } catch (refreshError) {
+          console.error("Torneo eliminado; falló la actualización del listado:", refreshError);
+          feedback("Torneo eliminado correctamente. Actualizá la lista para ver el cambio.");
+        }
       },
     });
   }

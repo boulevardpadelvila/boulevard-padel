@@ -2559,3 +2559,12 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 - **PENDIENTE DE VERIFICAR (Parche 47):** el Admin incorpora «Eliminar inscripción» para cada pareja con modal propio y comprobación de fila afectada. Se informa claramente la existencia de inscripciones, grupos o revisiones antes de intentar eliminar un torneo. No se agregan borrados masivos ni `ON DELETE CASCADE`.
 - **Seguridad:** siguen vigentes RLS y los triggers que protegen planteles publicados y partidos iniciados. El servidor impide borrados con dependencias adicionales.
 - **Sin cambios SQL** por el Parche 47. No se incluye commit ni push automáticos.
+
+### 26/10/2026 — Parche 48: eliminación completa de torneos sin resultados
+- **Fecha:** 26/10/2026.
+- **Motivo:** permitir a Martín eliminar desde Admin un torneo con inscripciones, grupos, fixture pendiente e historial, sin quitar registros manualmente uno por uno ni modificar reservas reales.
+- **CONFIRMADA (Supabase):** función `bp_admin_delete_tournament_safely(uuid,text)` de SQL N° 58 instalada y comprobada en lectura; ejecutable solo por usuarios autenticados, con validación de administrador en servidor.
+- **PENDIENTE DE VERIFICAR (Parche 48):** `js/admin-torneos.js` consulta cantidades y estado actuales, informa impedimentos y confirma expresamente la eliminación total mediante modal propio; luego invoca la RPC transaccional. Los conteos iniciales son orientativos; el servidor decide con validación y bloqueo transaccional.
+- **Seguridad:** rechaza torneos publicados, con resultados, con partidos programados o con bloqueos de cancha activos; los grupos publicados internamente requieren el estado compatible para revisión autorizada. Solo se eliminan dependencias del torneo objetivo, incluidas anotaciones y bloqueos inactivos vinculados; nunca se borran reservas ni bloqueos independientes.
+- **Prueba pendiente:** instalar localmente, verificar modal sin confirmar primero, y luego (con autorización) eliminar un torneo exclusivamente de prueba sin resultados ni horarios activos. Verificar conteos y turnero tras la operación.
+- No instala SQL, no elimina torneos durante la instalación y no hace commit/push.
