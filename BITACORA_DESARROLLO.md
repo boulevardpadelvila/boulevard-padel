@@ -2550,3 +2550,12 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 - `css/admin-torneos.css`: añade un margen de desplazamiento para que el título del fixture sea visible en PC y celular.
 - **Alcance:** exclusivamente visual tras guardar; no altera hora, duración, motivos, parejas, jornadas, resultados, RPC, reservas, bloqueos ni SQL. No realiza commit/push automáticamente.
 - **Prueba pendiente:** con un partido ficticio, reprogramar/postergar y confirmar que se regresa al fixture correcto; verificar que ante un error el modal continúa abierto sin cambiar el desplazamiento.
+
+
+### 26/10/2026 — Parche 47: eliminación segura de inscripciones / torneos
+- **Fecha:** 26/10/2026.
+- **Motivo:** Martín intentó eliminar un torneo de prueba después de rechazar su única inscripción. Se detectó `ON DELETE RESTRICT`: la inscripción rechazada seguía relacionada al torneo.
+- **CONFIRMADA (Supabase):** con autorización expresa se borraron únicamente la inscripción rechazada y `TORNEO SUMA 12 MASCULINO`; la verificación posterior devolvió cero registros restantes y conservó el torneo independiente de prueba. No se alteraron reservas.
+- **PENDIENTE DE VERIFICAR (Parche 47):** el Admin incorpora «Eliminar inscripción» para cada pareja con modal propio y comprobación de fila afectada. Se informa claramente la existencia de inscripciones, grupos o revisiones antes de intentar eliminar un torneo. No se agregan borrados masivos ni `ON DELETE CASCADE`.
+- **Seguridad:** siguen vigentes RLS y los triggers que protegen planteles publicados y partidos iniciados. El servidor impide borrados con dependencias adicionales.
+- **Sin cambios SQL** por el Parche 47. No se incluye commit ni push automáticos.

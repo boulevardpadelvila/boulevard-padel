@@ -699,10 +699,51 @@
       },
     });
   }
+  // Parche 47: explicar por qué un torneo no se puede eliminar.
+  // Las inscripciones se eliminan individualmente desde su sección, nunca en cascada.
   async function remove(t) {
+    try {
+      await adminSession();
+      const [pairsResult, groupsResult, revisionsResult] = await Promise.all([
+        supabaseClient.from("bp_tournament_pairs")
+          .select("id", { count: "exact", head: true }).eq("tournament_id", t.id),
+        supabaseClient.from("bp_tournament_groups")
+          .select("id", { count: "exact", head: true }).eq("tournament_id", t.id),
+        supabaseClient.from("bp_tournament_revision_log")
+          .select("id", { count: "exact", head: true }).eq("tournament_id", t.id),
+      ]);
+      if (pairsResult.error || groupsResult.error || revisionsResult.error ||
+          pairsResult.count == null || groupsResult.count == null || revisionsResult.count == null)
+        throw new Error("No se pudieron verificar las relaciones del torneo.");
+      if (pairsResult.count > 0) {
+        const quantity = pairsResult.count;
+        openModal({
+          title: "Primero eliminá las inscripciones",
+          description: `«${t.name}» tiene ${quantity} ${quantity === 1 ? "inscripción asociada" : "inscripciones asociadas"}, ` +
+            "aunque alguna esté rechazada. Entrá en «Inscripciones», seleccioná este torneo y eliminá cada inscripción con su confirmación. Después podrás eliminar el torneo, si no tiene otros datos relacionados.",
+          confirm: "Entendido",
+          action: async () => {},
+        });
+        return;
+      }
+      if (groupsResult.count > 0 || revisionsResult.count > 0) {
+        openModal({
+          title: "Torneo con datos deportivos o historial",
+          description: `«${t.name}» tiene grupos o un historial de modificaciones. ` +
+            "No se puede eliminar desde este botón sin revisar esos datos. El torneo y su historial permanecen protegidos.",
+          confirm: "Entendido",
+          action: async () => {},
+        });
+        return;
+      }
+    } catch (err) {
+      console.error(err);
+      feedback("No se pudo comprobar si es seguro eliminar el torneo. Actualizá la vista e intentá nuevamente.");
+      return;
+    }
     openModal({
       title: "Eliminar torneo",
-      description: `¿Eliminar definitivamente «${t.name}»? Esta acción no se puede deshacer.`,
+      description: `¿Eliminar definitivamente «${t.name}»? Se comprobó que no tiene inscripciones, grupos ni historial de revisiones. Esta acción no se puede deshacer.`,
       confirm: "Eliminar definitivamente",
       danger: true,
       action: async () => {
@@ -712,10 +753,10 @@
           .delete()
           .eq("id", t.id)
           .select("id");
+        if (error?.code === "23503")
+          throw new Error("No se puede eliminar: aparecieron inscripciones u otros registros asociados. Actualizá y volvé a revisar.");
         if (error || data?.length !== 1)
-          throw new Error(
-            "No se pudo eliminar. Si tiene inscripciones o partidos asociados, debe gestionarse su eliminación segura antes.",
-          );
+          throw new Error("No se pudo eliminar el torneo. Actualizá la vista e intentá nuevamente.");
         if (editing === t.id) resetForm();
         await loadTournaments();
         feedback("Torneo eliminado correctamente.");

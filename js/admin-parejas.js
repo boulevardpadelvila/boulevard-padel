@@ -201,7 +201,12 @@
         actions.append(
           button("Rechazar", () => askStatus(pair, "rejected"), true),
         );
-      row.append(name, tel, actions);
+      // Parche 47: eliminación explícita y separada de las acciones habituales.
+      // Mantener «Aprobada · Editar · Rechazar» en una sola fila.
+      const removeRow = document.createElement("div");
+      removeRow.className = "torneos-pair-entry__remove";
+      removeRow.append(button("Eliminar inscripción", () => askRemove(pair), true));
+      row.append(name, tel, actions, removeRow);
       list.append(row);
     }
   }
@@ -290,6 +295,34 @@
             ? "Inscripción aprobada."
             : "Inscripción rechazada.",
         );
+      },
+    );
+  }
+  // Parche 47: borrar UNA inscripción, sin cambios masivos ni cascadas.
+  // Las restricciones de la base protegen planteles publicados y partidos iniciados.
+  function askRemove(pair) {
+    const tournamentId = current;
+    const pairName = `${pair.player1_name} y ${pair.player2_name}`;
+    showDialog(
+      "Eliminar inscripción",
+      `¿Eliminar definitivamente la inscripción de ${pairName}? Esta acción no se puede deshacer. ` +
+        "Si el grupo ya fue publicado o se disputaron partidos, el sistema impedirá la eliminación.",
+      false,
+      "Eliminar definitivamente",
+      async () => {
+        if (current !== tournamentId)
+          throw new Error("Cambió el torneo seleccionado. Volvé a intentarlo.");
+        const { data, error } = await supabaseClient
+          .from("bp_tournament_pairs")
+          .delete()
+          .eq("id", pair.id)
+          .eq("tournament_id", tournamentId)
+          .select("id");
+        if (error?.code === "23503" || error?.code === "23514")
+          throw new Error("No se puede eliminar esta inscripción: tiene vínculos con grupos publicados o partidos protegidos.");
+        if (error || data?.length !== 1)
+          throw new Error("No se pudo eliminar la inscripción. Actualizá la página e intentá nuevamente.");
+        feedback("Inscripción eliminada correctamente.");
       },
     );
   }

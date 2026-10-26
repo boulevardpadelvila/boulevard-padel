@@ -1424,3 +1424,25 @@
 @media (max-width: 700px) {
   .torneos-fixture-panel { scroll-margin-top: 72px; }
 }
+
+/* BVPadel Parche 47 — eliminar inscripción sin romper la fila Aprobada/Editar/Rechazar. */
+#torneos-pairs-list .torneos-pair-entry__remove {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+#torneos-pairs-list .torneos-pair-entry__remove .torneos-entry__button {
+  padding: 5px 1px;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: #983838;
+  font-size: 11px;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+#torneos-pairs-list .torneos-pair-entry__remove .torneos-entry__button:hover,
+#torneos-pairs-list .torneos-pair-entry__remove .torneos-entry__button:focus-visible {
+  color: #721e1e;
+}
