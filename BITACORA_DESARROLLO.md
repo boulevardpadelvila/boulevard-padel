@@ -2515,3 +2515,38 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 - **Compatibilidad:** el parche aplica reemplazos puntuales sobre archivos locales, preservando los cambios del Parche 41 si ya se instaló. No cambia partidos, grupos, calendario real, reservas, turnos fijos, RLS, funciones SQL ni estados persistidos; no hace commit/push.
 - **Pendiente de verificación:** probar localmente las tarjetas de Admin y público con un torneo de fin estimado vencido pero no completado, y otro `completed`. Revisar antes de implementar la programación si en Supabase existen automatismos de finalización por fecha; no se verifican ni modifican aquí.
 - **Pendientes funcionales:** programación y postergación por partido (`scheduled_at`, `court_label`), validación de cancha y descansos; fecha estimada actualizable; posiciones y criterios de desempate; clasificación, semifinales, tercer puesto opcional, final y finalización automática por resultados; fixture público del Parche 41 pendiente de verificar en un torneo publicado de prueba.
+
+## 25/10/2026 — Parche 43 — Programación flexible en Admin
+- **Motivo del cambio:** permitir que Martín programe, reprograma o postergue encuentros de grupos en cualquier día, independientemente de la jornada deportiva y de la fecha estimada de fin del torneo.
+- **Estado: PENDIENTE DE VERIFICAR** (parche local; requiere aplicación y pruebas con sesión Admin real).
+- `js/admin-grupos.js`: cada encuentro pendiente incorpora estado de programación y acciones `Programar`, `Reprogramar` o `Postergar`, según corresponda. Modal propio y campos de fecha, hora de inicio en pasos de 30 minutos, duración 90/120 minutos y motivo registrado. Consulta a `bp_admin_set_group_match_schedule` instalada en SQL N° 56. Muestra estado de programación de cada encuentro y resumen de jornadas.
+- `css/admin-torneos.css`: botones y modal adaptables a pantalla pequeña, sin alterar el editor de cruces ni los otros módulos.
+- **Protecciones:** no editar partidos con resultado ni torneos finalizados; el servidor verifica autorización, fechas, disponibilidad, bloqueos y registros; no escribe en Supabase hasta usar los botones en el Admin autenticado.
+- **Prueba pendiente:** con partido ficticio del torneo `PRUEBA Inscripciones 2027`, confirmar programación, conflicto de horario, reprogramación, postergación y restauración de cancha libre. Verificar conteos de registros e historial y ausencia de efectos sobre reservas reales.
+- No realiza cambios en SQL, reservas, bloqueos, turnos fijos, Edge Functions ni sitio público por sí mismo. No se hace commit/push automáticamente.
+
+## 25/10/2026 — Parche 44 — Horarios en formato 24 horas
+- **Motivo del cambio:** evitar el formato AM/PM del navegador al programar partidos; mostrar horarios como en el turnero.
+- **Estado: PENDIENTE DE VERIFICAR** (instalación local y prueba visual todavía necesarias).
+- `js/admin-grupos.js`: reemplazar el campo `type="time"` por un selector con 30 opciones: `09:00`, `09:30`, ..., `23:30` (24 horas, sin AM/PM). La validación del formulario acepta únicamente ese intervalo; al reprogramar conserva la hora previa y al programar conserva el valor predeterminado `20:00`.
+- Se mantiene la consulta RPC `bp_admin_set_group_match_schedule`, la verificación de disponibilidad al guardar, el modal existente y las acciones de postergación.
+- **Alcance:** no modifica CSS, tablas, funciones SQL, reservas reales, resultados, torneos ni el sitio público. No realiza commit/push automáticamente.
+
+## 25/10/2026 — Parche 45 — Acciones de parejas y motivo según operación
+- **Fecha:** 25/10/2026.
+- **Motivo del cambio:** simplificar el Admin para Martín: disponer «Aprobada», «Editar» y «Rechazar» en una fila; no pedir una justificación para la primera programación de un encuentro.
+- **Estado: PENDIENTE DE VERIFICAR** (aplicación y control visual/funcional local necesarios).
+- `js/admin-parejas.js`: el estado de inscripción se ubica dentro de la fila de acciones, antes de «Editar». Se mantienen los botones y sus confirmaciones existentes; para parejas aprobadas se evita el salto de línea.
+- `js/admin-grupos.js`: en el modal de programación inicial se oculta «Motivo de la operación» y se envía `p_reason: null`. En reprogramación y postergación se muestra y exige motivo de 5 a 500 caracteres en el formulario.
+- `css/admin-torneos.css`: alinea la fila y oculta correctamente la etiqueta de motivo cuando corresponde; ajuste adaptable para móviles.
+- **Alcance:** solo archivos locales. La función RPC ya admite `p_reason: null` y continúa validando acceso y disponibilidad. Sin cambios SQL, RLS, reservas, partidos, fixtures, GitHub ni despliegues.
+- **Prueba pendiente:** inspección visual de parejas aprobadas; abrir modal inicial (sin motivo), reprogramar/postergar en torneo ficticio (motivo requerido) y comprobar que el Admin real respete permisos y reservas.
+
+## 25/10/2026 — Parche 46 — Volver al fixture tras programar
+- **Fecha:** 25/10/2026.
+- **Motivo del cambio:** al guardar una programación, reprogramación o postergación, la actualización del Admin hacía que la pantalla quedara en el sector de grupos, obligando a desplazarse manualmente para volver a los partidos.
+- **Estado: PENDIENTE DE VERIFICAR** en navegador local, antes de publicar.
+- `js/admin-grupos.js`: luego de guardar con éxito y refrescar las tarjetas, restituye automáticamente la posición visual al encabezado de «Fixture de grupos», conservando el mensaje de confirmación y los botones actualizados. Solo actúa si sigue seleccionado el mismo torneo y existe el panel visible.
+- `css/admin-torneos.css`: añade un margen de desplazamiento para que el título del fixture sea visible en PC y celular.
+- **Alcance:** exclusivamente visual tras guardar; no altera hora, duración, motivos, parejas, jornadas, resultados, RPC, reservas, bloqueos ni SQL. No realiza commit/push automáticamente.
+- **Prueba pendiente:** con un partido ficticio, reprogramar/postergar y confirmar que se regresa al fixture correcto; verificar que ante un error el modal continúa abierto sin cambiar el desplazamiento.

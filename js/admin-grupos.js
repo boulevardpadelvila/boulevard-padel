@@ -176,6 +176,72 @@
   document.body.append(confirmDialog);
   cancelButton.addEventListener("click", () => confirmDialog.close());
 
+  /* BVPadel Parche 43: modal propio para programar, reprogramar o postergar. */
+  const scheduleDialog = document.createElement("dialog");
+  scheduleDialog.id = "torneos-fixture-schedule-dialog";
+  scheduleDialog.className = "admin-save-dialog torneos-fixture-schedule-dialog";
+  scheduleDialog.setAttribute("aria-labelledby", "torneos-fixture-schedule-title");
+  scheduleDialog.innerHTML = `
+    <form id="torneos-fixture-schedule-form" class="admin-save-dialog__body torneos-fixture-schedule-form" novalidate>
+      <h2 id="torneos-fixture-schedule-title">Programar partido</h2>
+      <p id="torneos-fixture-schedule-versus"></p>
+      <div id="torneos-fixture-schedule-fields" class="torneos-fixture-schedule-fields">
+        <label>Fecha de juego
+          <input id="torneos-fixture-schedule-day" type="date" required>
+        </label>
+        <label>Hora de inicio
+          <select id="torneos-fixture-schedule-time" required></select>
+        </label>
+        <label>Duración estimada
+          <select id="torneos-fixture-schedule-duration" required>
+            <option value="90">90 minutos</option>
+            <option value="120">120 minutos</option>
+          </select>
+        </label>
+      </div>
+      <label class="torneos-fixture-schedule-reason">Motivo de la operación
+        <textarea id="torneos-fixture-schedule-reason" rows="2" maxlength="500"
+          placeholder="Ej.: Acuerdo de las parejas; postergación por lluvia" required></textarea>
+      </label>
+      <p id="torneos-fixture-schedule-hint" class="torneos-fixture-schedule-hint"></p>
+      <p id="torneos-fixture-schedule-error" role="alert" class="torneos-fixture-schedule-error"></p>
+      <div class="admin-save-dialog__actions">
+        <button type="button" class="secondary" id="torneos-fixture-schedule-cancel">Volver</button>
+        <button type="submit" class="primary" id="torneos-fixture-schedule-save">Programar</button>
+      </div>
+    </form>`;
+  document.body.append(scheduleDialog);
+  const scheduleForm = $("torneos-fixture-schedule-form");
+  const scheduleDay = $("torneos-fixture-schedule-day");
+  const scheduleTime = $("torneos-fixture-schedule-time");
+  /* BVPadel Parche 44: opciones de 24 horas, cada 30 minutos (09:00 a 23:30). */
+  for (let hour = 9; hour <= 23; hour++) {
+    for (const minute of ["00", "30"]) {
+      const time = `${String(hour).padStart(2, "0")}:${minute}`;
+      scheduleTime.add(new Option(time, time));
+    }
+  }
+  const scheduleDuration = $("torneos-fixture-schedule-duration");
+  const scheduleReason = $("torneos-fixture-schedule-reason");
+  /* BVPadel Parche 45: sin motivo en programación inicial. */
+  const scheduleReasonField = scheduleReason.closest(".torneos-fixture-schedule-reason");
+  const scheduleError = $("torneos-fixture-schedule-error");
+  const scheduleSave = $("torneos-fixture-schedule-save");
+  const scheduleCancel = $("torneos-fixture-schedule-cancel");
+  const scheduleFields = $("torneos-fixture-schedule-fields");
+  const scheduleHint = $("torneos-fixture-schedule-hint");
+  let scheduleSelection = null;
+  let scheduleBusy = false;
+  scheduleCancel.addEventListener("click", () => {
+    if (!scheduleBusy) scheduleDialog.close();
+  });
+  scheduleDialog.addEventListener("cancel", (event) => {
+    if (scheduleBusy) event.preventDefault();
+  });
+  scheduleDialog.addEventListener("close", () => {
+    if (!scheduleBusy) scheduleSelection = null;
+  });
+
   /* BVPadel parche 25 - cambio manual de grupo con movimiento o intercambio. */
   const changeDialog = document.createElement("dialog");
   changeDialog.id = "torneos-groups-change-dialog";
@@ -524,6 +590,147 @@
     fixtureFeedback.classList.toggle("torneos-fixture-feedback--success", kind === "success");
   }
 
+  /* BVPadel Parche 43: la jornada deportiva es independiente del día real. */
+  const SCHEDULE_TZ = "America/Argentina/Cordoba";
+  function scheduleLocalDateParts(value) {
+    const parts = Object.fromEntries(
+      new Intl.DateTimeFormat("en-GB", {
+        timeZone: SCHEDULE_TZ,
+        year: "numeric", month: "2-digit", day: "2-digit",
+        hour: "2-digit", minute: "2-digit", hourCycle: "h23",
+      }).formatToParts(value).map((item) => [item.type, item.value]),
+    );
+    return {
+      date: `${parts.year}-${parts.month}-${parts.day}`,
+      time: `${parts.hour}:${parts.minute}`,
+    };
+  }
+  function scheduleDateLabel(iso) {
+    if (!iso) return "Sin fecha";
+    return new Intl.DateTimeFormat("es-AR", {
+      timeZone: SCHEDULE_TZ,
+      day: "2-digit", month: "2-digit", year: "numeric",
+      hour: "2-digit", minute: "2-digit", hourCycle: "h23",
+    }).format(new Date(iso));
+  }
+  function schedulePairLabel(pair) {
+    return pair ? `${pair.player1_name} / ${pair.player2_name}` : "Pareja no disponible";
+  }
+  function openScheduleDialog(match, action) {
+    if (busy || scheduleBusy || scheduleDialog.open || fixtureEditing ||
+        !fixtureSnapshot || tournamentSelect.value !== fixtureSnapshot.tournamentId ||
+        fixtureSnapshot.status === "completed" || match.match_status !== "pending") return;
+    const current = fixtureSnapshot.matches.find((item) => item.id === match.id);
+    if (!current || current.match_status !== "pending") return;
+    if (action === "postpone" && current.schedule_status !== "scheduled") return;
+    const pairMap = new Map(fixtureSnapshot.pairs.map((item) => [item.id, item]));
+    scheduleSelection = { id: current.id, tournamentId: fixtureSnapshot.tournamentId, action, requiresReason: action === "postpone" || current.schedule_status === "scheduled" };
+    scheduleForm.reset();
+    scheduleError.textContent = "";
+    const isPostpone = action === "postpone";
+    const isReprogram = !isPostpone && current.schedule_status === "scheduled";
+    scheduleReasonField.hidden = !scheduleSelection.requiresReason;
+    scheduleReason.required = scheduleSelection.requiresReason;
+    const heading = isPostpone ? "Postergar partido" : (isReprogram ? "Reprogramar partido" : "Programar partido");
+    $("torneos-fixture-schedule-title").textContent = heading;
+    $("torneos-fixture-schedule-versus").textContent =
+      `${schedulePairLabel(pairMap.get(current.pair1_id))} vs. ${schedulePairLabel(pairMap.get(current.pair2_id))}`;
+    scheduleFields.hidden = isPostpone;
+    for (const field of [scheduleDay, scheduleTime, scheduleDuration]) field.required = !isPostpone;
+    const now = scheduleLocalDateParts(new Date());
+    const preset = current.scheduled_at ? scheduleLocalDateParts(new Date(current.scheduled_at)) : now;
+    scheduleDay.min = now.date;
+    scheduleDay.value = preset.date;
+    scheduleTime.value = current.scheduled_at ? preset.time : "20:00";
+    const existingMinutes = current.scheduled_at && current.scheduled_ends_at
+      ? (Date.parse(current.scheduled_ends_at) - Date.parse(current.scheduled_at)) / 60000 : 90;
+    scheduleDuration.value = String([90, 120].includes(existingMinutes) ? existingMinutes : 90);
+    scheduleReason.value = "";
+    scheduleSave.textContent = isPostpone ? "Confirmar postergación" : (isReprogram ? "Guardar nuevo horario" : "Programar partido");
+    scheduleHint.textContent = isPostpone
+      ? "Se liberará la cancha y el encuentro quedará sin fecha. Los rivales y la jornada no cambian."
+      : "La disponibilidad se comprueba al guardar. El horario quedará bloqueado para las reservas públicas. Puede ser cualquier día, aun después de la fecha estimada del torneo.";
+    scheduleDialog.showModal();
+    (isPostpone ? scheduleReason : scheduleDay).focus();
+  }
+  scheduleForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (!scheduleSelection || scheduleBusy || busy) return;
+    const selected = { ...scheduleSelection };
+    if (tournamentSelect.value !== selected.tournamentId) {
+      scheduleError.textContent = "Cambió el torneo seleccionado. Volvé a abrir el partido.";
+      return;
+    }
+    const reason = selected.requiresReason ? scheduleReason.value.trim() : null;
+    if (selected.requiresReason && (reason.length < 5 || reason.length > 500)) {
+      scheduleError.textContent = "Describí el motivo del cambio en al menos 5 caracteres (máximo 500).";
+      scheduleReason.focus();
+      return;
+    }
+    const postpone = selected.action === "postpone";
+    const date = scheduleDay.value;
+    const time = scheduleTime.value;
+    const duration = Number(scheduleDuration.value);
+    if (!postpone) {
+      const minute = /^(09|1\d|2[0-3]):(00|30)$/.exec(time);
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !minute ||
+          ![90, 120].includes(duration)) {
+        scheduleError.textContent = "Elegí fecha, horario de 09:00 a 23:30 (cada 30 minutos) y duración válida.";
+        return;
+      }
+      const localISO = `${date}T${time}:00-03:00`;
+      if (new Date(localISO).getTime() <= Date.now()) {
+        scheduleError.textContent = "Elegí un horario futuro, según la hora argentina.";
+        return;
+      }
+    }
+    scheduleBusy = true;
+    busy = true;
+    scheduleSave.disabled = true;
+    scheduleCancel.disabled = true;
+    scheduleError.textContent = "Guardando y comprobando disponibilidad…";
+    try {
+      const { error } = await supabaseClient.rpc("bp_admin_set_group_match_schedule", {
+        p_match_id: selected.id,
+        p_action: postpone ? "postpone" : "schedule",
+        p_day: postpone ? null : date,
+        p_start_time: postpone ? null : time,
+        p_duration_minutes: postpone ? null : duration,
+        p_reason: reason,
+      });
+      if (error) throw error;
+      scheduleDialog.close();
+      scheduleSelection = null;
+      scheduleBusy = false;
+      busy = false;
+      await refresh();
+      setFixtureFeedback(postpone
+        ? "Partido postergado. La cancha anterior quedó liberada y el encuentro conserva sus rivales."
+        : "Partido programado correctamente. La cancha quedó protegida para ese horario.", "success");
+      /* BVPadel Parche 46: volver al fixture después del refresco de grupos.
+         Esperar al siguiente frame para que el navegador termine de ubicar las tarjetas. */
+      requestAnimationFrame(() => {
+        if (tournamentSelect.value === selected.tournamentId &&
+            fixtureSnapshot?.tournamentId === selected.tournamentId &&
+            !fixturePanel.hidden && fixturePanel.isConnected) {
+          fixturePanel.scrollIntoView({ behavior: "auto", block: "start" });
+        }
+      });
+    } catch (error) {
+      console.error("Error de programación de partido", error);
+      if (scheduleDialog.open) {
+        scheduleError.textContent = error.message || "No fue posible guardar la programación. Revisá el horario.";
+      } else {
+        setFixtureFeedback("No se pudo refrescar la programación. Actualizá la vista para comprobar el estado.", "error");
+      }
+    } finally {
+      scheduleBusy = false;
+      busy = false;
+      scheduleSave.disabled = false;
+      scheduleCancel.disabled = false;
+    }
+  });
+
   function fixturePairNode(pair) {
     const el = document.createElement("span");
     el.className = "torneos-fixture-pair";
@@ -544,7 +751,9 @@
     const pairById = new Map(pairs.map((pair) => [pair.id, pair]));
     const roundNumbers = [...new Set(matches.map((m) => m.round_number))]
       .sort((a, b) => a - b);
-    fixtureSummary.textContent = `${roundNumbers.length} ${roundNumbers.length === 1 ? "jornada" : "jornadas"} · ${matches.length} ${matches.length === 1 ? "partido" : "partidos"}. Sin fechas ni canchas asignadas.`;
+    const scheduledCount = matches.filter((m) => m.schedule_status === "scheduled").length;
+    const postponedCount = matches.filter((m) => m.schedule_status === "postponed").length;
+    fixtureSummary.textContent = `${roundNumbers.length} ${roundNumbers.length === 1 ? "jornada" : "jornadas"} · ${matches.length} partidos · ${scheduledCount} programados · ${postponedCount} postergados · ${matches.length - scheduledCount - postponedCount} sin programar.`;
     for (const roundNumber of roundNumbers) {
       const round = document.createElement("section");
       round.className = "torneos-fixture-round";
@@ -573,7 +782,51 @@
             versus,
             fixturePairNode(pairById.get(match.pair2_id))
           );
-          column.append(row);
+          const entry = document.createElement("article");
+          entry.className = "torneos-fixture-entry";
+          entry.append(row);
+          const footer = document.createElement("div");
+          footer.className = "torneos-fixture-entry__footer";
+          const scheduleStatus = document.createElement("span");
+          scheduleStatus.className = "torneos-fixture-entry__status";
+          if (match.schedule_status === "scheduled") {
+            scheduleStatus.textContent = `Programado: ${scheduleDateLabel(match.scheduled_at)} · ${
+              Math.round((Date.parse(match.scheduled_ends_at) - Date.parse(match.scheduled_at)) / 60000)
+            } min`;
+            scheduleStatus.classList.add("torneos-fixture-entry__status--scheduled");
+          } else if (match.schedule_status === "postponed") {
+            scheduleStatus.textContent = "Postergado · Sin nueva fecha";
+            scheduleStatus.classList.add("torneos-fixture-entry__status--postponed");
+          } else {
+            scheduleStatus.textContent = "Sin programar";
+          }
+          footer.append(scheduleStatus);
+          if (match.match_status === "pending" && fixtureSnapshot?.status !== "completed") {
+            const buttons = document.createElement("div");
+            buttons.className = "torneos-fixture-entry__actions";
+            const main = document.createElement("button");
+            main.type = "button";
+            main.className = "torneos-outline torneos-fixture-entry__button";
+            main.textContent = match.schedule_status === "scheduled" ? "Reprogramar" : "Programar";
+            main.addEventListener("click", () => openScheduleDialog(match, "schedule"));
+            buttons.append(main);
+            if (match.schedule_status === "scheduled") {
+              const postpone = document.createElement("button");
+              postpone.type = "button";
+              postpone.className = "torneos-outline torneos-fixture-entry__button torneos-fixture-entry__button--postpone";
+              postpone.textContent = "Postergar";
+              postpone.addEventListener("click", () => openScheduleDialog(match, "postpone"));
+              buttons.append(postpone);
+            }
+            footer.append(buttons);
+          } else if (match.match_status !== "pending") {
+            const done = document.createElement("span");
+            done.className = "torneos-fixture-entry__result";
+            done.textContent = match.match_status === "walkover" ? "Resultado: W.O." : "Resultado registrado";
+            footer.append(done);
+          }
+          entry.append(footer);
+          column.append(entry);
         }
         grid.append(column);
       }
@@ -833,7 +1086,7 @@
     }
   });
 
-  async function loadFixture(tournamentId, groups, pairs, groupsPublished, fixturePublished, ready, seq) {
+  async function loadFixture(tournamentId, groups, pairs, groupsPublished, fixturePublished, ready, seq, tournamentStatus) {
     fixturePanel.hidden = !groupsPublished;
     if (!groupsPublished) return;
     fixtureGroupCount = groups.length;
@@ -844,7 +1097,7 @@
     for (let from = 0; ; from += pageSize) {
       const { data, error } = await supabaseClient
         .from("bp_tournament_group_matches")
-        .select("id,group_id,round_number,match_number,pair1_id,pair2_id,match_status,scheduled_at,court_label")
+        .select("id,group_id,round_number,match_number,pair1_id,pair2_id,match_status,schedule_status,scheduled_at,scheduled_ends_at,court_label")
         .eq("tournament_id", tournamentId)
         .order("round_number", { ascending: true })
         .order("group_id", { ascending: true })
@@ -876,7 +1129,7 @@
       : "Publicar los enfrentamientos oficiales, previa confirmación.";
     const hasStarted = matches.some((m) => ["played", "walkover"].includes(m.match_status));
     const hasSchedule = matches.some((m) => m.scheduled_at || m.court_label?.trim());
-    fixtureSnapshot = { tournamentId, groups, pairs, matches };
+    fixtureSnapshot = { tournamentId, groups, pairs, matches, status: tournamentStatus };
     fixtureEditButton.hidden = fixturePublished || !matches.length;
     fixtureEditButton.disabled = busy || !ready || hasStarted || hasSchedule;
     fixtureEditButton.title = hasSchedule
@@ -978,7 +1231,7 @@
       const readyForFixture = published && complete && balanced &&
         !pairs.some((p) => p.status === "pending") &&
         ["registration_closed", "in_progress"].includes(tournament.status);
-      const fixtureResult = await loadFixture(tournamentId, groups, pairs, published, Boolean(tournament.fixture_published_at), readyForFixture, seq);
+      const fixtureResult = await loadFixture(tournamentId, groups, pairs, published, Boolean(tournament.fixture_published_at), readyForFixture, seq, tournament.status);
       if (seq !== generation) return;
       reviseGroupsButton.hidden = !published;
       reviseGroupsButton.disabled = busy || fixtureResult === null ||

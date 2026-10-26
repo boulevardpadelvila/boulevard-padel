@@ -192,14 +192,16 @@
       tel.textContent = `Contacto: ${pair.contact_phone}`;
       const actions = document.createElement("div");
       actions.className = "torneos-pair-entry__buttons";
-      actions.append(button("Editar", () => openEdit(pair)));
+      /* BVPadel Parche 45: estado junto a las acciones, en ese orden. */
+      actions.classList.toggle("torneos-pair-entry__buttons--approved", pair.status === "approved");
+      actions.append(st, button("Editar", () => openEdit(pair)));
       if (pair.status !== "approved")
         actions.append(button("Aprobar", () => askStatus(pair, "approved")));
       if (pair.status !== "rejected")
         actions.append(
           button("Rechazar", () => askStatus(pair, "rejected"), true),
         );
-      row.append(name, st, tel, actions);
+      row.append(name, tel, actions);
       list.append(row);
     }
   }

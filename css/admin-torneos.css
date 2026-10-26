@@ -1291,3 +1291,136 @@
   .torneos-fixture-discard-dialog .admin-save-dialog__body { padding: 22px 17px; }
   .torneos-fixture-discard-dialog .admin-save-dialog__actions { grid-template-columns: 1fr; }
 }
+
+/* BVPadel Parche 43 — programación flexible de partidos de grupos. */
+.torneos-fixture-entry {
+  min-width: 0;
+  margin-bottom: 9px;
+  border: 1px solid #dce6d7;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #fff;
+}
+.torneos-fixture-entry > .torneos-fixture-match {
+  margin: 0;
+  border: 0;
+  border-bottom: 1px solid #edf1e9;
+  border-radius: 0;
+}
+.torneos-fixture-entry__footer {
+  padding: 8px 9px 9px;
+  display: grid;
+  gap: 7px;
+}
+.torneos-fixture-entry__status {
+  color: #667663;
+  font: 600 11px/1.5 Inter, Arial, sans-serif;
+}
+.torneos-fixture-entry__status--scheduled { color: #28703f; }
+.torneos-fixture-entry__status--postponed { color: #995521; }
+.torneos-fixture-entry__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+.torneos-fixture-entry__button {
+  padding: 6px 10px;
+  min-height: 33px;
+  font-size: 11px;
+  flex: 1 1 95px;
+}
+.torneos-fixture-entry__button--postpone {
+  border-color: #d9b994;
+  color: #854a24;
+}
+.torneos-fixture-entry__result {
+  color: #536453;
+  font: 600 11px/1.5 Inter, Arial, sans-serif;
+}
+.torneos-fixture-schedule-form {
+  display: grid;
+  gap: 12px;
+}
+.torneos-fixture-schedule-form #torneos-fixture-schedule-versus {
+  margin: 0;
+  color: #435843;
+  overflow-wrap: anywhere;
+  font: 600 13px/1.5 Inter, Arial, sans-serif;
+}
+.torneos-fixture-schedule-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.torneos-fixture-schedule-fields[hidden] { display: none !important; }
+.torneos-fixture-schedule-form label {
+  min-width: 0;
+  display: grid;
+  gap: 6px;
+  color: #354635;
+  font: 600 12px/1.4 Inter, Arial, sans-serif;
+}
+.torneos-fixture-schedule-form input,
+.torneos-fixture-schedule-form select,
+.torneos-fixture-schedule-form textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid #bbcbb6;
+  border-radius: 8px;
+  background: #fff;
+  color: #223224;
+  font: 500 13px/1.4 Inter, Arial, sans-serif;
+}
+.torneos-fixture-schedule-hint {
+  margin: 0;
+  color: #536b52;
+  font: 400 12px/1.55 Inter, Arial, sans-serif;
+}
+.torneos-fixture-schedule-error {
+  margin: 0;
+  color: #a12e31;
+  font: 600 12px/1.5 Inter, Arial, sans-serif;
+}
+.torneos-fixture-schedule-error:empty { display: none; }
+.torneos-fixture-schedule-dialog .admin-save-dialog__body {
+  max-height: min(88dvh, 700px);
+  overflow-y: auto;
+}
+@media (max-width: 520px) {
+  .torneos-fixture-schedule-fields { grid-template-columns: minmax(0, 1fr); }
+  .torneos-fixture-entry__actions { flex-direction: column; }
+  .torneos-fixture-entry__button { flex: 0 0 auto; width: 100%; }
+}
+
+/* BVPadel Parche 45 — estado y botones de inscripciones en una sola fila. */
+#torneos-pairs-list .torneos-pair-entry__buttons {
+  align-items: center;
+}
+#torneos-pairs-list .torneos-pair-entry__buttons--approved {
+  flex-wrap: nowrap;
+}
+#torneos-pairs-list .torneos-pair-entry__buttons .torneos-pair-entry__status {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  line-height: 1.3;
+}
+/* Sin campo ni espacio vacío al programar por primera vez. */
+.torneos-fixture-schedule-reason[hidden] {
+  display: none !important;
+}
+@media (max-width: 390px) {
+  #torneos-pairs-list .torneos-pair-entry__buttons--approved { gap: 4px; }
+  #torneos-pairs-list .torneos-pair-entry__buttons--approved button {
+    padding-inline: 8px;
+    font-size: 11px;
+  }
+}
+
+/* BVPadel Parche 46: el fixture queda a la vista al guardar programación.
+   Un pequeño espacio superior conserva el título visible. */
+.torneos-fixture-panel { scroll-margin-top: 38px; }
+@media (max-width: 700px) {
+  .torneos-fixture-panel { scroll-margin-top: 72px; }
+}
