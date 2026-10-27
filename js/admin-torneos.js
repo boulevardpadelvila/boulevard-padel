@@ -446,6 +446,13 @@
           ),
         );
       }
+      // Parche 50: torneo cargado manualmente. Permitir cerrar desde borrador
+      // sin abrir las inscripciones ni publicar automáticamente el torneo.
+      if (t.status === "draft") {
+        actions.append(
+          action("Cerrar inscripciones", () => closeDraftRegistrations(t)),
+        );
+      }
       if (!isFinished(t)) {
         actions.append(action("Finalizar", () => finalizeTournament(t)));
       }
@@ -583,6 +590,51 @@
       },
     });
   }
+  // Parche 50: cerrar un borrador con parejas cargadas por el Admin.
+  // No abre inscripciones ni cambia la visibilidad pública del torneo.
+  function closeDraftRegistrations(t) {
+    if (t.status !== "draft") {
+      feedback("El torneo cambió de estado. Actualizá la lista.");
+      return;
+    }
+    openModal({
+      title: "Cerrar inscripciones",
+      description: `¿Cerrar las inscripciones de «${t.name}» para comenzar a organizar los grupos? ` +
+        "Se utilizarán las parejas aprobadas. No se abrirá la inscripción pública " +
+        `y el torneo seguirá ${t.is_published ? "publicado" : "oculto"}.`,
+      confirm: "Cerrar inscripciones",
+      action: async () => {
+        await adminSession();
+        const [approvedResult, pendingResult] = await Promise.all([
+          supabaseClient.from("bp_tournament_pairs")
+            .select("id", { count: "exact", head: true })
+            .eq("tournament_id", t.id).eq("status", "approved"),
+          supabaseClient.from("bp_tournament_pairs")
+            .select("id", { count: "exact", head: true })
+            .eq("tournament_id", t.id).eq("status", "pending"),
+        ]);
+        if (approvedResult.error || pendingResult.error ||
+            approvedResult.count == null || pendingResult.count == null)
+          throw new Error("No se pudieron comprobar las parejas. Actualizá la vista.");
+        if (pendingResult.count > 0)
+          throw new Error("Primero aprobá o rechazá las inscripciones pendientes.");
+        if (approvedResult.count < 3)
+          throw new Error("Se necesitan al menos tres parejas aprobadas para formar grupos.");
+        const now = new Date().toISOString();
+        const { data, error } = await supabaseClient
+          .from("bp_tournaments")
+          .update({ status: "registration_closed", registration_closes_at: now, updated_at: now })
+          .eq("id", t.id)
+          .eq("status", "draft")
+          .select("id");
+        if (error || data?.length !== 1)
+          throw new Error("No se pudieron cerrar las inscripciones. Actualizá la vista e intentá nuevamente.");
+        await loadTournaments();
+        feedback("Inscripciones cerradas. Ahora podés organizar los grupos sin publicar el torneo.");
+      },
+    });
+  }
+
   /* BVPadel parche 18 - aviso de cupo antes de abrir */
   async function toggleRegistration(t) {
     if (isFinished(t)) {

@@ -7,6 +7,10 @@
   const context = $("torneos-groups-context");
   const setup = $("torneos-groups-setup");
   const groupCount = $("torneos-groups-count");
+  // Parche 49: el número de grupos se calcula, ya no se elige manualmente.
+  const groupCountLabel = document.querySelector('label[for="torneos-groups-count"]');
+  if (groupCountLabel) groupCountLabel.style.display = "none";
+  groupCount.style.display = "none";
   const summary = $("torneos-groups-summary");
   const draw = $("torneos-groups-draw");
   const feedback = $("torneos-groups-feedback");
@@ -1212,7 +1216,9 @@
       const groupSizes = groups.map((g) =>
         assignments.filter((a) => a.group_id === g.id).length);
       const balanced = Math.min(...groupSizes) >= 3 &&
-        Math.max(...groupSizes) - Math.min(...groupSizes) <= 1;
+        Math.max(...groupSizes) <= 4 &&
+        Math.max(...groupSizes) - Math.min(...groupSizes) <= 1 &&
+        groups.length === Math.floor(approved.length / 3);
       const eligible = tournament.status === "registration_closed" &&
         !pairs.some((p) => p.status === "pending") &&
         approved.length >= groups.length * 3 && complete && balanced;
@@ -1228,11 +1234,21 @@
           : "Para publicar, resolvé las solicitudes pendientes y verificá asignaciones y equilibrio.";
       redraw.disabled = busy || published || !eligible;
       publishButton.disabled = busy || published || !eligible;
-      const readyForFixture = published && complete && balanced &&
+      // El fixture anterior es todos contra todos. En grupos de 4 NO es válido:
+      // habrá dos primeros cruces, luego ganadores entre sí y perdedores entre sí.
+      // Hasta implementar los cruces condicionados, impedir generar el fixture viejo.
+      const hasFourPairGroup = groupSizes.some((size) => size === 4);
+      const readyForFixture = published && complete && balanced && !hasFourPairGroup &&
         !pairs.some((p) => p.status === "pending") &&
         ["registration_closed", "in_progress"].includes(tournament.status);
       const fixtureResult = await loadFixture(tournamentId, groups, pairs, published, Boolean(tournament.fixture_published_at), readyForFixture, seq, tournament.status);
       if (seq !== generation) return;
+      if (published && hasFourPairGroup && !tournament.fixture_published_at && !fixtureSnapshot?.matches?.length) {
+        fixtureButton.disabled = true;
+        fixtureButton.title = "Pendiente de incorporar la segunda ronda del grupo de 4.";
+        fixtureSummary.textContent = "Grupos publicados. El fixture de grupos de 4 se habilitará en la próxima etapa.";
+        setFixtureFeedback("En grupos de 4 hay cuatro partidos: dos iniciales y dos cruces según ganadores y perdedores. No se generará el todos contra todos anterior.");
+      }
       reviseGroupsButton.hidden = !published;
       reviseGroupsButton.disabled = busy || fixtureResult === null ||
         tournament.status !== "registration_closed" || Boolean(fixtureResult?.hasStarted);
@@ -1272,15 +1288,17 @@
       notice("Necesitás al menos tres parejas aprobadas para formar un grupo.");
       return;
     }
-    const maxGroups = Math.floor(approved / 3);
-    const recommended = Math.min(maxGroups, Math.max(1, Math.ceil(approved / 4)));
-    setup.hidden = false;
-    for (let n = 1; n <= maxGroups; n++) {
-      groupCount.add(new Option(`${n} ${n === 1 ? "grupo" : "grupos"}`, String(n)));
+    // Grupos de 3 como norma; de 4 si hace falta. Para 5 no hay solución.
+    if (approved === 5) {
+      notice("Con cinco parejas aprobadas no se pueden formar grupos de 3 o 4. Revisá las inscripciones antes del sorteo.", "error");
+      return;
     }
+    const recommended = Math.floor(approved / 3);
+    groupCount.replaceChildren(new Option(`${recommended} grupos automáticos`, String(recommended)));
     groupCount.value = String(recommended);
+    groupCount.disabled = true;
+    setup.hidden = false;
     updateSummary(approved);
-    groupCount.onchange = () => updateSummary(approved);
     draw.disabled = busy;
   }
   function updateSummary(approved) {
@@ -1288,7 +1306,7 @@
     const base = Math.floor(approved / count);
     const extra = approved % count;
     const sizes = Array.from({ length: count }, (_, i) => base + Number(i < extra));
-    summary.textContent = `${approved} parejas aprobadas: ${sizes.map((n, i) => `Grupo ${labelForGroup(i + 1)}: ${n}`).join(" · ")}.`;
+    summary.textContent = `Distribución automática de ${approved} parejas: ${sizes.map((n, i) => `Grupo ${labelForGroup(i + 1)}: ${n}`).join(" · ")}. Todos los grupos tendrán 3 o 4 parejas.`;
   }
   function scheduleRefresh() {
     if (scheduled || busy) return;
@@ -1311,9 +1329,8 @@
     try {
       const rpcName = mode === "redraw"
         ? "bp_tournament_redraw_groups"
-        : "bp_tournament_draw_groups";
+        : "bp_tournament_draw_groups_auto";
       const args = { p_tournament_id: id };
-      if (mode === "draw") args.p_group_count = groups;
       const { error } = await supabaseClient.rpc(rpcName, args);
       if (error) throw error;
       busy = false;
@@ -1441,7 +1458,7 @@
       acceptButton.textContent = "Confirmar nuevo sorteo";
     } else {
       confirmTitle.textContent = "Confirmar sorteo de grupos";
-      confirmDescription.textContent = `¿Sortear ${groups} ${groups === 1 ? "grupo" : "grupos"} para «${tournamentName}»? Se utilizarán solamente las parejas aprobadas. Podrás revisar el resultado antes de publicarlo.`;
+      confirmDescription.textContent = `¿Sortear automáticamente ${groups} ${groups === 1 ? "grupo" : "grupos"} para «${tournamentName}»? Cada uno tendrá 3 o 4 parejas. Solo se utilizarán parejas aprobadas. Podrás revisar el resultado antes de publicarlo.`;
       acceptButton.textContent = "Confirmar sorteo";
     }
     acceptButton.onclick = () => {
