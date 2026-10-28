@@ -155,7 +155,10 @@
             <article class="feature-card">
               <span class="feature-card__accent"></span>
 
-              <h3>Hay puntos que no se olvidan</h3>
+              <h3>
+                Hay puntos que<br />
+                no se olvidan
+              </h3>
 
               <p>
                 Esa pelota imposible, el remate justo a tiempo, el punto que
@@ -166,7 +169,10 @@
             <article class="feature-card">
               <span class="feature-card__accent"></span>
 
-              <h3>¿Se te ocurre un mejor plan?</h3>
+              <h3>
+                ¿Se te ocurre <br />
+                un mejor plan?
+              </h3>
 
               <p>
                 Una dupla, dos rivales y una buena excusa para cortar la rutina.
@@ -177,16 +183,97 @@
             <article class="feature-card">
               <span class="feature-card__accent"></span>
 
-              <h3>Menos vueltas. Más pádel.</h3>
+              <h3>
+                Menos vueltas.<br />
+                Más pádel.
+              </h3>
 
               <p>
                 Elegí el día, el horario y cuánto querés jugar. Reservá online
                 en pocos pasos y llegá con todo listo para disfrutar.
               </p>
             </article>
+
+            <button
+              type="button"
+              class="feature-card feature-card--gallery"
+              id="openBpGallery"
+              aria-haspopup="dialog"
+              aria-controls="bpGalleryDialog"
+            >
+              <span class="feature-card__accent" aria-hidden="true"></span>
+              <h3>
+                Galería de<br />
+                imágenes
+              </h3>
+              <p>
+                Viví el pádel desde adentro. Descubrí momentos reales en nuestra
+                cancha.
+              </p>
+              <span
+                class="feature-card--gallery__action"
+                aria-hidden="true"
+              ></span>
+            </button>
           </div>
         </div>
       </section>
+
+      <!-- Galería flotante: fotos numeradas en assets/img/BP_Galeria/ -->
+      <dialog
+        class="bp-gallery"
+        id="bpGalleryDialog"
+        aria-label="Galería de fotografías de Boulevard Pádel"
+      >
+        <div class="bp-gallery__top">
+          <div>
+            <span class="bp-gallery__eyebrow">BOULEVARD PÁDEL</span>
+            <h2>Galería</h2>
+          </div>
+          <button
+            type="button"
+            class="bp-gallery__close"
+            id="bpGalleryClose"
+            aria-label="Cerrar galería"
+          >
+            ×
+          </button>
+        </div>
+        <div class="bp-gallery__viewer" id="bpGalleryViewer">
+          <p
+            class="bp-gallery__message"
+            id="bpGalleryMessage"
+            role="status"
+            aria-live="polite"
+          >
+            Cargando fotografías…
+          </p>
+          <img id="bpGalleryImage" alt="" hidden />
+        </div>
+        <div class="bp-gallery__footer" id="bpGalleryFooter" hidden>
+          <button
+            type="button"
+            class="bp-gallery__nav"
+            id="bpGalleryPrev"
+            aria-label="Fotografía anterior"
+          >
+            ‹
+          </button>
+          <span
+            class="bp-gallery__counter"
+            id="bpGalleryCounter"
+            aria-live="polite"
+          ></span>
+          <button
+            type="button"
+            class="bp-gallery__nav"
+            id="bpGalleryNext"
+            aria-label="Fotografía siguiente"
+          >
+            ›
+          </button>
+        </div>
+      </dialog>
 
       <!-- TORNEOS Y CAMPEONATOS — lectura pública sin teléfonos -->
       <section
@@ -953,6 +1040,7 @@
       defer
     ></script>
     <script src="js/torneos-public.js"></script>
+    <script src="js/bp-galeria.js"></script>
     <script src="js/main.js"></script>
     <script src="js/indumentaria.js"></script>
     <script src="js/whatsapp-links.js"></script>

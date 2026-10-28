@@ -572,8 +572,8 @@ button {
 
 .court__features {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 18px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
 
   margin-top: 48px;
 }
@@ -1230,8 +1230,8 @@ button {
   }
 
   .court__features {
-    grid-template-columns: 1fr;
-    max-width: 680px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    max-width: none;
   }
 
   .feature-card {
@@ -1538,4 +1538,119 @@ button {
 
   font-size: 0.82rem;
   line-height: 1.4;
+}
+
+/* Galería BP — cuatro tarjetas, modal y adaptación móvil. */
+.court__features > .feature-card { min-width: 0; }
+.feature-card--gallery {
+  width: 100%;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.feature-card--gallery__action {
+  display: inline-block;
+  margin-top: 15px;
+  color: var(--color-olive-light);
+  font-family: var(--font-heading);
+  font-size: 0.77rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.feature-card--gallery:focus-visible {
+  outline: 3px solid var(--color-olive-light);
+  outline-offset: 3px;
+}
+.bp-gallery {
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  width: min(96vw, 1020px);
+  max-height: 94svh;
+  padding: clamp(14px, 2.5vw, 24px);
+  overflow: auto;
+  border: 1px solid rgba(255,255,255,.20);
+  border-radius: 20px;
+  background: #11120f;
+  color: #fff;
+  box-shadow: 0 28px 85px rgba(0,0,0,.65);
+}
+.bp-gallery::backdrop {
+  background: rgba(3, 4, 3, .87);
+  backdrop-filter: blur(5px);
+}
+.bp-gallery__top, .bp-gallery__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.bp-gallery__top { margin-bottom: 16px; }
+.bp-gallery__eyebrow {
+  color: var(--color-olive-light);
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: .68rem;
+  letter-spacing: .15em;
+}
+.bp-gallery__top h2 {
+  margin: 3px 0 0;
+  font-family: var(--font-heading);
+  font-size: clamp(1.4rem, 4vw, 2rem);
+}
+.bp-gallery__close, .bp-gallery__nav {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  border: 1px solid rgba(255, 255, 255, .23);
+  border-radius: 50%;
+  background: #282923;
+  color: #fff;
+  font: inherit;
+  font-size: 1.8rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.bp-gallery__close:hover, .bp-gallery__nav:hover:not(:disabled) {
+  background: var(--color-olive);
+}
+.bp-gallery__close:focus-visible, .bp-gallery__nav:focus-visible {
+  outline: 3px solid var(--color-olive-light);
+  outline-offset: 2px;
+}
+.bp-gallery__nav:disabled { opacity: .3; cursor: default; }
+.bp-gallery__viewer {
+  display: grid;
+  place-items: center;
+  min-height: min(55svh, 420px);
+  border-radius: 14px;
+  background: #080907;
+  overflow: hidden;
+}
+.bp-gallery__viewer img {
+  display: block;
+  max-width: 100%;
+  max-height: 65svh;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
+.bp-gallery__viewer img[hidden], .bp-gallery__message[hidden],
+.bp-gallery__footer[hidden] { display: none !important; }
+.bp-gallery__message { padding: 20px; text-align: center; color: #ddd; }
+.bp-gallery__footer { margin-top: 16px; justify-content: center; gap: 28px; }
+.bp-gallery__counter { font: 600 .82rem var(--font-heading); color: #ddd; min-width: 65px; text-align: center; }
+body:has(#bpGalleryDialog[open]) { overflow: hidden; }
+@media (min-width: 901px) {
+  .court__features .feature-card { padding: 22px 19px; min-height: 198px; }
+  .court__features .feature-card h3 { font-size: clamp(1.04rem, 1.65vw, 1.21rem); }
+  .court__features .feature-card p { font-size: .9rem; }
+}
+@media (max-width: 640px) {
+  .court__features { grid-template-columns: 1fr; }
+  .bp-gallery { width: 96vw; max-height: 94svh; padding: 13px; }
+  .bp-gallery__viewer { min-height: 40svh; }
+  .bp-gallery__viewer img { max-height: 63svh; }
 }
