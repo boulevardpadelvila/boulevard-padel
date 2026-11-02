@@ -2588,3 +2588,13 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 - `js/admin-torneos.js`: en un torneo Borrador, incorpora la acción **Cerrar inscripciones** sin abrir el registro público ni cambiar `is_published`; exige sesión administrativa, al menos 3 parejas aprobadas y ninguna pendiente. Se valida el estado `draft` al actualizar para evitar pisar cambios concurrentes.
 - **Prueba propuesta:** en `PRUEBA Grupos 3 y 4`, con ocho inscripciones aprobadas y cupo 8/8, cerrar directamente las inscripciones desde Borrador; comprobar que el torneo sigue oculto y habilita la distribución automática de 2 grupos de 4.
 - **Alcance:** sin nuevos SQL, tablas, triggers, reservas, blockouts, resultados ni commits automáticos. El Parche 49 permanece instalado y pendiente de verificación.
+
+
+## 02/11/2026 — Motor deportivo de torneos (fase 1, pruebas unitarias)
+- **Fecha:** 02/11/2026.
+- **Motivo:** implementar la lógica deportiva confirmada con Martín para grupos de 3 y 4, con puntuación 3/0 y desempates puntos → diferencia de sets → sets a favor.
+- **Reglas confirmadas:** sorteo según parejas realmente aprobadas, no según el cupo; grupos de 3 con tres encuentros todos contra todos y dos clasificadas; grupos de 4 con A1 y A2 iniciales, A3 entre ganadores, A4 entre perdedores, cuatro encuentros y tres clasificadas.
+- **Implementación:** se agrega `js/torneos-motor.js`, módulo puro sin dependencias ni conexión a Supabase. Calcula distribuciones, rivales condicionados a resultados, puntuación, estadísticas y clasificación. No inventa un cuarto desempate: marca igualdad absoluta. No procesa W.O. hasta que se determine cómo computar sus sets.
+- **Pruebas:** `node --test tests/torneos-motor.test.js`: 8/8 correctas en el paquete de desarrollo. Casos: zonas 3 y 4, cruces A3/A4, orden 6/3/3/0 por sets, empate total, grupos incompletos, resultados inválidos y cálculo por cantidad aprobada.
+- **Estado:** CONFIRMADA la prueba unitaria. **PENDIENTE:** diseñar e instalar SQL de resultados, adaptar las tablas existentes de partidos para participantes todavía desconocidos, implementar carga y corrección de resultados segura en Admin, publicaciones y eliminatorias. **No hay función nueva operativa en Admin en esta fase.**
+- **Protección:** no altera ni ejecuta SQL, reservas, bloqueos, turnos fijos, torneos, funciones Supabase ni el sitio en producción. No realiza commit/push. Los archivos añadidos son una base de desarrollo sin referencias en `admin/index.html`.

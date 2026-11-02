@@ -1,0 +1,174 @@
+/* Boulevard Pádel — motor deportivo puro, sin acceso a Supabase.
+ * Reglas confirmadas el 02/11/2026:
+ * - 3 parejas: todos contra todos (3 encuentros), clasifican 2.
+ * - 4 parejas: 2 cruces iniciales, ganadores vs ganadores y perdedores vs perdedores (4 encuentros), clasifican 3.
+ * - Ganar 3 puntos, perder 0. Desempates: puntos, diferencia de sets, sets a favor.
+ * No inventar un cuarto desempate: informar empates completos.
+ * Los W.O. no se resuelven aquí hasta definir la asignación de sets.
+ */
+(function (root, factory) {
+  "use strict";
+  const engine = factory();
+  if (typeof module === "object" && module.exports) module.exports = engine;
+  else root.BPTournamentEngine = engine;
+})(typeof globalThis !== "undefined" ? globalThis : this, function () {
+  "use strict";
+
+  const REQUIRED_WINS = 2;
+  const pointsPerWin = 3;
+
+  function checkPairs(pairIds) {
+    if (!Array.isArray(pairIds) || ![3, 4].includes(pairIds.length)) {
+      throw new Error("Cada zona debe contener exactamente 3 o 4 parejas.");
+    }
+    if (pairIds.some((id) => typeof id !== "string" || !id.trim()) || new Set(pairIds).size !== pairIds.length) {
+      throw new Error("Las parejas deben tener identificadores distintos y válidos.");
+    }
+  }
+
+  // Misma regla que bp_tournament_draw_groups_auto en Supabase: se usa el
+  // número de parejas APROBADAS, no el cupo anunciado al crear el torneo.
+  function planGroupSizes(approvedCount) {
+    if (!Number.isSafeInteger(approvedCount) || approvedCount < 3 || approvedCount > 256 || approvedCount === 5) {
+      throw new Error("No se pueden formar zonas de 3 o 4 con esa cantidad de parejas aprobadas.");
+    }
+    const count = Math.floor(approvedCount / 3);
+    const numberOfFours = approvedCount - count * 3;
+    return Array.from({ length: count }, (_, i) => i < numberOfFours ? 4 : 3);
+  }
+
+  // Cada encuentro tiene una clave estable dentro de su grupo y dos participantes.
+  // Los participantes pueden ser IDs de parejas o referencias al resultado de otro partido.
+  function buildGroupFixture(pairIds) {
+    checkPairs(pairIds);
+    const [a, b, c, d] = pairIds;
+    if (!d) {
+      return [
+        { code: "A1", round: 1, pair1: a, pair2: b },
+        { code: "A2", round: 2, pair1: a, pair2: c },
+        { code: "A3", round: 3, pair1: b, pair2: c },
+      ];
+    }
+    return [
+      { code: "A1", round: 1, pair1: a, pair2: b },
+      { code: "A2", round: 1, pair1: c, pair2: d },
+      { code: "A3", round: 2, pair1: { from: "A1", outcome: "winner" }, pair2: { from: "A2", outcome: "winner" } },
+      { code: "A4", round: 2, pair1: { from: "A1", outcome: "loser" }, pair2: { from: "A2", outcome: "loser" } },
+    ];
+  }
+
+  // Resultado: {sets: [[6, 4], [3, 6], [6, 2]]}. No se suma por games:
+  // los games solo determinan el ganador de cada set. La validación exacta de
+  // games/tie-break quedará para cuando Martín confirme el formato del partido.
+  function evaluateSets(result) {
+    if (!result || !Array.isArray(result.sets) || ![2, 3].includes(result.sets.length)) {
+      throw new Error("Ingresá 2 o 3 sets para un partido al mejor de tres.");
+    }
+    let side1 = 0, side2 = 0;
+    for (let i = 0; i < result.sets.length; i++) {
+      const set = result.sets[i];
+      if (!Array.isArray(set) || set.length !== 2 || set.some((games) =>
+        !Number.isSafeInteger(games) || games < 0 || games > 99) || set[0] === set[1]) {
+        throw new Error(`El set ${i + 1} tiene valores inválidos o está empatado.`);
+      }
+      if (side1 === REQUIRED_WINS || side2 === REQUIRED_WINS) {
+        throw new Error("No puede haber sets adicionales después de definir el partido.");
+      }
+      if (set[0] > set[1]) side1++;
+      else side2++;
+    }
+    if (side1 !== REQUIRED_WINS && side2 !== REQUIRED_WINS) {
+      throw new Error("El partido no tiene un ganador con dos sets.");
+    }
+    return { side1Sets: side1, side2Sets: side2, winnerSide: side1 > side2 ? 1 : 2 };
+  }
+
+  function matchWithParticipants(match, confirmedResults, byCode) {
+    if (!match || typeof match.code !== "string") throw new Error("Partido inválido.");
+    function resolve(slot) {
+      if (typeof slot === "string") return slot;
+      if (!slot || typeof slot.from !== "string" || !["winner", "loser"].includes(slot.outcome)) {
+        throw new Error("Dependencia de partido inválida.");
+      }
+      const source = byCode.get(slot.from);
+      if (!source || source.code === match.code) throw new Error("Referencia de partido inválida.");
+      const previous = matchWithParticipants(source, confirmedResults, byCode);
+      const previousResult = confirmedResults[slot.from];
+      if (!previousResult || !previous.pair1 || !previous.pair2) return null;
+      const data = evaluateSets(previousResult);
+      const winner = data.winnerSide === 1 ? previous.pair1 : previous.pair2;
+      const loser = data.winnerSide === 1 ? previous.pair2 : previous.pair1;
+      return slot.outcome === "winner" ? winner : loser;
+    }
+    return { ...match, pair1: resolve(match.pair1), pair2: resolve(match.pair2) };
+  }
+
+  function resolveGroupFixture(fixture, results = {}) {
+    if (!Array.isArray(fixture)) throw new Error("Fixture inválido.");
+    const byCode = new Map(fixture.map((match) => [match.code, match]));
+    if (byCode.size !== fixture.length) throw new Error("Hay partidos con claves repetidas.");
+    return fixture.map((match) => matchWithParticipants(match, results, byCode));
+  }
+
+  function compareStats(a, b) {
+    return (b.points - a.points) || (b.setDifference - a.setDifference) || (b.setsFor - a.setsFor);
+  }
+  function equalStats(a, b) {
+    return a.points === b.points && a.setDifference === b.setDifference && a.setsFor === b.setsFor;
+  }
+
+  function calculateGroupStandings(pairIds, results = {}) {
+    checkPairs(pairIds);
+    const fixture = buildGroupFixture(pairIds);
+    const rows = new Map(pairIds.map((id) => [id, {
+      pairId: id, played: 0, won: 0, lost: 0, points: 0,
+      setsFor: 0, setsAgainst: 0, setDifference: 0,
+    }]));
+    let playedMatches = 0;
+    const resolved = resolveGroupFixture(fixture, results);
+    const order = fixture.map((match) => match.code);
+    for (const code of order) {
+      if (results[code] == null) continue;
+      const match = resolved.find((item) => item.code === code);
+      if (!match?.pair1 || !match?.pair2 || !rows.has(match.pair1) || !rows.has(match.pair2) || match.pair1 === match.pair2) {
+        throw new Error(`El partido ${code} todavía no tiene dos rivales definidos.`);
+      }
+      const outcome = evaluateSets(results[code]);
+      const r1 = rows.get(match.pair1), r2 = rows.get(match.pair2);
+      r1.played++; r2.played++;
+      r1.setsFor += outcome.side1Sets;
+      r1.setsAgainst += outcome.side2Sets;
+      r2.setsFor += outcome.side2Sets;
+      r2.setsAgainst += outcome.side1Sets;
+      const winner = outcome.winnerSide === 1 ? r1 : r2;
+      const loser = outcome.winnerSide === 1 ? r2 : r1;
+      winner.won++; winner.points += pointsPerWin; loser.lost++;
+      playedMatches++;
+    }
+    const table = [...rows.values()];
+    for (const row of table) row.setDifference = row.setsFor - row.setsAgainst;
+    table.sort(compareStats);  // mantiene el orden de entrada SOLO para visualizar empate total.
+    const fullTies = [];
+    for (let i = 1; i < table.length; i++) {
+      if (equalStats(table[i - 1], table[i])) fullTies.push([table[i - 1].pairId, table[i].pairId]);
+    }
+    const qualifyingPlaces = pairIds.length === 3 ? 2 : 3;
+    const complete = playedMatches === fixture.length;
+    const boundaryTie = complete && equalStats(table[qualifyingPlaces - 1], table[qualifyingPlaces]);
+    return {
+      table,
+      qualifyingPlaces,
+      playedMatches,
+      totalMatches: fixture.length,
+      complete,
+      fullTies,
+      boundaryTie,
+      qualificationReady: complete && !boundaryTie,
+      seedingReady: complete && fullTies.length === 0,
+      qualifiedPairIds: complete && !boundaryTie ? table.slice(0, qualifyingPlaces).map((row) => row.pairId) : [],
+      // Orden y semillas quedan pendientes cuando persiste cualquier empate absoluto.
+    };
+  }
+
+  return Object.freeze({ planGroupSizes, buildGroupFixture, evaluateSets, resolveGroupFixture, calculateGroupStandings, compareStats });
+});
