@@ -2742,3 +2742,15 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 - Las tarjetas quedan distribuidas en hasta 3 columnas en escritorio, 2 en pantallas medianas y 1 en celular; acciones alineadas al pie y botones adaptables sin desbordes.
 - **No se modificaron:** llamadas a Supabase, estados de los torneos, acciones de edición/publicación, reservas, resultados ni otros módulos.
 - El ajuste visual de botones de categorías del Parche 63 permanece incluido en esta rama.
+
+## 03/11/2026 — Reinicio integral de datos de prueba de torneos y privacidad independiente
+- **Fecha:** 03/11/2026.
+- **Motivo:** eliminar torneos ficticios acumulados y empezar una nueva ronda de pruebas sin afectar el turnero real.
+- **Estado: CONFIRMADA** limpieza SQL transaccional ejecutada en Supabase; prueba previa con ROLLBACK satisfactoria. **CONFIRMADA** verificación posterior de integridad.
+- Eliminados «Copa El Norte Seguros», «Copa Boulevard Padel 2027» y «PRUEBA Grupos 3 y 4», con 15 parejas, 4 grupos, 15 partidos, 15 resultados, 8 correcciones de marcadores, 8 registros de programación, 2 revisiones de grupos, 15 asignaciones y 7 bloqueos activos vinculados a partidos de prueba.
+- **Intocable producción:** se conservaron sin alteraciones 100 reservas (57 vigentes), 4 bloqueos independientes; los hashes íntegros de ambas tablas protegidas coinciden antes/después. También se conservaron las 2 categorías reutilizables.
+- Durante la transacción se suspendieron exclusivamente 10 disparadores protectores de datos de torneo para permitir la limpieza administrativa; fueron rehabilitados y verificados activos antes del COMMIT. No se alteró ninguna definición SQL permanente, RPC, reserva ni configuración de turnero.
+- **Decisión CONFIRMADA:** todo el módulo de torneos continúa en pruebas y sus registros pueden descartarse hasta su puesta en producción formal. **PENDIENTE:** desarrollar una operación segura de eliminación completa por Admin con doble confirmación, sin debilitar protecciones del turnero ni habilitarla al pasar a producción.
+- **Código en rama desarrollo (PENDIENTE DE PRUEBA VISUAL):** abrir/cerrar inscripciones ya no cambia automáticamente `is_published`; «Publicar/Ocultar» se podrá administrar de forma independiente. SQL 63 conserva su requisito de inscripciones abiertas para agregar parejas.
+- **Regla para nuevas pruebas:** crear borrador oculto → abrir inscripciones manteniéndolo oculto → cargar parejas manualmente → cerrar inscripciones → generar grupos y fixture → cargar resultados → limpiar datos de prueba cuando corresponda.
+- **Consulta ejecutada:** limpieza puntual y única; NO guardar como consulta definitiva en SQL Editor. Conservar esta bitácora como trazabilidad de la acción.

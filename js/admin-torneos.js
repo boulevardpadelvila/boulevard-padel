@@ -16,7 +16,7 @@
       "Torneo publicado.",
       "Torneo ocultado.",
       "Inscripciones cerradas correctamente.",
-      "Inscripciones abiertas. El torneo se publicó automáticamente.",
+      "Inscripciones abiertas. La visibilidad pública se conserva.",
       "Categoría creada correctamente.",
       "Categoría actualizada correctamente.",
       "Categoría eliminada correctamente.",
@@ -561,10 +561,7 @@
     }),
   );
   async function togglePublication(t) {
-    if (t.is_published && registrationOpen(t)) {
-      feedback("Primero cerrá las inscripciones y después ocultá el torneo.");
-      return;
-    }
+    // Modo de pruebas: visibilidad pública e inscripciones son independientes.
     openModal({
       title: t.is_published ? "Ocultar torneo" : "Publicar torneo",
       description: t.is_published
@@ -664,15 +661,15 @@
     openModal({
       title: opening ? "Abrir inscripciones" : "Cerrar inscripciones",
       description: opening
-        ? `«${t.name}» se publicará automáticamente. Podés elegir una fecha límite de cierre (inclusive) o dejarla vacía para cerrar manualmente. Hora argentina.`
-        : `¿Cerrar ahora las inscripciones de «${t.name}»? El torneo seguirá publicado y no estará finalizado.`,
+        ? `«${t.name}» abrirá inscripciones y seguirá ${t.is_published ? "publicado" : "oculto"}. Podés elegir una fecha límite de cierre (inclusive) o dejarla vacía para cerrar manualmente. Hora argentina.`
+        : `¿Cerrar ahora las inscripciones de «${t.name}»? El torneo seguirá ${t.is_published ? "publicado" : "oculto"} y no estará finalizado.`,
       label: opening ? "Fecha de cierre (opcional)" : "",
       inputType: opening ? "date" : "text",
       inputMin: opening ? localToday() : "",
       inputMax: opening ? t.ends_on : "",
       value: opening && t.registration_closes_at && registrationOpen(t)
         ? closingDateInArgentina(t.registration_closes_at) : "",
-      confirm: opening ? "Abrir y publicar" : "Cerrar inscripciones",
+      confirm: opening ? "Abrir inscripciones" : "Cerrar inscripciones",
       action: async (dateString) => {
         await adminSession();
         const now = new Date();
@@ -691,7 +688,7 @@
         const payload = opening
           ? {
               status: "registration_open",
-              is_published: true,
+              // No modificar is_published: puede estar oculto para pruebas privadas.
               registration_opens_at: now.toISOString(),
               registration_closes_at: closing,
               updated_at: now.toISOString(),
@@ -706,6 +703,7 @@
           .update(payload)
           .eq("id", t.id)
           .eq("status", t.status)
+          .eq("is_published", t.is_published)
           .select("id");
         if (error?.code === "23514" &&
             /cupo|capacity/i.test(`${error.message || ""} ${error.details || ""}`)) {
@@ -715,7 +713,7 @@
           throw new Error("No se pudo actualizar la inscripción. Actualizá la vista e intentá nuevamente.");
         await loadTournaments();
         feedback(opening
-          ? "Inscripciones abiertas. El torneo se publicó automáticamente."
+          ? `Inscripciones abiertas. El torneo sigue ${t.is_published ? "publicado" : "oculto"}.`
           : "Inscripciones cerradas correctamente.");
       },
     });
