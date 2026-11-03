@@ -2791,3 +2791,12 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 - **Archivos:** `sql/SQL_68_ELIMINATORIAS_PARTIDOS.sql`, `js/admin-eliminatorias-partidos68.js`, `css/admin-eliminatorias68.css`, `tests/torneos-eliminatorias68.test.js`, `admin/index.html`.
 - **Regla SQL Editor:** SQL 68 es DEFINITIVA y sí corresponde guardar su contenido en el editor si se necesita mantener allí; YA está ejecutada en Supabase y archivada en GitHub, por lo que NO volver a ejecutarla. Las consultas de diagnóstico y las pruebas con ROLLBACK no se guardan.
 - **Laptop:** después del push, actualizar con `git pull --ff-only` en la rama `desarrollo/torneos-20261102`. No se puede actualizar físicamente desde el conector GitHub.
+
+## 03/11/2026 — Parche 69: botones simétricos en eliminatorias (móvil)
+- **Fecha:** 03/11/2026.
+- **Motivo:** captura del Admin en celular: «Cargar resultado» dorado parecía más alto que «Programar» verde, por un margen superior heredado de `.torneos-outline`.
+- **Estado:** IMPLEMENTADO en rama `desarrollo/torneos-20261102`; PENDIENTE comprobación visual del usuario en el teléfono.
+- **Cambio acotado:** CSS de `.bp-ko68-actions > button`; ambos botones tienen 44 px de alto, 100 % del ancho de su columna, margen cero y texto centrado. Se mantienen los dos colores, estados deshabilitados y la distribución responsive.
+- **Sin modificación:** JavaScript, lógica deportiva, programación, resultados, Supabase, turnero, reservas, fechas ni bloqueos.
+- **Prueba:** regresión CSS `tests/torneos-botones69.test.js`; corresponde ejecutar suite completa desde laptop tras `git pull --ff-only`.
+- **Publicación:** solo rama de desarrollo, sin promoción a `main`.
