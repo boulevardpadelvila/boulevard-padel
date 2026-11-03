@@ -200,5 +200,74 @@
     };
   }
 
-  return Object.freeze({ planGroupSizes, buildGroupFixture, evaluateSets, resolveGroupFixture, calculateGroupStandings, compareStats, scoringModeForStage, validRegularSet, validSuperTieBreak });
+  // Parche 66: siete clasificados (dos zonas de 3 + una de 4).
+  // El pase directo se recomienda exclusivamente a un PRIMERO de grupo.
+  // Ante empate absoluto entre primeros, la decisión queda en manos del Admin.
+  function recommendSevenBye(qualified) {
+    if (!Array.isArray(qualified) || qualified.length !== 7 ||
+        new Set(qualified.map(q => q.pairId)).size !== 7 ||
+        qualified.some(q => !q.pairId || !Number.isInteger(q.groupNumber) ||
+          !Number.isInteger(q.rank) || ![q.points,q.setDifference,q.setsFor].every(Number.isFinite))) {
+      throw new Error('Se requieren siete clasificados con posiciones oficiales.');
+    }
+    const leaders = qualified.filter(q => q.rank === 1).sort((a,b) =>
+      compareStats(a,b) || a.groupNumber-b.groupNumber);
+    if (leaders.length !== 3 || new Set(leaders.map(q=>q.groupNumber)).size !== 3) {
+      throw new Error('Faltan los tres primeros de grupo.');
+    }
+    const tied = leaders.filter(q => compareStats(q,leaders[0]) === 0);
+    return {
+      recommendedId: tied.length === 1 ? tied[0].pairId : null,
+      tiedFirstIds: tied.map(q=>q.pairId),
+      unique: tied.length === 1
+    };
+  }
+
+  // No hace desempates deportivos implícitos. groupNumber sólo ordena las
+  // propuestas de cruce cuando hay semillas con estadísticas equivalentes.
+  // Minimiza cruces entre integrantes del mismo grupo y enfrenta semillas
+  // altas con bajas cuando hay una combinación que lo permite.
+  function planSevenKnockout(qualified, directId) {
+    recommendSevenBye(qualified);
+    if (!qualified.some(q=>q.pairId===directId)) {
+      throw new Error('Elegí una pareja clasificada para el pase directo.');
+    }
+    const participants = qualified.filter(q=>q.pairId!==directId).slice().sort((a,b)=>
+      a.rank-b.rank || compareStats(a,b) ||
+      a.groupNumber-b.groupNumber || String(a.pairId).localeCompare(String(b.pairId)));
+    const index = new Map(participants.map((p,i)=>[p.pairId,i]));
+    let best = null;
+    let bestScore = Infinity;
+    function visit(remaining, rounds) {
+      if (remaining.length===0) {
+        const score = rounds.reduce((sum,[a,b]) =>
+          sum + (a.groupNumber===b.groupNumber ? 10000 : 0)
+              + Math.abs(index.get(a.pairId)+index.get(b.pairId)-5)*10,0);
+        const key = rounds.map(([a,b])=>[a.pairId,b.pairId].sort().join(':')).sort().join('|');
+        if (score<bestScore || (score===bestScore && key<(best?.key||'\uffff'))) {
+          bestScore=score;
+          best={key,rounds:rounds.map(([a,b])=>[a.pairId,b.pairId])};
+        }
+        return;
+      }
+      const first=remaining[0];
+      for(let i=1;i<remaining.length;i++) {
+        visit(remaining.filter((_,j)=>j!==0 && j!==i),[...rounds,[first,remaining[i]]]);
+      }
+    }
+    visit(participants,[]);
+    const quarters=best.rounds.sort((a,b)=>Math.min(index.get(a[0]),index.get(a[1]))-
+      Math.min(index.get(b[0]),index.get(b[1])));
+    return {
+      directSemifinalPairId:directId,
+      quarterfinals:quarters,
+      semifinals:[
+        {pair1:directId,pair2:{from:'QF1',outcome:'winner'}},
+        {pair1:{from:'QF2',outcome:'winner'},pair2:{from:'QF3',outcome:'winner'}}
+      ],
+      final:{pair1:{from:'SF1',outcome:'winner'},pair2:{from:'SF2',outcome:'winner'}}
+    };
+  }
+
+  return Object.freeze({ planGroupSizes, buildGroupFixture, evaluateSets, resolveGroupFixture, calculateGroupStandings, compareStats, scoringModeForStage, validRegularSet, validSuperTieBreak, recommendSevenBye, planSevenKnockout });
 });
