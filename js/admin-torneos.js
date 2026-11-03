@@ -415,9 +415,7 @@
       box.append(p);
       return;
     }
-    const heading = document.createElement("h3");
-    heading.textContent = "Torneos registrados";
-    box.append(heading);
+    // El título está en el encabezado del panel; la grilla contiene solo tarjetas.
     for (const t of records) {
       const card = document.createElement("div");
       card.className = "torneos-entry";

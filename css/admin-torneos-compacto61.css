@@ -282,3 +282,36 @@
     font-size: 11px;
   }
 }
+
+/* 03/11/2026 — Ajuste de tres torneos: la grilla no incluye títulos duplicados.
+   Tarjetas equilibradas con botones al pie; conserva 3/2/1 columnas del panel. */
+.admin-torneos #torneos-list {
+  align-items: stretch;
+}
+.admin-torneos #torneos-list > .torneos-entry {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+}
+.admin-torneos #torneos-list > .torneos-entry > p {
+  overflow-wrap: anywhere;
+  line-height: 1.45;
+}
+.admin-torneos #torneos-list > .torneos-entry > .torneos-entry__actions {
+  margin-top: auto;
+  padding-top: 3px;
+  display: flex;
+  flex-wrap: wrap;
+  align-content: end;
+  align-items: stretch;
+  gap: 7px;
+}
+.admin-torneos #torneos-list > .torneos-entry .torneos-entry__button {
+  min-height: 34px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.25;
+}

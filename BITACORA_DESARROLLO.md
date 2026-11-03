@@ -2733,3 +2733,12 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 - La administración desplegable de categorías ocupa también el ancho completo. Los campos Categoría y Modalidad mantienen su distribución.
 - Los IDs y sus controladores originales se conservan. Sin cambios de JavaScript, reglas deportivas, Supabase, reservas ni turnero.
 - Se mantiene el Parche 62 en desarrollo hasta completar las pruebas de los resultados dentro del fixture.
+
+## 03/11/2026 — Parche 64 visual: tres tarjetas de torneos sin espacio desperdiciado
+- **Fecha:** 03/11/2026.
+- **Motivo:** el listado de torneos colocaba un título duplicado como si fuera una celda de la grilla; con tres torneos, el tercero bajaba a otra fila y quedaba espacio vacío.
+- **Estado:** IMPLEMENTADO en rama de desarrollo; PENDIENTE validación visual en navegador.
+- Se elimina exclusivamente el subtítulo creado por JavaScript, porque ya existe el encabezado «Torneos registrados» en HTML.
+- Las tarjetas quedan distribuidas en hasta 3 columnas en escritorio, 2 en pantallas medianas y 1 en celular; acciones alineadas al pie y botones adaptables sin desbordes.
+- **No se modificaron:** llamadas a Supabase, estados de los torneos, acciones de edición/publicación, reservas, resultados ni otros módulos.
+- El ajuste visual de botones de categorías del Parche 63 permanece incluido en esta rama.
