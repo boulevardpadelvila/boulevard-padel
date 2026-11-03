@@ -14,10 +14,10 @@
   panel.hidden = true;
   panel.innerHTML = `
     <div class="bp-results-toolbar">
-      <h2>Resultados y posiciones</h2>
-      <button type="button" class="torneos-outline" id="bp-results-refresh">Actualizar resultados</button>
+      <h2>Tablas de posiciones</h2>
+      <button type="button" class="torneos-outline" id="bp-results-refresh">Actualizar tablas</button>
     </div>
-    <p class="bp-results-description">Cargá los sets de cada partido y consultá las posiciones. Victoria: 3 puntos; derrota: 0.</p>
+    <p class="bp-results-description">Cargá y corregí los marcadores desde cada partido del fixture. Aquí consultás únicamente las posiciones. Victoria: 3 puntos; derrota: 0.</p>
     <p id="bp-results-message" class="bp-results-hint" role="status" aria-live="polite"></p>
     <div id="bp-results-content"></div>`;
   groupsPanel.after(panel);
@@ -182,6 +182,79 @@
     table.append(tbody); wrap.append(table);
     return wrap;
   }
+  /* Parche 62: una única tarjeta por partido. El fixture conserva las acciones
+     de programación; este módulo agrega el botón de resultados y el marcador. */
+  function syncFixtureResultActions(data, pairMap, byResult) {
+    if (!fixtureList || typeof fixtureList.querySelectorAll !== 'function' ||
+        data.tournament.id !== tournamentSelect.value) return;
+    const entries = new Map([...fixtureList.querySelectorAll('.torneos-fixture-entry[data-match-id]')]
+      .map((node) => [node.dataset.matchId, node]));
+    const activeTournament = ['registration_closed','in_progress'].includes(data.tournament.status);
+    const published = Boolean(data.tournament.fixture_published_at);
+    for (const match of data.matches) {
+      const entry = entries.get(match.id);
+      const footer = entry?.querySelector('.torneos-fixture-entry__footer');
+      if (!footer) continue;
+      const groupMatches = data.matches.filter((item) => item.group_id === match.group_id);
+      const result = byResult.get(match.id);
+      const ready = Boolean(participantId(match,1,groupMatches,byResult) &&
+                            participantId(match,2,groupMatches,byResult));
+      // En grupos de cuatro, reemplazar Ganador/Perdedor A1 por la pareja real
+      // solo cuando ambos participantes ya estén resueltos por el servidor.
+      const pairNodes = entry.querySelectorAll('.torneos-fixture-pair');
+      for (const side of [1,2]) {
+        const directId = side === 1 ? match.pair1_id : match.pair2_id;
+        if (directId) continue;
+        const resolvedId = participantId(match,side,groupMatches,byResult);
+        const pair = pairMap.get(resolvedId);
+        if (!pair || !pairNodes[side-1]) continue;
+        const first = element('span', pair.player1_name);
+        const second = element('span', pair.player2_name);
+        pairNodes[side-1].replaceChildren(first,second);
+      }
+      // El fixture puede redibujarse tras una programación: nunca duplicar.
+      for (const old of footer.querySelectorAll('.torneos-fixture-entry__button--result')) old.remove();
+      if (result || match.match_status !== 'pending') {
+        for (const old of footer.querySelectorAll('.torneos-fixture-entry__actions .torneos-fixture-entry__button:not(.torneos-fixture-entry__button--result)')) old.remove();
+      }
+      let outcome = footer.querySelector('.torneos-fixture-entry__result');
+      if (result) {
+        if (!outcome) {
+          outcome = element('span', '', 'torneos-fixture-entry__result');
+          footer.append(outcome);
+        }
+        outcome.textContent = `Resultado: ${prettySets(result.sets,result.score_format)}`;
+        outcome.classList.toggle('torneos-fixture-entry__result--review', legacyNeedsReview(result));
+      } else if (match.match_status === 'played') {
+        if (!outcome) {
+          outcome = element('span', '', 'torneos-fixture-entry__result');
+          footer.append(outcome);
+        }
+        outcome.textContent = 'Resultado pendiente de compatibilizar';
+        outcome.classList.add('torneos-fixture-entry__result--review');
+      }
+      if (!activeTournament || !published || (!result && match.match_status !== 'pending')) continue;
+      let actions = footer.querySelector('.torneos-fixture-entry__actions');
+      if (!actions) {
+        actions = element('div', '', 'torneos-fixture-entry__actions');
+        footer.append(actions);
+      }
+      const button = element('button', result ? 'Corregir resultado' :
+        ready ? 'Cargar resultado' : 'Esperando resultados previos',
+        'torneos-outline torneos-fixture-entry__button torneos-fixture-entry__button--result');
+      button.type = 'button';
+      button.disabled = !ready;
+      button.title = ready ? (result ? 'Modificar marcador con registro de auditoría.' :
+        'Cargar los sets de este partido.') : 'Primero registrá los partidos que determinan las parejas.';
+      button.addEventListener('click', () => {
+        // Evitar actuar con datos obsoletos si Martín cambia de torneo.
+        if (saving || selectedData !== data || tournamentSelect.value !== data.tournament.id) return;
+        openResult(match,groupMatches,pairMap,byResult,result);
+      });
+      actions.append(button);
+    }
+  }
+
   function render(data) {
     content.replaceChildren();
     if (!data.groups.length) {
@@ -190,8 +263,8 @@
     }
     const pairMap = new Map(data.pairs.map((p) => [p.id,p]));
     const byResult = new Map(data.results.map((r) => [r.match_id,r]));
-    const activeTournament = ['registration_closed','in_progress'].includes(data.tournament.status);
     const published = Boolean(data.tournament.fixture_published_at);
+    syncFixtureResultActions(data,pairMap,byResult);
     for (const group of data.groups) {
       const members = data.assignments.filter((a) => a.group_id === group.id)
         .map((a) => a.pair_id);
@@ -199,34 +272,18 @@
         .sort((a,b) => a.round_number-b.round_number || a.match_number-b.match_number);
       const block = element('section','', 'bp-results-group');
       block.append(element('h3',`Grupo ${groupLetter(group.group_number)} · ${members.length} parejas`));
-      if (members.length === 4 && matches.length === 0) {
-        block.append(element('p','Pendiente: generar los cuatro encuentros A1, A2, A3 y A4. No se aplicará el antiguo todos contra todos.','bp-results-hint'));
-      } else if (!matches.length) {
-        block.append(element('p','Todavía no se generaron partidos para este grupo.','bp-results-hint'));
+      if (!matches.length) {
+        block.append(element('p','La tabla aparecerá cuando se generen los partidos del grupo.','bp-results-hint'));
       } else {
-        for (const match of matches) {
-          const result = byResult.get(match.id);
-          const row = element('div','', 'bp-results-match');
-          const main = element('div','', 'bp-results-match-main');
-          const label1 = participantLabel(match,1,matches,byResult,pairMap);
-          const label2 = participantLabel(match,2,matches,byResult,pairMap);
-          main.append(element('div', `${label1} vs. ${label2}`));
-          main.append(element('div',`Jornada ${match.round_number} · ${result ? prettySets(result.sets,result.score_format) : 'Sin resultado'}`,'bp-results-match-meta'));
-          row.append(main);
-          if (legacyNeedsReview(result)) row.append(element('span',
-            'Marcador anterior al nuevo formato: corregir para ajustarlo al reglamento (sin cambiar el ganador si ya hay cruces posteriores).',
-            'bp-results-error'));
-          const ready = participantId(match,1,matches,byResult) && participantId(match,2,matches,byResult);
-          if (result || (activeTournament && published && match.match_status === 'pending')) {
-            const button = element('button',result?'Corregir resultado':ready?'Cargar resultado':'Esperando resultados anteriores','torneos-outline');
-            button.type='button';
-            button.disabled=!activeTournament || !published || !ready;
-            button.addEventListener('click',()=>openResult(match,matches,pairMap,byResult,result));
-            row.append(button);
-          }
-          if (match.match_status !== 'pending' && !result) row.append(element('span','Resultado pendiente de compatibilizar','bp-results-error'));
-          block.append(row);
-        }
+        const oldResults = matches.filter((m) => legacyNeedsReview(byResult.get(m.id)));
+        if (oldResults.length) block.append(element('p',
+          `Hay ${oldResults.length} marcador(es) anterior(es) para revisar desde el fixture.`,
+          'bp-results-hint bp-results-error'));
+        const inconsistent = matches.filter((m) => m.match_status !== 'pending' &&
+          m.match_status !== 'walkover' && !byResult.has(m.id));
+        if (inconsistent.length) block.append(element('p',
+          'Hay un partido disputado sin marcador compatible. Revisá el fixture.',
+          'bp-results-hint bp-results-error'));
       }
       if (members.length===3 && matches.length) {
         try {
@@ -258,7 +315,7 @@
       content.append(block);
     }
     if (!published) setMessage('Publicá el fixture antes de cargar resultados. Las tablas se calculan con los resultados ya registrados.');
-    else setMessage('Los resultados se guardan en Supabase. Ninguna operación aquí programa ni libera canchas.');
+    else setMessage('Cargá o corregí los marcadores desde cada tarjeta del fixture. Estas tablas se actualizan automáticamente.');
   }
   async function load() {
     const id = tournamentSelect.value;
@@ -381,7 +438,7 @@
   });
   refreshButton.addEventListener('click',load);
   tournamentSelect.addEventListener('change',load);
-  const fixtureList=$('torneos-fixture-list');
+  const fixtureList=document.querySelector('.torneos-fixture-list');
   const groupsList=$('torneos-groups-list');
   const observer=new MutationObserver(scheduleLoad);
   if(fixtureList) observer.observe(fixtureList,{childList:true});

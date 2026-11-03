@@ -868,6 +868,7 @@
           );
           const entry = document.createElement("article");
           entry.className = "torneos-fixture-entry";
+          entry.dataset.matchId = match.id;
           entry.append(row);
           const footer = document.createElement("div");
           footer.className = "torneos-fixture-entry__footer";

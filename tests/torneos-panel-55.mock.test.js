@@ -46,14 +46,16 @@ test('panel resultados: cuatro parejas y marcadores legacy compatibles con vista
  ];
  const rows={bp_tournaments:[{id:'t1',name:'Prueba',format:'groups_knockout',status:'registration_closed',fixture_published_at:new Date().toISOString()}],
  bp_tournament_groups:[{id:'g1',group_number:1}],bp_tournament_group_pairs:pairs.map(p=>({group_id:'g1',pair_id:p.id})),bp_tournament_pairs:pairs,bp_tournament_group_matches:matches,bp_tournament_match_results:results};
- const document={getElementById:id=>elements.get(id)||null,createElement:tag=>new Element(tag),body:{append(){} }};
+ const document={getElementById:id=>elements.get(id)||null,querySelector:()=>null,createElement:tag=>new Element(tag),body:{append(){} }};
  const context={document,window:{BPTournamentEngine:engine},supabaseClient:createQueryFactory(rows),MutationObserver:class{observe(){}},setTimeout(){return null;},clearTimeout(){},console};
  vm.runInNewContext(fs.readFileSync(path.resolve(__dirname,'../js/admin-resultados.js'),'utf8'),context);
  // load() se lanza al iniciar y retorna por microtarea.
  await new Promise(resolve=>setImmediate(resolve));
  const rendered=gather(elements.get('bp-results-content')).map(x=>x.textContent).join(' ');
- assert.match(rendered,/a y a2 vs. c y c2/);
- assert.match(rendered,/b y b2 vs. d y d2/);
+ assert.match(rendered,/a y a2/);
+ assert.match(rendered,/b y b2/);
+ assert.doesNotMatch(rendered,/ vs\. /);
+ assert.doesNotMatch(rendered,/Jornada /);
  assert.match(rendered,/Grupo A · 4 parejas/);
  assert.match(rendered,/Grupo completo. Clasifican las tres primeras parejas/);
  assert.ok(!rendered.includes('inconsistentes'));

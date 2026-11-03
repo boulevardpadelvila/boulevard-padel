@@ -1,0 +1,79 @@
+/* Boulevard Pádel · Parche 62: una tarjeta por partido, acciones y marcador juntos.
+   Sólo Admin. No modifica reglas, resultados ni reservas. */
+.admin-torneos .torneos-fixture-date-grid .torneos-fixture-entry {
+  border: 1px solid #b8c9b9;
+  background: #ffffff;
+  box-shadow: 0 2px 8px rgba(12, 66, 44, .06);
+}
+.admin-torneos .torneos-fixture-entry__footer {
+  gap: 8px;
+}
+.admin-torneos .torneos-fixture-entry__actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 106px), 1fr));
+  align-items: stretch;
+  gap: 7px;
+  width: 100%;
+}
+.admin-torneos .torneos-fixture-entry__actions .torneos-fixture-entry__button {
+  min-width: 0;
+  width: 100%;
+  min-height: 39px;
+  padding: 8px 9px;
+  border-radius: 8px;
+  font: 700 11px/1.25 Inter,Arial,sans-serif;
+  white-space: normal;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+.admin-torneos .torneos-fixture-entry__actions .torneos-fixture-entry__button--result:not(:disabled) {
+  color: #163726;
+  background: #d9b65a;
+  border: 1px solid #a78a42;
+  box-shadow: inset 0 -2px 0 rgba(92, 69, 21, .12);
+}
+.admin-torneos .torneos-fixture-entry__actions .torneos-fixture-entry__button--result:not(:disabled):hover,
+.admin-torneos .torneos-fixture-entry__actions .torneos-fixture-entry__button--result:not(:disabled):focus-visible {
+  color: #102d21;
+  background: #eccd73;
+  border-color: #92742d;
+}
+.admin-torneos .torneos-fixture-entry__actions .torneos-fixture-entry__button--result:disabled {
+  color: #5b6258;
+  background: #eeefe9;
+  border: 1px dashed #aab1a6;
+  opacity: 1;
+  cursor: not-allowed;
+}
+.admin-torneos .torneos-fixture-entry__result {
+  display: block;
+  margin: 3px 0 0;
+  padding: 8px 10px;
+  background: #eef7ee;
+  color: #09432f;
+  border: 1px solid #c3dbc4;
+  border-radius: 8px;
+  font-weight: 800;
+  font-size: 12px;
+  line-height: 1.35;
+}
+.admin-torneos .torneos-fixture-entry__result--review {
+  color: #a33524;
+  background: #fff1ee;
+  border-color: #ecbdb4;
+}
+.admin-torneos .bp-results-panel .bp-results-description {
+  margin: 5px 0 12px;
+  color: #526b58;
+  font-size: 12px;
+}
+.admin-torneos .bp-results-panel .bp-results-table-wrap { margin-top: 8px; }
+@media (max-width: 580px) {
+  .admin-torneos .torneos-fixture-date-grid .torneos-fixture-entry__actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .admin-torneos .torneos-fixture-date-grid .torneos-fixture-entry__button--result:last-child:nth-child(3) {
+    grid-column: 1 / -1;
+  }
+}

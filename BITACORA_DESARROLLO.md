@@ -2712,3 +2712,15 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 - Encabezado y resúmenes simplificados; se eliminan textos antiguos que anunciaban funcionalidades ya implementadas. Paleta verde oscuro y dorado; acciones de torneos más legibles.
 - **Alcance:** HTML, CSS y un módulo de presentación JS; sin SQL nueva, sin cambios en RLS, resultados, programación, reservas, pagos ni bloqueos. La funcionalidad de carga de resultado dentro de cada tarjeta de partido sigue como mejora pendiente y separada.
 - Se conservaron los identificadores utilizados por los scripts existentes y se agregaron pruebas estáticas de interfaz; antes de incorporar a `main`, probar edición de torneos, selector, responsive y fixture por fechas.
+
+## 03/11/2026 — Parche 62: resultados integrados en cada partido
+- **Fecha:** 03/11/2026.
+- **Motivo:** simplificar para Martín la carga de resultados, evitar duplicar partidos entre fixture y tablas, y aprovechar el ancho del Admin.
+- **Estado:** CONFIRMADA implementación de código en rama de desarrollo; PENDIENTE verificación visual y funcional final desde Admin y celular antes de pasar a producción.
+- **Fixture:** cada partido conserva Programar, Reprogramar y Postergar cuando corresponde; se agrega Cargar resultado o Corregir resultado en la misma tarjeta. Los botones pendientes de partidos condicionados permanecen deshabilitados hasta resolver los ganadores/perdedores anteriores.
+- **Resultados:** marcador por sets visible en su tarjeta. Después de guardar o corregir se actualizan las posiciones; los encuentros disputados ya no presentan botones de programación activos.
+- **Tablas:** sección inferior «Tablas de posiciones» sin listado ni controles duplicados de partidos; conserva estadísticas, desempates, puntos 3/0, validaciones de sets, súper tie-break y avisos de marcadores anteriores.
+- **Visual:** botones verde oscuro y dorado; grilla responsive. Corrección de la referencia al fixture para refrescar acciones después de programaciones.
+- **Protecciones:** ninguna nueva SQL; no se modifican tablas, RLS, reservas, cupos, turnero, bloqueos ni las RPC existentes. Correcciones siguen auditadas por el servidor.
+- **Pruebas:** simulaciones locales en Node de grupos de tres/cuatro, tabla y acciones sin duplicados superadas; tests estáticos incorporados. Falta revisión funcional visual conectada al Supabase real.
+- **Publicación:** subir inicialmente a rama desarrollo/torneos-20261102. No adelantar main sin la comprobación final.
