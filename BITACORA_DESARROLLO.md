@@ -2724,3 +2724,12 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 - **Protecciones:** ninguna nueva SQL; no se modifican tablas, RLS, reservas, cupos, turnero, bloqueos ni las RPC existentes. Correcciones siguen auditadas por el servidor.
 - **Pruebas:** simulaciones locales en Node de grupos de tres/cuatro, tabla y acciones sin duplicados superadas; tests estáticos incorporados. Falta revisión funcional visual conectada al Supabase real.
 - **Publicación:** subir inicialmente a rama desarrollo/torneos-20261102. No adelantar main sin la comprobación final.
+
+## 03/11/2026 — Parche 63: botones de categorías a ancho completo
+- **Fecha:** 03/11/2026.
+- **Motivo:** en la vista compacta, «+ Nueva categoría» y «Administrar categorías» quedaban limitados a la mitad izquierda del formulario y se veían desproporcionados.
+- **Estado: CÓDIGO APLICADO A RAMA DE DESARROLLO; PENDIENTE DE COMPROBACIÓN VISUAL** en PC y celular.
+- Ambos botones se trasladan a una fila propia que ocupa el ancho completo del formulario «Nuevo torneo», repartido en dos mitades iguales.
+- La administración desplegable de categorías ocupa también el ancho completo. Los campos Categoría y Modalidad mantienen su distribución.
+- Los IDs y sus controladores originales se conservan. Sin cambios de JavaScript, reglas deportivas, Supabase, reservas ni turnero.
+- Se mantiene el Parche 62 en desarrollo hasta completar las pruebas de los resultados dentro del fixture.
