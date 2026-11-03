@@ -2767,3 +2767,14 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 - **PENDIENTE:** verificar ejecución completa de tests Node en laptop, revisión visual móvil y funcional con Martín antes de incorporar la rama a `main`. Pendiente también la eliminación definitiva segura de torneos de prueba con resultados mediante Admin.
 - **Versionado:** commit/push en `desarrollo/torneos-20261102`. Mantener `main` sin cambios hasta validar.
 - **Consultas Supabase:** SQL 65 definitiva, SÍ guardar en SQL Editor si se usa; ya ejecutada y guardada como archivo del repositorio, NO volver a ejecutar sin razón. Las simulaciones con ROLLBACK son diagnósticos y NO se guardan como consultas definitivas.
+ 
+## 03/11/2026 — Parche 67: modal de confirmación de eliminatorias
+- **Fecha:** 03/11/2026.
+- **Motivo:** la confirmación del cuadro empleaba un aviso nativo de Chrome, contrario a la estética acordada del Admin.
+- **Estado:** IMPLEMENTADO en rama de desarrollo; PENDIENTE verificación visual final en navegador y móvil.
+- Se reemplaza `window.confirm` por un `<dialog>` propio, integrado con `admin-save-dialog` y los colores verde y dorado, fondo oscurecido, foco inicial en «Volver», cierre con Escape y botones «Volver»/«Sí, confirmar».
+- Resumen de pase directo y tres cruces con nombres reales. Volver/Escape no guarda. Se valida que torneo, resultados y cruces sigan siendo los mismos antes de ejecutar el guardado.
+- No se modificaron motor deportivo, SQL, resultados persistidos, reservas, bloqueos ni turnero. El cuadro que el usuario ya confirmó sigue guardado.
+- **Pruebas:** verificación sintáctica JS y pruebas de regresión incorporadas; PENDIENTE correr `node --test tests/*.test.js` desde laptop.
+- **Sincronización:** commit/push a `desarrollo/torneos-20261102`; laptop requiere `git pull --ff-only`.
+

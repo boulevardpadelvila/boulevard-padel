@@ -71,3 +71,41 @@
  .admin-torneos .bp-ko-actions{align-items:stretch;flex-direction:column;}
  .admin-torneos .bp-ko-save{width:100%;}
 }
+/* 03/11/2026 · Parche 67: confirmación personalizada, verde y dorado. */
+.bp-ko-confirm-dialog {
+  width: min(540px, calc(100vw - 28px));
+  max-width: calc(100vw - 28px);
+  max-height: min(86dvh, 740px);
+  overflow-y: auto;
+  border-top: 4px solid #bd9b4e;
+}
+.bp-ko-confirm-dialog .admin-save-dialog__body {padding:25px 27px 23px;}
+.bp-ko-confirm-dialog .admin-save-dialog__icon {
+  width:56px;height:56px;font-size:25px;background:#edf6eb;color:#134631;margin-bottom:13px;
+}
+.bp-ko-confirm-dialog h2 {font-size:27px;color:#0a402e;margin-bottom:8px;}
+.bp-ko-confirm-dialog #bp-ko-confirm-description {color:#506755;}
+.bp-ko-confirm-summary {
+  margin-top:13px;padding:15px;text-align:left;background:#f6f9f2;
+  border:1px solid #d3dfcb;border-radius:10px;
+}
+.bp-ko-confirm-summary > strong {display:block;color:#10442f;font-size:13px;margin-bottom:6px;}
+.bp-ko-confirm-summary #bp-ko-confirm-bye {
+  color:#125238;font-size:14px;font-weight:800;margin:0 0 13px;overflow-wrap:anywhere;
+}
+.bp-ko-confirm-summary ol {margin:4px 0 0 20px;padding:0;color:#284d36;font-size:12px;line-height:1.55;}
+.bp-ko-confirm-summary li {margin-bottom:5px;overflow-wrap:anywhere;}
+.bp-ko-confirm-dialog .admin-save-dialog__actions .primary {
+  color:#fff;background:#095138;border:1px solid #095138;
+}
+.bp-ko-confirm-dialog .admin-save-dialog__actions .primary:hover {background:#0d6847;}
+.bp-ko-confirm-dialog .admin-save-dialog__actions button:focus-visible {
+  outline:3px solid #b69443;outline-offset:2px;
+}
+@media (max-width:480px) {
+ .bp-ko-confirm-dialog .admin-save-dialog__body {padding:22px 17px;}
+ .bp-ko-confirm-dialog h2 {font-size:24px;}
+ .bp-ko-confirm-summary {padding:11px;}
+ .bp-ko-confirm-dialog .admin-save-dialog__actions {grid-template-columns:repeat(2,minmax(0,1fr));}
+ .bp-ko-confirm-dialog .admin-save-dialog__actions button {padding:8px 6px;font-size:12px!important;}
+}

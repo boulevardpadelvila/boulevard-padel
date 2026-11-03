@@ -17,6 +17,46 @@ const letter=n=>String.fromCharCode(64+Number(n));
 const name=id=>{const p=model?.pairMap.get(id);return p?p.player1_name+' y '+p.player2_name:'Pareja no disponible';};
 function el(tag,value,cls){const n=document.createElement(tag);if(cls)n.className=cls;if(value!==null&&value!==undefined)n.textContent=String(value);return n;}
 function notify(s,kind){message.textContent=s;message.className='bp-ko-message'+(kind?' bp-ko-message--'+kind:'');}
+/* Parche 67: confirmación personalizada sin avisos nativos del navegador. */
+const koConfirmDialog=document.createElement('dialog');
+koConfirmDialog.id='bp-ko-confirm-dialog';
+koConfirmDialog.className='admin-save-dialog bp-ko-confirm-dialog';
+koConfirmDialog.setAttribute('aria-labelledby','bp-ko-confirm-title');
+koConfirmDialog.setAttribute('aria-describedby','bp-ko-confirm-description');
+koConfirmDialog.innerHTML='<div class="admin-save-dialog__body">'
+ +'<span class="admin-save-dialog__icon" aria-hidden="true">🏆</span>'
+ +'<h2 id="bp-ko-confirm-title">Confirmar eliminatorias</h2>'
+ +'<p id="bp-ko-confirm-description">Revisá el pase directo y los tres cruces antes de guardar el cuadro.</p>'
+ +'<div class="bp-ko-confirm-summary"><strong>Pase directo a semifinales</strong><p id="bp-ko-confirm-bye"></p>'
+ +'<strong>Cuartos de final</strong><ol id="bp-ko-confirm-matches"></ol></div>'
+ +'<p class="admin-save-dialog__hint">Se guardará el cuadro deportivo. No se programarán partidos ni se bloquearán horarios de cancha.</p>'
+ +'<div class="admin-save-dialog__actions">'
+ +'<button type="button" class="secondary" id="bp-ko-confirm-back">Volver</button>'
+ +'<button type="button" class="primary" id="bp-ko-confirm-accept">Sí, confirmar</button>'
+ +'</div></div>';
+document.body.append(koConfirmDialog);
+const koConfirmBack=$('bp-ko-confirm-back'),koConfirmAccept=$('bp-ko-confirm-accept');
+koConfirmBack.addEventListener('click',()=>koConfirmDialog.close('cancelled'));
+koConfirmAccept.addEventListener('click',()=>koConfirmDialog.close('confirmed'));
+function askKnockoutConfirmation(bye,matchups) {
+  if(koConfirmDialog.open)return Promise.resolve(false);
+  $('bp-ko-confirm-bye').textContent=name(bye);
+  const list=$('bp-ko-confirm-matches');
+  list.replaceChildren();
+  matchups.forEach(([a,b],i)=>{
+    list.append(el('li','Cuartos '+(i+1)+': '+name(a)+' vs. '+name(b)));
+  });
+  koConfirmDialog.returnValue='';
+  return new Promise(resolve=>{
+    koConfirmDialog.addEventListener('close',()=>{
+      resolve(koConfirmDialog.returnValue==='confirmed');
+    },{once:true});
+    koConfirmDialog.showModal();
+    // Foco inicial en la opción segura.
+    koConfirmBack.focus();
+  });
+}
+
 function standings(members,matches,allResults){
  const byId=new Map(allResults.map(r=>[r.match_id,r]));
  const fixture=matches.slice().sort((a,b)=>a.round_number-b.round_number||a.match_number-b.match_number);
@@ -142,8 +182,11 @@ function render(){
  save.type='button';save.disabled=busy||unchanged;
  save.addEventListener('click',async()=>{
    if(busy||!model||!valid(quarters,direct,model.qualified))return;
-   const tournament=model.id,bye=direct,pairs=quarters.map(x=>x.slice()),revision=model.revision;
-   if(!window.confirm('¿Confirmar el pase directo y estos tres cruces? No se bloquearán horarios de cancha.'))return;
+   const snapshot=model,tournament=model.id,bye=direct,pairs=quarters.map(x=>x.slice()),revision=model.revision;
+   if(!await askKnockoutConfirmation(bye,pairs))return;
+   // Evitar persistir un cuadro obsoleto si la vista se actualizó durante la confirmación.
+   if(busy||model!==snapshot||tournament!==select.value||direct!==bye||
+      JSON.stringify(quarters)!==JSON.stringify(pairs)||model.revision!==revision)return;
    busy=true;save.disabled=true;notify('Guardando cuadro…');
    try {
      const {error}=await supabaseClient.from('bp_tournament_knockout_brackets').upsert({
