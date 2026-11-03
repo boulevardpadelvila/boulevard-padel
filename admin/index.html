@@ -24,6 +24,7 @@
     <link rel="stylesheet" href="../css/admin-ux57.css" />
     <link rel="stylesheet" href="../css/admin-grilla58.css" />
     <link rel="stylesheet" href="../css/admin-fechas60.css" />
+    <link rel="stylesheet" href="../css/admin-torneos-compacto61.css" />
   </head>
   <body>
     <main class="admin-shell">
@@ -1016,7 +1017,7 @@
               </p>
             </div>
             <span class="torneos-preview"
-              >Gestión inicial · Torneos en borrador</span
+              >Panel de gestión · Torneos</span
             >
           </header>
           <div class="torneos-overview" aria-label="Resumen de torneos">
@@ -1031,10 +1032,21 @@
               ><small>Del torneo seleccionado</small>
             </article>
             <article class="torneos-stat">
-              <span>Partidos programados</span><strong>—</strong
-              ><small>Sin conexión a datos</small>
+              <span>Tu organización</span><strong>3 pasos</strong
+              ><small>Torneo · Parejas · Partidos</small>
             </article>
           </div>
+          <section class="torneos-panel torneos-library" aria-labelledby="torneos-library-title">
+            <div class="torneos-panel__heading">
+              <div>
+                <p class="torneos-library__eyebrow">ELEGÍ TU COMPETENCIA</p>
+                <h2 id="torneos-library-title">Torneos registrados</h2>
+                <p>Consultá su estado, editá los datos y administrá sus inscripciones.</p>
+              </div>
+              <span class="torneos-library__legend">Hasta 3 tarjetas por fila</span>
+            </div>
+            <div id="torneos-list" aria-live="polite"></div>
+          </section>
           <div class="torneos-layout">
             <section
               class="torneos-panel torneos-create"
@@ -1045,8 +1057,12 @@
                   <h2 id="torneo-create-title">Nuevo torneo</h2>
                   <p>Datos básicos para organizar una competencia.</p>
                 </div>
-                <span class="torneos-step">01</span>
+                <div class="torneos-create__tools">
+                  <span class="torneos-step">01</span>
+                  <button type="button" id="torneos-create-toggle" class="torneos-create__toggle" aria-controls="torneos-create-details" aria-expanded="true">Ocultar formulario</button>
+                </div>
               </div>
+              <div id="torneos-create-details" class="torneos-create-details">
               <div class="torneos-fields">
                 <div class="torneos-field torneos-field--full">
                   <label for="torneo-name">Nombre del torneo</label
@@ -1183,7 +1199,7 @@
                 </div>
               </div>
               <p id="torneo-feedback" role="status" aria-live="polite"></p>
-              <div id="torneos-list" aria-live="polite"></div>
+              </div>
             </section>
             <div class="torneos-side">
               <section
@@ -1243,8 +1259,7 @@
                   ><span>3. Eliminatorias</span>
                 </div>
                 <p class="torneos-hint">
-                  Organizá primero los grupos. El fixture y las eliminatorias se
-                  habilitarán en los siguientes pasos.
+                  Cerrá las inscripciones para sortear los grupos. Después organizá y programá los partidos con libertad.
                 </p>
                 <div id="torneos-groups-panel" class="torneos-groups-panel">
                   <p id="torneos-groups-context" class="torneos-groups-context">
@@ -1313,9 +1328,7 @@
             </form>
           </dialog>
           <p class="torneos-disclaimer">
-            La creación de torneos está activa. Inscripciones, sorteo y fixture
-            estarán disponibles en los próximos pasos. No se modifican reservas
-            ni disponibilidad.
+            Gestioná los torneos desde aquí. Las acciones sobre partidos respetan las reservas y la disponibilidad de la cancha.
           </p>
         </section>
       </section>
@@ -1438,5 +1451,6 @@
     <script src="../js/admin-grupos.js" defer></script>
     <script src="../js/torneos-motor.js" defer></script>
     <script src="../js/admin-resultados.js" defer></script>
+    <script src="../js/admin-torneos-compacto61.js" defer></script>
   </body>
 </html>

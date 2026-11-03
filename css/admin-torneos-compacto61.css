@@ -1,0 +1,244 @@
+/* Boulevard Pádel — Parche 61 · Centro de torneos, compacto y responsive.
+   Solo presentación de Admin. Conserva las clases e IDs de los módulos actuales. */
+.admin-torneos {
+  --bp61-green: #084831;
+  --bp61-deep: #063d2a;
+  --bp61-gold: #b49340;
+  --bp61-ink: #173c2d;
+  --bp61-border: #d9d5bd;
+  --bp61-paper: #fbfcf9;
+  padding-top: 13px;
+  color: var(--bp61-ink);
+}
+.admin-torneos .torneos-heading {
+  padding: 18px 21px;
+  margin-bottom: 11px;
+  border-radius: 15px;
+  border: 1px solid #c9d9c9;
+  background: linear-gradient(112deg, #edf4ed 0%, #fcfcf7 62%, #f6efdf 100%);
+  align-items: center;
+}
+.admin-torneos .torneos-heading .eyebrow { color: #56745d; font-size: 10px; letter-spacing: .13em; }
+.admin-torneos .torneos-heading h1 { color: var(--bp61-deep); font-size: clamp(27px, 3vw, 36px); line-height: 1.05; }
+.admin-torneos .torneos-heading > div > p:last-child { margin-top: 4px; color: #4d6255; }
+.admin-torneos .torneos-preview { background: var(--bp61-deep); color: #f6ebc7; border: 1px solid #a58d51; padding: 7px 12px; }
+.admin-torneos .torneos-overview { gap: 11px; margin-bottom: 12px; }
+.admin-torneos .torneos-stat {
+  position: relative;
+  min-height: 78px;
+  border: 1px solid #d3dfd4;
+  border-radius: 12px;
+  padding: 12px 16px;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(12, 64, 40, .035);
+}
+.admin-torneos .torneos-stat::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 15px; bottom: 15px;
+  width: 3px; border-radius: 3px; background: var(--bp61-gold);
+}
+.admin-torneos .torneos-stat > span { color: #53675a; font-size: 11px; }
+.admin-torneos .torneos-stat > strong { color: var(--bp61-deep); margin-top: 1px; font-size: 28px; line-height: 1.1; }
+.admin-torneos .torneos-stat > small { color: #65776a; font-size: 10px; margin-top: 2px; }
+.admin-torneos .torneos-stat:last-child > strong { font: 800 23px/1.2 "Barlow Condensed", sans-serif; }
+
+.admin-torneos .torneos-panel {
+  border-color: var(--bp61-border);
+  border-radius: 14px;
+  padding: 17px;
+  background: #fff;
+  box-shadow: 0 3px 15px rgba(19, 54, 33, .045);
+}
+.admin-torneos .torneos-panel__heading { margin-bottom: 12px; gap: 10px; align-items: center; }
+.admin-torneos .torneos-panel__heading h2 { font-size: 23px; line-height: 1.1; color: var(--bp61-deep); }
+.admin-torneos .torneos-panel__heading p { margin-top: 3px; color: #5c6d60; font-size: 12px; }
+.admin-torneos .torneos-step { border-color: #dac48a; font-size: 11px; background: #faf1d9; color: #58471c; }
+
+.admin-torneos .torneos-library { margin-bottom: 12px; border-top: 3px solid var(--bp61-gold); }
+.admin-torneos .torneos-library__eyebrow {
+  margin: 0 0 4px !important;
+  color: #8d7234 !important;
+  font-size: 10px !important;
+  font-weight: 800;
+  letter-spacing: .13em;
+}
+.admin-torneos .torneos-library__legend {
+  flex: 0 0 auto;
+  padding: 6px 9px;
+  border-radius: 999px;
+  background: #f5f0df;
+  color: #72602f;
+  font-size: 10px;
+  font-weight: 700;
+}
+.admin-torneos #torneos-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 11px;
+  align-items: start;
+}
+.admin-torneos #torneos-list > p { grid-column: 1 / -1; margin: 0; }
+.admin-torneos #torneos-list .torneos-entry {
+  min-width: 0;
+  margin: 0;
+  padding: 13px 14px;
+  border: 1px solid #d4dfd2;
+  border-top: 3px solid #b79a4c;
+  border-radius: 11px;
+  background: linear-gradient(180deg, #fcfefa, #fff 75%);
+}
+.admin-torneos #torneos-list .torneos-entry > strong {
+  display: block;
+  color: #123f2e;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+.admin-torneos #torneos-list .torneos-entry > p { margin: 6px 0 10px; line-height: 1.4; font-size: 11px; color: #526658; }
+.admin-torneos #torneos-list .torneos-entry__actions { gap: 6px; align-items: stretch; }
+.admin-torneos #torneos-list .torneos-entry__button {
+  padding: 7px 9px;
+  border: 1px solid #c2d3c2;
+  border-radius: 7px;
+  background: #eaf2e9;
+  color: #12452f;
+  font-size: 11px;
+  font-weight: 750;
+}
+.admin-torneos #torneos-list .torneos-entry__button:not(:disabled):hover { background: #dbeadd; border-color: #7fa282; }
+.admin-torneos #torneos-list .torneos-entry__button--danger {
+  color: #9c3430;
+  background: #fdf1ee;
+  border-color: #ead0ca;
+}
+
+.admin-torneos .torneos-layout {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 12px;
+  align-items: start;
+}
+.admin-torneos .torneos-layout > .torneos-create,
+.admin-torneos .torneos-side > .torneos-panel { grid-column: 1 / -1; }
+.admin-torneos .torneos-side { display: contents; }
+.admin-torneos .torneos-create {
+  border-left: 4px solid var(--bp61-gold);
+  background: #fffefb;
+}
+.admin-torneos .torneos-create__tools { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.admin-torneos .torneos-create__toggle {
+  appearance: none;
+  padding: 9px 14px;
+  border: 1px solid #ae8e45;
+  border-radius: 9px;
+  background: var(--bp61-deep);
+  color: white;
+  font: 800 12px/1.3 Inter, Arial, sans-serif;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.admin-torneos .torneos-create__toggle:hover { background: #0b5d42; }
+.admin-torneos .torneos-create__toggle:focus-visible { outline: 3px solid var(--bp61-gold); outline-offset: 2px; }
+.admin-torneos .torneos-create-details[hidden] { display: none !important; }
+.admin-torneos .torneos-create-details:not([hidden]) { padding-top: 12px; border-top: 1px solid #e6e2d5; }
+.admin-torneos .torneos-fields { gap: 11px; }
+.admin-torneos .torneos-panel__bottom { margin-top: 13px; padding-top: 12px; }
+.admin-torneos .torneos-field label { color: #1d4935; }
+
+.admin-torneos #torneos-pairs-tournament,
+.admin-torneos #torneos-groups-tournament {
+  display: block;
+  width: min(100%, 390px);
+  max-width: 100%;
+  height: 42px;
+  min-height: 42px;
+  padding: 7px 36px 7px 12px;
+  font-size: 13px;
+  font-weight: 650;
+  color: #123f2d;
+  border: 1px solid #aabbac;
+  border-radius: 9px;
+  background-color: #fbfcf8;
+  text-overflow: ellipsis;
+}
+.admin-torneos #torneos-pairs-tournament:focus-visible,
+.admin-torneos #torneos-groups-tournament:focus-visible { outline: 3px solid #cfb56f; outline-offset: 2px; }
+.admin-torneos #torneos-pairs-list {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  align-items: start;
+}
+.admin-torneos #torneos-pairs-list .torneos-pair-entry {
+  padding: 12px;
+  border: 1px solid #d8e0d3;
+  border-left: 3px solid #b99d55;
+  border-radius: 10px;
+  background: #fcfdf9;
+}
+.admin-torneos #torneos-pairs-list .torneos-pair-entry strong { color: #103f2c; line-height: 1.35; }
+.admin-torneos #torneos-pairs-list .torneos-pair-entry p { font-size: 11px; }
+.admin-torneos #torneos-pairs-add:not(:disabled) {
+  display: inline-flex;
+  width: auto;
+  min-width: 168px;
+  max-width: 100%;
+  justify-content: center;
+  align-items: center;
+  margin-top: 12px;
+  border-color: #a2863a;
+  background: #b59a4b;
+  color: #153726;
+}
+.admin-torneos #torneos-pairs-add:not(:disabled):hover { background: #c4aa5d; }
+.admin-torneos #torneos-pairs-add:disabled { width: auto; max-width: 100%; }
+.admin-torneos #torneos-groups-list {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 11px;
+}
+.admin-torneos .torneos-groups-panel { margin-top: 10px; }
+.admin-torneos .torneos-fixture-panel { margin-top: 17px; }
+.admin-torneos .torneos-fixture-date-grid { gap: 9px; }
+.admin-torneos .torneos-fixture-entry__actions { gap: 6px; }
+.admin-torneos .torneos-fixture-entry__button { border-radius: 7px; }
+.admin-torneos .torneos-fixture-entry__button--postpone:not(:disabled) {
+  color: #503e16;
+  background: #f4e7be;
+  border-color: #c9ae64;
+}
+
+@media (min-width: 1180px) {
+  .admin-torneos .torneos-layout:has(.torneos-create-details:not([hidden])) > .torneos-create {
+    grid-column: span 5;
+  }
+  .admin-torneos .torneos-layout:has(.torneos-create-details:not([hidden])) > .torneos-side > .torneos-panel:first-child {
+    grid-column: span 7;
+  }
+  .admin-torneos .torneos-layout:has(.torneos-create-details:not([hidden])) > .torneos-side > .torneos-panel:nth-child(2) {
+    grid-column: 1 / -1;
+  }
+}
+@media (max-width: 1180px) {
+  .admin-torneos #torneos-list,
+  .admin-torneos #torneos-pairs-list,
+  .admin-torneos #torneos-groups-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .admin-torneos .torneos-library__legend { display: none; }
+}
+@media (max-width: 760px) {
+  .admin-torneos .torneos-heading { padding: 15px; }
+  .admin-torneos .torneos-overview { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
+  .admin-torneos .torneos-stat { padding: 10px 12px; }
+  .admin-torneos .torneos-stat:last-child { grid-column: 1 / -1; }
+  .admin-torneos .torneos-panel { padding: 13px; }
+  .admin-torneos #torneos-list,
+  .admin-torneos #torneos-pairs-list,
+  .admin-torneos #torneos-groups-list { grid-template-columns: minmax(0, 1fr); }
+  .admin-torneos .torneos-create__tools { gap: 6px; }
+  .admin-torneos .torneos-create__toggle { padding: 8px 10px; }
+}
+@media (max-width: 430px) {
+  .admin-torneos .torneos-overview { grid-template-columns: 1fr; }
+  .admin-torneos .torneos-stat:last-child { grid-column: auto; }
+  .admin-torneos .torneos-heading .torneos-preview { display: none; }
+  .admin-torneos .torneos-fields { grid-template-columns: 1fr; }
+  .admin-torneos .torneos-fields .torneos-field { grid-column: auto; }
+}

@@ -2701,3 +2701,14 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 - Conservar las protecciones, resultados, reservas e historial existentes.
 - Parches 59 y 60: instalación local confirmada por el usuario.
 - SQL 63 y 64: ejecución exitosa informada por el usuario. Verificada directamente la presencia del trigger de SQL 63; verificación funcional final pendiente.
+
+
+## 03/11/2026 — Parche 61: centro de torneos compacto (rama de desarrollo)
+- **Fecha:** 03/11/2026.
+- **Motivo:** simplificar para Martín la vista de Torneos, reducir desplazamiento, mejorar la lectura y aprovechar hasta tres columnas.
+- **Estado: CONFIRMADA** la implementación visual en la rama `desarrollo/torneos-20261102`; **PENDIENTE DE VERIFICAR** la apariencia y el uso del Admin local en navegador y dispositivos móviles.
+- Se separa la lista de torneos en tarjetas compactas, se minimiza el formulario de creación hasta necesitarlo y se expande automáticamente al editar un torneo.
+- Listado de torneos, parejas y grupos: hasta tres columnas en pantallas amplias, dos en medianas y una en móviles. Los selectores de torneo son más pequeños y conservan su funcionamiento.
+- Encabezado y resúmenes simplificados; se eliminan textos antiguos que anunciaban funcionalidades ya implementadas. Paleta verde oscuro y dorado; acciones de torneos más legibles.
+- **Alcance:** HTML, CSS y un módulo de presentación JS; sin SQL nueva, sin cambios en RLS, resultados, programación, reservas, pagos ni bloqueos. La funcionalidad de carga de resultado dentro de cada tarjeta de partido sigue como mejora pendiente y separada.
+- Se conservaron los identificadores utilizados por los scripts existentes y se agregaron pruebas estáticas de interfaz; antes de incorporar a `main`, probar edición de torneos, selector, responsive y fixture por fechas.
