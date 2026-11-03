@@ -2800,3 +2800,15 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 - **Sin modificación:** JavaScript, lógica deportiva, programación, resultados, Supabase, turnero, reservas, fechas ni bloqueos.
 - **Prueba:** regresión CSS `tests/torneos-botones69.test.js`; corresponde ejecutar suite completa desde laptop tras `git pull --ff-only`.
 - **Publicación:** solo rama de desarrollo, sin promoción a `main`.
+
+## 03/11/2026 — Publicación en producción para revisión de Martín (parches 62–69)
+- **Fecha:** 03/11/2026.
+- **Motivo:** el usuario finalizó satisfactoriamente una prueba completa del torneo «Copa Norte Seguros», desde inscripción y grupos hasta los resultados de cuartos, semifinales y final. Solicita que Martín vea toda la gestión desde el Admin oficial y pausar después de publicar.
+- **Estado CONFIRMADA — usuario:** seis encuentros de eliminatorias con resultados guardados y final disputada; el Admin muestra pareja campeona y subcampeona. Quedan pendientes observaciones de Martín y una nueva ronda de ajustes.
+- **Estado CONFIRMADA — revisión previa:** rama `desarrollo/torneos-20261102` adelanta a `main` por 8 commits sin divergencia. Último despliegue de desarrollo exitoso. Verificados los módulos y hojas CSS del Admin, sintaxis JS del nuevo módulo y que no emplea `window.confirm`.
+- **Estado CONFIRMADA — base real (solo lectura):** 100 reservas (57 vigentes), 4 bloqueos independientes y 10 bloqueos de partidos de grupos activos; sin bloqueos de eliminatorias activos. Los hashes de reservas y bloqueos independientes coinciden con las verificaciones anteriores. Hay un cuadro de eliminatorias con los 6 resultados. NO ejecutar nuevas SQL ni modificar datos durante esta publicación.
+- **Decisión:** publicar por avance rápido (fast-forward) la rama de desarrollo en `main` y verificar Cloudflare Pages. Mantener la rama de desarrollo por ahora para revisar con Martín; se puede eliminar posteriormente al cerrar la etapa de pruebas.
+- **Estado de pruebas:** verificación sintáctica, pruebas de regresión parciales y flujo SQL transaccional realizados en etapas anteriores. Batería completa `node --test tests/*.test.js` pendiente en laptop; pruebas manuales integrales de usuario completadas.
+- **Pendientes funcionales no incluidos en esta publicación:** resultados y posiciones públicos, eliminar torneos de prueba completos desde Admin, tercer puesto opcional y cierre automático por resultado final. No confundir la puesta en producción del Admin con la finalización definitiva del módulo de torneos.
+- **Laptop:** después del despliegue, ejecutar `git status`, `git pull --ff-only`, `node --test tests/*.test.js`. El equipo local no se sincroniza automáticamente por actualizar GitHub.
+- **Supabase SQL Editor:** ninguna SQL nueva por esta publicación. No es necesario ejecutar ni guardar consultas de diagnóstico.
