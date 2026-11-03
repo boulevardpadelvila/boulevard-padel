@@ -1,0 +1,117 @@
+/* Boulevard Pádel · Parche 68. Eliminatorias: tarjetas y modales propios. */
+.admin-torneos .bp-ko68-panel {
+ border:1px solid #cedbc7;border-top:3px solid #be9e4d;background:#fffefb;margin-top:16px;
+}
+.admin-torneos .bp-ko68-panel[hidden], .bp-ko68-dialog [hidden] {display:none!important;}
+.admin-torneos .bp-ko68-stage {margin:15px 0 21px;}
+.admin-torneos .bp-ko68-stage > h3 {
+ color:#104630;font-size:18px;margin:10px 0 11px;font-weight:800;
+ border-bottom:1px solid #dce6d7;padding-bottom:7px;
+}
+.admin-torneos .bp-ko68-grid {
+ display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px;
+}
+.admin-torneos .bp-ko68-match {
+ min-width:0;border:1px solid #cadccd;border-top:3px solid #0b5b3c;
+ border-radius:10px;padding:12px;background:#fff;
+ box-shadow:0 2px 8px rgba(20,70,42,.04);
+ display:flex;flex-direction:column;
+}
+.admin-torneos .bp-ko68-match > strong {color:#0c4832;font-size:13px;}
+.admin-torneos .bp-ko68-rivals {
+ display:grid;gap:4px;text-align:center;
+ min-height:87px;justify-content:center;align-content:center;
+ margin:10px 0;color:#214631;font-weight:700;font-size:13px;
+ overflow-wrap:anywhere;
+}
+.admin-torneos .bp-ko68-versus {font-size:10px;color:#ae8939;letter-spacing:.12em;font-weight:900;}
+.admin-torneos .bp-ko68-date {
+ font-size:12px;color:#557061;background:#f4f8f2;
+ border:1px solid #e0e9dc;padding:8px;border-radius:7px;margin:0 0 9px;
+}
+.admin-torneos .bp-ko68-result {
+ background:#e9f3e7;color:#08402b;border-radius:7px;
+ padding:7px 9px;font-weight:800;font-size:12px;margin:0 0 7px;
+}
+.admin-torneos .bp-ko68-winner {font-size:12px;font-weight:700;color:#225836;margin:0 0 11px;}
+.admin-torneos .bp-ko68-actions {
+ display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+ gap:6px;margin-top:auto;
+}
+.admin-torneos .bp-ko68-actions button {
+ min-width:0;width:100%;min-height:39px;border-radius:8px;padding:8px 6px;
+ font:800 11px/1.3 Inter,Arial,sans-serif;
+ white-space:normal;overflow-wrap:anywhere;
+}
+.admin-torneos .bp-ko68-score-button {
+ color:#123b29;background:#d8b65a;border:1px solid #ac903c;cursor:pointer;
+}
+.admin-torneos .bp-ko68-score-button:hover:not(:disabled) {background:#eccb72;}
+.admin-torneos .bp-ko68-score-button:disabled {
+ background:#e9ece7;color:#697469;border:1px dashed #b0bdae;cursor:not-allowed;
+}
+.admin-torneos .bp-ko68-postpone {color:#8b4325;border-color:#ddb99e;}
+.admin-torneos .bp-ko68-champion {
+ border:2px solid #bca254;border-radius:14px;background:#f9f5e7;
+ text-align:center;padding:22px;margin-top:15px;color:#0d4830;
+}
+.admin-torneos .bp-ko68-champion > span {color:#94712a;font-weight:900;letter-spacing:.12em;font-size:12px;}
+.admin-torneos .bp-ko68-champion h3 {font-size:26px;margin:7px 0;color:#0c4b35;}
+.admin-torneos .bp-ko68-champion p {font-size:13px;margin:4px 0;}
+.bp-ko68-dialog {
+ width:min(500px,calc(100vw - 26px));
+ max-height:min(88dvh,780px);
+ overflow-y:auto;
+ border-top:4px solid #b49643;
+}
+.bp-ko68-dialog .admin-save-dialog__body {padding:25px 24px;}
+.bp-ko68-dialog .admin-save-dialog__icon {
+ font-size:23px;width:53px;height:53px;
+ background:#eaf4e9;color:#0c563c;margin-bottom:12px;
+}
+.bp-ko68-dialog h2 {color:#0a462f;font-size:26px;}
+.bp-ko68-dialog .bp-ko68-form-grid {
+ display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;
+ margin:11px 0;text-align:left;
+}
+.bp-ko68-dialog .bp-ko68-form-grid > label:last-child {grid-column:1/-1;}
+.bp-ko68-dialog label {
+ display:block;color:#174c33;font-size:12px;font-weight:800;
+ text-align:left;line-height:1.45;
+}
+.bp-ko68-dialog input,.bp-ko68-dialog select,.bp-ko68-dialog textarea {
+ display:block;width:100%;min-width:0;box-sizing:border-box;
+ background:#fff;color:#173f2d;border:1px solid #b9caba;border-radius:8px;
+ min-height:40px;padding:8px 9px;font-size:13px;margin-top:5px;
+}
+.bp-ko68-dialog textarea {resize:vertical;}
+.bp-ko68-dialog .bp-ko68-reason {margin-top:11px;}
+.bp-ko68-dialog .bp-ko68-error {
+ font-size:12px;font-weight:700;color:#a7322d;margin:11px 0 0;
+}
+.bp-ko68-dialog .bp-ko68-set-grid {display:grid;gap:9px;margin-top:11px;}
+.bp-ko68-dialog .bp-ko68-set-row {
+ display:grid;grid-template-columns:minmax(0,.7fr) repeat(2,minmax(0,1fr));
+ gap:8px;align-items:center;
+}
+.bp-ko68-dialog .bp-ko68-set-row strong {
+ font-size:12px;color:#104531;text-align:left;
+}
+.bp-ko68-dialog .bp-ko68-set-row input {margin:0;text-align:center;}
+.bp-ko68-dialog .bp-ko68-set-row input:disabled {background:#eef1ec;color:#69766a;}
+.bp-ko68-dialog .admin-save-dialog__actions .primary {
+ background:#0c5138;color:#fff;border-color:#0c5138;
+}
+.bp-ko68-dialog .admin-save-dialog__actions .primary:hover:not(:disabled) {background:#176747;}
+.bp-ko68-dialog .admin-save-dialog__actions button:focus-visible,
+.bp-ko68-dialog input:focus-visible,.bp-ko68-dialog select:focus-visible {
+ outline:3px solid #c2a050;outline-offset:2px;
+}
+@media(max-width:1100px) {
+ .admin-torneos .bp-ko68-grid {grid-template-columns:repeat(2,minmax(0,1fr));}
+}
+@media(max-width:690px) {
+ .admin-torneos .bp-ko68-grid {grid-template-columns:minmax(0,1fr);}
+ .admin-torneos .bp-ko68-rivals {min-height:50px;}
+ .bp-ko68-dialog .admin-save-dialog__body {padding:22px 16px;}
+}
