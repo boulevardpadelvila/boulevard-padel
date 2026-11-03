@@ -1,0 +1,11 @@
+/* Parche 60 · Fixture público agrupado por fechas reales, máximo tres columnas. */
+.public-tournament-fixture__body { container-type:inline-size; }
+.public-tournament-fixture__calendar-block { border:1px solid #d6c698; border-radius:12px; background:#fafaf7; padding:14px; margin:12px 0; }
+.public-tournament-fixture__calendar-heading { font-size:1rem; font-weight:800; color:#00432e; text-transform:capitalize; margin:0 0 12px; }
+.public-tournament-fixture__calendar-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; align-items:start; }
+.public-tournament-fixture__calendar-grid .public-tournament-fixture__match { min-width:0; margin:0; height:100%; border:1px solid #cbd6ca; background:white; border-radius:10px; padding:11px; }
+.public-tournament-fixture__date-meta { font-size:.8rem; font-weight:700; color:#486051; margin:5px 0; }
+.public-tournament-fixture__match-group { font-size:.8rem; font-weight:800; color:#00432e; }
+@container (max-width:999px){.public-tournament-fixture__calendar-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@container (max-width:650px){.public-tournament-fixture__calendar-grid{grid-template-columns:1fr}}
+@supports not (container-type:inline-size){@media(max-width:950px){.public-tournament-fixture__calendar-grid{grid-template-columns:1fr}}}

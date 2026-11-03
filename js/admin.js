@@ -1098,9 +1098,7 @@
         const info = document.createElement("div");
         const title = document.createElement("strong");
         title.textContent = `${new Intl.DateTimeFormat("es-AR", { timeZone: ARGENTINA_TZ, day: "2-digit", month: "2-digit", year: "numeric" }).format(new Date(item.starts_at))} · ${blockTimeLabel(item.starts_at)} a ${blockTimeLabel(item.ends_at)}`;
-        const note = document.createElement("p");
-        note.textContent = item.reason || "Sin motivo registrado";
-        info.append(title, note);
+        info.append(title);
         const cancel = document.createElement("button");
         cancel.className = "secondary";
         cancel.type = "button";
@@ -1167,7 +1165,7 @@
     try {
       const { error } = await supabaseClient.rpc("bp_admin_create_blockout", {
         ...params,
-        p_reason: $("bp-block-reason").value.trim() || null,
+        p_reason: null,
       });
       if (error) throw error;
       blockInvalidatePreview();

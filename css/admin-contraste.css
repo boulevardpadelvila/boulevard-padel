@@ -1,0 +1,238 @@
+/* Boulevard Padel · Parche 56 · contraste del Admin de Torneos.
+   SOLO presentacion. No toca reservas ni la logica de competencia.
+   Se importa al FINAL de las hojas del Admin para no alterar el sitio publico. */
+
+.admin-torneos {
+  --bp-ui-text: #1c2a20;
+  --bp-ui-muted: #425447;
+  --bp-ui-edge: #a7b7a9;
+  --bp-ui-accent: #285a38;
+  color: var(--bp-ui-text);
+}
+
+/* Paneles y ayudas: separar visualmente las secciones del fondo. */
+.admin-torneos .torneos-panel,
+.admin-torneos .torneos-group-card {
+  border-color: var(--bp-ui-edge);
+  background-color: #fff;
+}
+.admin-torneos .torneos-stat {
+  border-color: #b7c6b6;
+  background-color: #f4f7f2;
+}
+.admin-torneos .torneos-stat > span,
+.admin-torneos .torneos-stat > small,
+.admin-torneos .torneos-panel__heading p,
+.admin-torneos .torneos-hint,
+.admin-torneos .torneos-disclaimer,
+.admin-torneos .torneos-group-card h3 span,
+.admin-torneos .torneos-groups-feedback,
+.admin-torneos .torneos-fixture-summary,
+.admin-torneos .torneos-fixture-feedback {
+  color: var(--bp-ui-muted);
+  opacity: 1;
+  font-size: max(12px, .84rem);
+}
+.admin-torneos .torneos-stage,
+.admin-torneos .torneos-preview,
+.admin-torneos .torneos-step {
+  background-color: #e5ece2;
+  border-color: #a4b6a1;
+  color: #2b4c32;
+}
+
+/* Los botones claros ya no se pierden sobre el fondo claro. */
+.admin-torneos .torneos-outline:not(:disabled),
+.bp-results-dialog .torneos-outline:not(:disabled) {
+  background: #dde9db;
+  border: 1px solid #789a79;
+  color: #193e25;
+  min-height: 42px;
+  font-size: 13px;
+  font-weight: 700;
+}
+.admin-torneos .torneos-outline:not(:disabled):hover,
+.bp-results-dialog .torneos-outline:not(:disabled):hover {
+  background: #c6dbc6;
+  border-color: #4c7750;
+}
+.admin-torneos button:disabled,
+.bp-results-dialog button:disabled {
+  opacity: 1;
+  background-color: #edf0ec;
+  border-color: #c6d0c6;
+  color: #647269;
+  cursor: not-allowed;
+}
+.admin-torneos button:focus-visible,
+.admin-torneos input:focus-visible,
+.admin-torneos select:focus-visible,
+.bp-results-dialog button:focus-visible,
+.bp-results-dialog input:focus-visible,
+.bp-results-dialog textarea:focus-visible {
+  outline: 3px solid #27693b;
+  outline-offset: 2px;
+}
+
+/* Grupos y fixture: títulos, nombres y estados con mayor legibilidad. */
+.admin-torneos .torneos-group-card li,
+.admin-torneos .torneos-fixture-match,
+.admin-torneos .torneos-fixture-entry {
+  border-color: #bfcdbd;
+  background: #fff;
+}
+.admin-torneos .torneos-group-card h3,
+.admin-torneos .torneos-fixture-header h3,
+.admin-torneos .torneos-fixture-round h4,
+.admin-torneos .torneos-fixture-group h5 {
+  color: #1a3322;
+  font-size: max(14px, .9rem);
+}
+.admin-torneos .torneos-fixture-round {
+  background: #edf3ec;
+  border: 1px solid #acc0ad;
+}
+.admin-torneos .torneos-fixture-pair {
+  color: #1c3022;
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+.admin-torneos .torneos-fixture-versus {
+  color: #365a3d;
+  font-size: 12px;
+}
+.admin-torneos .torneos-fixture-entry__status,
+.admin-torneos .torneos-fixture-entry__result {
+  color: #354c3a;
+  font-size: 12px;
+}
+.admin-torneos .torneos-fixture-entry__status--scheduled { color: #175a32; }
+.admin-torneos .torneos-fixture-entry__status--postponed { color: #865022; }
+.admin-torneos .torneos-fixture-entry__button {
+  min-height: 38px;
+  font-size: 12.5px;
+}
+
+/* Resultados: destacar datos sin cambiar posiciones ni cálculos. */
+.admin-torneos .bp-results-panel {
+  border: 1px solid #8fa78f;
+  background: #fff;
+}
+.bp-results-panel .bp-results-description {
+  color: #26382b;
+  line-height: 1.55;
+  font-size: .93rem;
+}
+.bp-results-panel .bp-results-group {
+  padding: 16px;
+  border: 1.5px solid #9fb4a0;
+  border-radius: 12px;
+  background: #fff;
+}
+.bp-results-panel .bp-results-group h3 {
+  color: #183d27;
+  font-size: 1.1rem;
+  line-height: 1.3;
+  font-weight: 800;
+  margin-bottom: 10px;
+}
+.bp-results-panel .bp-results-match {
+  gap: 10px;
+  padding: 12px 7px;
+  border-bottom: 1px solid #bfcdbd;
+}
+.bp-results-panel .bp-results-match-main {
+  color: #1d2a20;
+  font-size: 15px;
+  line-height: 1.45;
+  font-weight: 600;
+}
+.bp-results-panel .bp-results-match-meta {
+  color: #415547;
+  opacity: 1;
+  font-size: 13px;
+  font-weight: 500;
+}
+.bp-results-panel .bp-results-match .torneos-outline,
+.bp-results-panel #bp-results-refresh {
+  margin-top: 0;
+}
+.bp-results-panel .bp-results-table {
+  min-width: 620px;
+  color: #1e2e22;
+  border: 1px solid #bccabd;
+  font-variant-numeric: tabular-nums;
+}
+.bp-results-panel .bp-results-table th,
+.bp-results-panel .bp-results-table td {
+  padding: 9px 7px;
+  border-bottom: 1px solid #c8d3c8;
+  color: #1c2b20;
+}
+.bp-results-panel .bp-results-table th {
+  background: #dfeadf;
+  color: #173a22;
+  font-size: 12.5px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.bp-results-panel .bp-results-table tbody tr:nth-child(even) {
+  background: #f1f5ef;
+}
+.bp-results-panel .bp-results-table tbody tr:hover {
+  background: #e7f0e4;
+}
+.bp-results-panel .bp-results-table td:nth-child(2) {
+  font-weight: 600;
+}
+.bp-results-panel .bp-results-hint {
+  font-size: 13px;
+  line-height: 1.55;
+  color: #364b3c;
+  opacity: 1;
+}
+.bp-results-panel .bp-results-error { color: #a32127; font-weight: 700; }
+.bp-results-panel .bp-results-success { color: #176036; font-weight: 700; }
+
+/* Ventana de marcadores: tercer parcial largo y entradas bien delimitadas. */
+.bp-results-dialog {
+  color: #1c2b20;
+  background: #fff;
+}
+.bp-results-dialog h3 { color: #193c27; }
+.bp-results-dialog .bp-results-hint { color: #425547; opacity: 1; line-height: 1.55; }
+.bp-results-dialog .bp-results-set {
+  grid-template-columns: minmax(110px, 1.3fr) minmax(0, 1fr) minmax(0, 1fr);
+  gap: 8px;
+}
+.bp-results-dialog .bp-results-set strong {
+  font-size: 13px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+.bp-results-dialog input,
+.bp-results-dialog textarea {
+  border: 1.5px solid #91a892;
+  border-radius: 8px;
+  background: #fff;
+  color: #192b20;
+}
+.bp-results-dialog input:disabled {
+  opacity: 1;
+  background: #e9eeea;
+  border-color: #c1cdc3;
+  color: #667369;
+}
+.bp-results-dialog .bp-results-error { color: #a32127; font-weight: 700; }
+
+@media (max-width: 600px) {
+  .bp-results-panel .bp-results-group { padding: 10px; }
+  .bp-results-panel .bp-results-match { padding: 12px 4px; }
+  .bp-results-panel .bp-results-match-main { min-width: 0; flex-basis: 100%; }
+  .bp-results-panel .bp-results-match .torneos-outline { width: 100%; }
+  .bp-results-dialog .bp-results-set {
+    grid-template-columns: minmax(92px, 1.25fr) repeat(2, minmax(0, 1fr));
+    gap: 6px;
+  }
+  .bp-results-dialog .bp-results-set strong { font-size: 12px; }
+}

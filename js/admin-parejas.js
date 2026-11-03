@@ -16,6 +16,14 @@
   capacityView.hidden = true;
   addButton.before(capacityView);
   let tournamentLimits = new Map();
+  let tournamentSettings = new Map();
+  function registrationAllowsNewPair(t) {
+    if (!t || t.status !== "registration_open") return false;
+    const now = Date.now();
+    if (t.registration_opens_at && now < Date.parse(t.registration_opens_at)) return false;
+    if (t.registration_closes_at && now >= Date.parse(t.registration_closes_at)) return false;
+    return true;
+  }
   const feedback = (msg) => {
     $("torneos-pairs-feedback").textContent = msg;
   };
@@ -73,6 +81,12 @@
       addButton.disabled = true;
       return;
     }
+    if (!registrationAllowsNewPair(tournamentSettings.get(current))) {
+      capacityView.hidden = false;
+      capacityView.textContent = "Para agregar parejas, primero abrí las inscripciones del torneo.";
+      addButton.disabled = true;
+      return;
+    }
     if (occupied === null) {
       // Hasta recibir los datos del servidor, no habilitar el botón.
       capacityView.hidden = true;
@@ -126,11 +140,12 @@
     const previous = select.value || current;
     const { data, error } = await supabaseClient
       .from("bp_tournaments")
-      .select("id,name,starts_on,max_pairs")
+      .select("id,name,starts_on,max_pairs,status,registration_opens_at,registration_closes_at")
       .order("created_at", { ascending: false })
       .limit(100);
     if (error) throw error;
     tournamentLimits = new Map((data || []).map((t) => [t.id, t.max_pairs]));
+    tournamentSettings = new Map((data || []).map((t) => [t.id, t]));
     select.replaceChildren(new Option("Seleccionar torneo", ""));
     for (const t of data || []) select.add(new Option(t.name, t.id));
     if ((data || []).some((t) => t.id === previous)) select.value = previous;
@@ -175,7 +190,9 @@
     if (!pairs.length) {
       empty(
         "Sin parejas cargadas",
-        "Podés agregarlas manualmente desde este panel.",
+        registrationAllowsNewPair(tournamentSettings.get(current))
+          ? "Podés agregarlas manualmente desde este panel."
+          : "Para agregar parejas, primero abrí las inscripciones del torneo.",
       );
       return;
     }
@@ -242,6 +259,13 @@
       "Guardar pareja",
       async () => {
         const payload = values();
+        // Reconsultar estado antes del INSERT: otro Admin pudo cerrar inscripciones.
+        const { data: latest, error: stateError } = await supabaseClient
+          .from("bp_tournaments")
+          .select("status,registration_opens_at,registration_closes_at")
+          .eq("id", current).maybeSingle();
+        if (stateError || !registrationAllowsNewPair(latest))
+          throw new Error("Para agregar parejas, primero abrí las inscripciones del torneo.");
         const { error } = await supabaseClient
           .from("bp_tournament_pairs")
           .insert({
@@ -354,6 +378,8 @@
     return { player1_name, player2_name, contact_phone };
   }
   function readableError(error) {
+    if (error.code === "23514" && /inscripciones|abiertas/i.test(error.message || ""))
+      return new Error("Para agregar parejas, primero abrí las inscripciones del torneo.");
     if (error.code === "23514" &&
         /cupo|capacity/i.test(`${error.message || ""} ${error.details || ""} ${error.hint || ""}`))
       return new Error("Cupo completo. No se pueden agregar más parejas.");

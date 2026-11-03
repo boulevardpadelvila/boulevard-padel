@@ -1,0 +1,141 @@
+/* Boulevard Pádel — Parche 57: interfaz más compacta y alto contraste.
+   Verde oscuro y dorado, respetando la estética pública; sólo Admin.
+   Carga y validación de marcadores SIN CAMBIOS en este CSS. */
+:root {
+  --bp57-green: #163e2b;
+  --bp57-green-hover: #24563a;
+  --bp57-gold: #c4a35a;
+  --bp57-gold-pale: #f6edd6;
+  --bp57-dark: #18251d;
+}
+
+.admin-torneos h2,
+.admin-torneos h3,
+.admin-torneos .torneos-fixture-header h3,
+.admin-torneos .torneos-fixture-round h4,
+.admin-torneos .torneos-fixture-group h5,
+.bp-results-panel h2,
+.bp-results-panel .bp-results-group h3,
+.bp-results-dialog h3 {
+  color: var(--bp57-green);
+}
+.admin-torneos .torneos-panel,
+.admin-torneos .torneos-group-card,
+.admin-torneos .torneos-fixture-round,
+.bp-results-panel .bp-results-group {
+  border-color: #b7a06f;
+}
+.admin-torneos .torneos-stage,
+.admin-torneos .torneos-stat,
+.admin-torneos .torneos-fixture-round {
+  background: #f5f4ef;
+}
+.admin-torneos .torneos-step,
+.admin-torneos .torneos-preview {
+  color: var(--bp57-green);
+  background: var(--bp57-gold-pale);
+  border: 1px solid var(--bp57-gold);
+}
+.admin-torneos .torneos-outline:not(:disabled),
+.bp-results-dialog .torneos-outline:not(:disabled) {
+  color: #fff;
+  background: var(--bp57-green);
+  border: 1px solid #9b7e39;
+  font-weight: 700;
+}
+.admin-torneos .torneos-outline:not(:disabled):hover,
+.bp-results-dialog .torneos-outline:not(:disabled):hover {
+  color: #fff;
+  background: var(--bp57-green-hover);
+  border-color: var(--bp57-gold);
+}
+.bp-results-panel .bp-results-table {
+  border-color: #c0b18f;
+}
+.bp-results-panel .bp-results-table th {
+  background: var(--bp57-green);
+  color: #fff;
+  border-bottom-color: var(--bp57-gold);
+}
+.bp-results-panel .bp-results-table td {
+  color: var(--bp57-dark);
+}
+.bp-results-panel .bp-results-table tbody tr:nth-child(even) { background: #f8f7f1; }
+.bp-results-panel .bp-results-table th:last-child {
+  background: #a48335;
+  color: #fff;
+  font-weight: 800;
+}
+.bp-results-panel .bp-results-table td:last-child {
+  color: var(--bp57-green);
+  background: #f8f0db;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.bp-results-panel .bp-results-table th:last-child,
+.bp-results-panel .bp-results-table td:last-child {
+  border-left: 2px solid var(--bp57-gold);
+}
+.bp-results-dialog {
+  width: min(94vw, 510px);
+  border: 2px solid #b7a06f;
+}
+.bp-results-dialog h3 { font-weight: 800; }
+.bp-results-dialog .bp-results-hint { color: #365340; }
+.bp-results-dialog #bp-results-sets {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  align-items: start;
+}
+.bp-results-dialog .bp-results-set {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+  padding: 10px;
+  border: 1px solid #b9c4b8;
+  border-radius: 10px;
+  background: #f8faf7;
+  min-width: 0;
+}
+.bp-results-dialog .bp-results-set strong {
+  grid-column: 1/-1;
+  display: block;
+  margin-bottom: 1px;
+  color: var(--bp57-green);
+  font-size: 13px;
+  font-weight: 800;
+}
+.bp-results-dialog .bp-results-set input {
+  width: 100%;
+  min-width: 0;
+  min-height: 40px;
+  padding: 7px;
+  text-align: center;
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+  border-color: #8c9d8b;
+}
+.bp-results-dialog .bp-results-set:nth-child(3) {
+  grid-column: 1/-1;
+  width: min(100%, 240px);
+  border-color: var(--bp57-gold);
+  background: var(--bp57-gold-pale);
+}
+.bp-results-dialog .bp-results-set input:focus-visible {
+  outline: 2px solid var(--bp57-gold);
+  outline-offset: 1px;
+}
+.bp-results-dialog .bp-results-dialog-buttons .primary {
+  background: var(--bp57-green);
+  color: white;
+}
+.bp-results-dialog .bp-results-dialog-buttons .primary:hover {
+  background: var(--bp57-green-hover);
+}
+@media (max-width: 440px) {
+  .bp-results-dialog form { padding: .9rem; gap: .7rem; }
+  .bp-results-dialog #bp-results-sets { gap: 7px; }
+  .bp-results-dialog .bp-results-set { padding: 7px; gap: 5px; }
+  .bp-results-dialog .bp-results-set input { font-size: 14px; padding: 4px; }
+}

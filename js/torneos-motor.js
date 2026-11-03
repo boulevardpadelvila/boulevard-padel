@@ -4,6 +4,9 @@
  * - 4 parejas: 2 cruces iniciales, ganadores vs ganadores y perdedores vs perdedores (4 encuentros), clasifican 3.
  * - Ganar 3 puntos, perder 0. Desempates: puntos, diferencia de sets, sets a favor.
  * No inventar un cuarto desempate: informar empates completos.
+ * - Grupos y eliminatorias anteriores a cuartos: 1-1 -> super tie-break a 10 puntos.
+ * - Cuartos, semifinal y final: 1-1 -> tercer set normal.
+ * - Datos previos a esta regla se muestran en modo legacy; nunca se transforman solos.
  * Los W.O. no se resuelven aquí hasta definir la asignación de sets.
  */
 (function (root, factory) {
@@ -57,10 +60,29 @@
     ];
   }
 
-  // Resultado: {sets: [[6, 4], [3, 6], [6, 2]]}. No se suma por games:
-  // los games solo determinan el ganador de cada set. La validación exacta de
-  // games/tie-break quedará para cuando Martín confirme el formato del partido.
-  function evaluateSets(result) {
+  // Modos explícitos: super_tb (grupos y eliminatorias previas a cuartos),
+  // three_sets (cuartos, semifinal, final) y legacy (solo lectura de registros previos).
+  function scoringModeForStage(stage) {
+    const key = String(stage || '').toLowerCase().replace(/[-\s]/g, '_');
+    if (['group','groups','preliminary','play_in','round_of_64','round_of_32',
+         'round_of_16','round_of_8_preliminary'].includes(key)) return 'super_tb';
+    if (['quarterfinal','quarterfinals','semifinal','semifinals','final'].includes(key)) return 'three_sets';
+    throw new Error('Etapa desconocida: se debe indicar el formato antes de cargar el resultado.');
+  }
+  function validRegularSet(a,b) {
+    if (![a,b].every((n)=>Number.isSafeInteger(n) && n>=0)) return false;
+    const high=Math.max(a,b), low=Math.min(a,b);
+    return (high===6 && low<=4) || (high===7 && (low===5 || low===6));
+  }
+  function validSuperTieBreak(a,b) {
+    if (![a,b].every((n)=>Number.isSafeInteger(n) && n>=0 && n<=99)) return false;
+    const high=Math.max(a,b), low=Math.min(a,b);
+    return (high===10 && low<=8) || (high>10 && high-low===2);
+  }
+  function evaluateSets(result, mode='legacy') {
+    if (!['legacy','super_tb','three_sets'].includes(mode)) {
+      throw new Error('Formato de puntuación desconocido.');
+    }
     if (!result || !Array.isArray(result.sets) || ![2, 3].includes(result.sets.length)) {
       throw new Error("Ingresá 2 o 3 sets para un partido al mejor de tres.");
     }
@@ -73,6 +95,14 @@
       }
       if (side1 === REQUIRED_WINS || side2 === REQUIRED_WINS) {
         throw new Error("No puede haber sets adicionales después de definir el partido.");
+      }
+      if (mode!=='legacy') {
+        const valid = mode==='super_tb' && i===2
+          ? validSuperTieBreak(set[0],set[1])
+          : validRegularSet(set[0],set[1]);
+        if (!valid) throw new Error(i===2 && mode==='super_tb'
+          ? 'Súper tie-break inválido: se gana desde 10 puntos, con 2 de ventaja.'
+          : `Set ${i+1} inválido: solo 6-0 a 6-4, 7-5 o 7-6 (o sus inversos).`);
       }
       if (set[0] > set[1]) side1++;
       else side2++;
@@ -95,7 +125,7 @@
       const previous = matchWithParticipants(source, confirmedResults, byCode);
       const previousResult = confirmedResults[slot.from];
       if (!previousResult || !previous.pair1 || !previous.pair2) return null;
-      const data = evaluateSets(previousResult);
+      const data = evaluateSets(previousResult, previousResult.format || 'legacy');
       const winner = data.winnerSide === 1 ? previous.pair1 : previous.pair2;
       const loser = data.winnerSide === 1 ? previous.pair2 : previous.pair1;
       return slot.outcome === "winner" ? winner : loser;
@@ -133,7 +163,7 @@
       if (!match?.pair1 || !match?.pair2 || !rows.has(match.pair1) || !rows.has(match.pair2) || match.pair1 === match.pair2) {
         throw new Error(`El partido ${code} todavía no tiene dos rivales definidos.`);
       }
-      const outcome = evaluateSets(results[code]);
+      const outcome = evaluateSets(results[code], results[code].format || 'legacy');
       const r1 = rows.get(match.pair1), r2 = rows.get(match.pair2);
       r1.played++; r2.played++;
       r1.setsFor += outcome.side1Sets;
@@ -170,5 +200,5 @@
     };
   }
 
-  return Object.freeze({ planGroupSizes, buildGroupFixture, evaluateSets, resolveGroupFixture, calculateGroupStandings, compareStats });
+  return Object.freeze({ planGroupSizes, buildGroupFixture, evaluateSets, resolveGroupFixture, calculateGroupStandings, compareStats, scoringModeForStage, validRegularSet, validSuperTieBreak });
 });

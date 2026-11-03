@@ -98,9 +98,7 @@
     </label>
     <div id="torneos-fixture-edit-matches" class="torneos-fixture-editor__matches"></div>
     <p id="torneos-fixture-edit-error" class="torneos-fixture-editor__error" role="status" aria-live="polite"></p>
-    <label class="torneos-fixture-editor__field" for="torneos-fixture-edit-reason">Motivo del cambio (obligatorio)
-      <textarea id="torneos-fixture-edit-reason" rows="3" minlength="5" maxlength="1000" placeholder="Ej.: Reorganizar la segunda jornada por pedido de los participantes"></textarea>
-    </label>
+    <input type="hidden" id="torneos-fixture-edit-reason" />
     <div class="torneos-fixture-editor__actions">
       <button type="button" class="torneos-outline" id="torneos-fixture-edit-cancel">Cancelar</button>
       <button type="button" class="torneos-outline" id="torneos-fixture-edit-save" disabled>Guardar cambios del grupo</button>
@@ -118,6 +116,7 @@
   let fixtureEditDraft = [];
   let fixtureEditing = false;
   let fixtureGroupCount = 0;
+  let fixtureHasFourPairGroup = false;
 
   /* BVPadel parche 39: confirmación visual propia para descartar cambios.
      Se aplica tanto al salir del editor como al cambiar de grupo. */
@@ -203,10 +202,9 @@
           </select>
         </label>
       </div>
-      <label class="torneos-fixture-schedule-reason">Motivo de la operación
-        <textarea id="torneos-fixture-schedule-reason" rows="2" maxlength="500"
-          placeholder="Ej.: Acuerdo de las parejas; postergación por lluvia" required></textarea>
-      </label>
+      <span class="torneos-fixture-schedule-reason" hidden>
+        <input type="hidden" id="torneos-fixture-schedule-reason" />
+      </span>
       <p id="torneos-fixture-schedule-hint" class="torneos-fixture-schedule-hint"></p>
       <p id="torneos-fixture-schedule-error" role="alert" class="torneos-fixture-schedule-error"></p>
       <div class="admin-save-dialog__actions">
@@ -302,10 +300,7 @@
     <form id="torneos-revision-form" class="admin-save-dialog__body torneos-revision-form">
       <h2 id="torneos-revision-title"></h2>
       <p id="torneos-revision-description"></p>
-      <label for="torneos-revision-reason" class="torneos-revision-label">Motivo de la corrección</label>
-      <textarea id="torneos-revision-reason" rows="3" minlength="5" maxlength="1000"
-        required placeholder="Describí brevemente qué necesitás corregir"></textarea>
-      <p class="torneos-revision-help">Obligatorio · entre 5 y 1000 caracteres. Quedará registrado en el historial.</p>
+      <input type="hidden" id="torneos-revision-reason" />
       <p id="torneos-revision-error" role="alert" class="torneos-revision-error"></p>
       <div class="admin-save-dialog__actions">
         <button id="torneos-revision-cancel" type="button" class="secondary">Volver</button>
@@ -339,11 +334,11 @@
     $("torneos-revision-description").textContent = groupMode
       ? `¿Querés revisar los grupos de «${name}»? Se retirará temporalmente su publicación y la del fixture. Los partidos pendientes serán retirados, pero quedarán registrados para auditoría. Después deberás revisar los grupos, publicar nuevamente y generar otro fixture. Esta operación solo se permite antes del primer partido disputado.`
       : `¿Querés revisar el fixture de «${name}»? Se retirará temporalmente su publicación, pero se conservarán los partidos y los grupos publicados. Antes de volver a publicarlo podrás corregir sus cruces. Esta operación solo se permite antes del primer partido disputado.`;
-    revisionReason.value = "";
+    revisionReason.value = groupMode ? "Revisión de grupos desde Admin" : "Revisión de fixture desde Admin";
     revisionError.textContent = "";
-    revisionConfirm.disabled = true;
+    revisionConfirm.disabled = busy;
     revisionDialog.showModal();
-    revisionReason.focus();
+    revisionConfirm.focus();
   }
 
   revisionForm.addEventListener("submit", async (event) => {
@@ -430,6 +425,7 @@
     fixtureSummary.textContent = "";
     fixtureFeedback.textContent = "";
     fixtureGroupCount = 0;
+    fixtureHasFourPairGroup = false;
     groupCount.replaceChildren();
     groupList.replaceChildren();
     summary.textContent = "";
@@ -620,6 +616,17 @@
   function schedulePairLabel(pair) {
     return pair ? `${pair.player1_name} / ${pair.player2_name}` : "Pareja no disponible";
   }
+  // Parche 53: también nombrar los rivales que dependen de A1/A2.
+  function scheduleParticipantLabel(match, side, pairMap) {
+    const id = side === 1 ? match.pair1_id : match.pair2_id;
+    if (id) return schedulePairLabel(pairMap.get(id));
+    const number = side === 1 ? match.pair1_source_match_number : match.pair2_source_match_number;
+    const outcome = side === 1 ? match.pair1_source_outcome : match.pair2_source_outcome;
+    if (number != null && ["winner", "loser"].includes(outcome)) {
+      return `${outcome === "winner" ? "Ganador" : "Perdedor"} A${number}`;
+    }
+    return "Pareja no disponible";
+  }
   function openScheduleDialog(match, action) {
     if (busy || scheduleBusy || scheduleDialog.open || fixtureEditing ||
         !fixtureSnapshot || tournamentSelect.value !== fixtureSnapshot.tournamentId ||
@@ -638,7 +645,7 @@
     const heading = isPostpone ? "Postergar partido" : (isReprogram ? "Reprogramar partido" : "Programar partido");
     $("torneos-fixture-schedule-title").textContent = heading;
     $("torneos-fixture-schedule-versus").textContent =
-      `${schedulePairLabel(pairMap.get(current.pair1_id))} vs. ${schedulePairLabel(pairMap.get(current.pair2_id))}`;
+      `${scheduleParticipantLabel(current, 1, pairMap)} vs. ${scheduleParticipantLabel(current, 2, pairMap)}`;
     scheduleFields.hidden = isPostpone;
     for (const field of [scheduleDay, scheduleTime, scheduleDuration]) field.required = !isPostpone;
     const now = scheduleLocalDateParts(new Date());
@@ -649,13 +656,14 @@
     const existingMinutes = current.scheduled_at && current.scheduled_ends_at
       ? (Date.parse(current.scheduled_ends_at) - Date.parse(current.scheduled_at)) / 60000 : 90;
     scheduleDuration.value = String([90, 120].includes(existingMinutes) ? existingMinutes : 90);
-    scheduleReason.value = "";
+    scheduleReason.value = isPostpone ? "Postergación administrativa de partido" :
+      (isReprogram ? "Reprogramación administrativa de partido" : "Programación administrativa de partido");
     scheduleSave.textContent = isPostpone ? "Confirmar postergación" : (isReprogram ? "Guardar nuevo horario" : "Programar partido");
     scheduleHint.textContent = isPostpone
       ? "Se liberará la cancha y el encuentro quedará sin fecha. Los rivales y la jornada no cambian."
       : "La disponibilidad se comprueba al guardar. El horario quedará bloqueado para las reservas públicas. Puede ser cualquier día, aun después de la fecha estimada del torneo.";
     scheduleDialog.showModal();
-    (isPostpone ? scheduleReason : scheduleDay).focus();
+    (isPostpone ? scheduleSave : scheduleDay).focus();
   }
   scheduleForm.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -735,11 +743,13 @@
     }
   });
 
-  function fixturePairNode(pair) {
+  function fixturePairNode(pair, match, side) {
     const el = document.createElement("span");
     el.className = "torneos-fixture-pair";
     if (!pair) {
-      el.textContent = "Pareja no disponible";
+      const number = side === 1 ? match?.pair1_source_match_number : match?.pair2_source_match_number;
+      const outcome = side === 1 ? match?.pair1_source_outcome : match?.pair2_source_outcome;
+      el.textContent = number ? `${outcome === "winner" ? "Ganador" : "Perdedor"} A${number}` : "Pareja no disponible";
       return el;
     }
     for (const playerName of [pair.player1_name, pair.player2_name]) {
@@ -748,6 +758,76 @@
       el.append(line);
     }
     return el;
+  }
+
+  /* Parche 60: agrupar por fecha de programación (zona horaria argentina).
+     Se MUEVEN las tarjetas originales: no se pierden botones ni validaciones. */
+  function regroupFixtureBySchedule(matches, groups) {
+    const oldRounds = [...fixtureList.querySelectorAll(":scope > .torneos-fixture-round")];
+    const oldNodes = new Map();
+    for (const round of oldRounds) {
+      const label = round.querySelector(":scope > h4")?.textContent || "";
+      const roundNumber = Number(label.replace(/[^0-9]/g, ""));
+      const columns = [...round.querySelectorAll(":scope > .torneos-fixture-round-groups > .torneos-fixture-group")];
+      let colIndex = 0;
+      for (const group of groups) {
+        const groupMatches = matches.filter((m) => m.round_number === roundNumber && m.group_id === group.id)
+          .sort((a, b) => a.match_number - b.match_number);
+        if (!groupMatches.length) continue;
+        const column = columns[colIndex++];
+        const entries = column ? [...column.querySelectorAll(":scope > .torneos-fixture-entry")] : [];
+        if (entries.length !== groupMatches.length) return; // conservar vista anterior ante inconsistencia
+        for (let j = 0; j < entries.length; j++)
+          oldNodes.set(groupMatches[j].id, { entry: entries[j], group: group.group_number });
+      }
+    }
+    if (oldNodes.size !== matches.length) return;
+    const tz = "America/Argentina/Buenos_Aires";
+    const dateKey = (iso) => new Intl.DateTimeFormat("sv-SE", {
+      timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit"
+    }).format(new Date(iso));
+    const dateTitle = (iso) => new Intl.DateTimeFormat("es-AR", {
+      timeZone: tz, day: "numeric", month: "long", year: "numeric"
+    }).format(new Date(iso));
+    const schedules = new Map();
+    const unscheduled = [];
+    for (const m of matches) {
+      const valid = m.schedule_status === "scheduled" && m.scheduled_at && Number.isFinite(Date.parse(m.scheduled_at));
+      if (!valid) { unscheduled.push(m); continue; }
+      const key = dateKey(m.scheduled_at);
+      if (!schedules.has(key)) schedules.set(key, []);
+      schedules.get(key).push(m);
+    }
+    const makeBlock = (title, matchList) => {
+      const block = document.createElement("section");
+      block.className = "torneos-fixture-date-block";
+      const heading = document.createElement("h4");
+      heading.textContent = title;
+      const grid = document.createElement("div");
+      grid.className = "torneos-fixture-date-grid";
+      for (const match of matchList) {
+        const node = oldNodes.get(match.id);
+        const label = document.createElement("span");
+        label.className = "torneos-fixture-entry__group-label";
+        label.textContent = `Grupo ${labelForGroup(node.group)}`;
+        node.entry.prepend(label);
+        grid.append(node.entry);
+      }
+      block.append(heading, grid);
+      return block;
+    };
+    const blocks = [];
+    if (unscheduled.length) blocks.push(makeBlock("Sin programar", unscheduled.sort((a,b) =>
+      a.group_id.localeCompare(b.group_id) || a.round_number-b.round_number || a.match_number-b.match_number)));
+    for (const key of [...schedules.keys()].sort()) {
+      const dayMatches = schedules.get(key).sort((a, b) =>
+        Date.parse(a.scheduled_at)-Date.parse(b.scheduled_at) || a.group_id.localeCompare(b.group_id));
+      blocks.push(makeBlock(dateTitle(dayMatches[0].scheduled_at), dayMatches));
+    }
+    fixtureList.replaceChildren(...blocks);
+    const programmed = matches.filter((m) => m.schedule_status === "scheduled").length;
+    const postponed = matches.filter((m) => m.schedule_status === "postponed").length;
+    fixtureSummary.textContent = `${matches.length} partidos · ${programmed} programados · ${postponed} postergados · ${matches.length-programmed} sin fecha asignada.`;
   }
 
   function showFixtureMatches(matches, groups, pairs) {
@@ -782,9 +862,9 @@
           versus.className = "torneos-fixture-versus";
           versus.textContent = "VS";
           row.append(
-            fixturePairNode(pairById.get(match.pair1_id)),
+            fixturePairNode(pairById.get(match.pair1_id), match, 1),
             versus,
-            fixturePairNode(pairById.get(match.pair2_id))
+            fixturePairNode(pairById.get(match.pair2_id), match, 2)
           );
           const entry = document.createElement("article");
           entry.className = "torneos-fixture-entry";
@@ -837,6 +917,7 @@
       round.append(heading, grid);
       fixtureList.append(round);
     }
+    regroupFixtureBySchedule(matches, groups);
   }
 
   /* BVPadel parche 37: guardado del grupo entero usando SQL N° 53.
@@ -850,7 +931,7 @@
     fixtureList.hidden = false;
     editMatchesList.replaceChildren();
     editGroupSelect.replaceChildren();
-    editReason.value = "";
+    editReason.value = "Corrección de cruces desde Admin";
     editError.textContent = "";
     editSave.disabled = true;
     fixtureEditButton.textContent = "Editar cruces y jornadas";
@@ -944,7 +1025,7 @@
     fixtureEditDraft = fixtureEditOriginal.map((m) => ({ ...m }));
     editMatchesList.replaceChildren();
     editError.textContent = "";
-    editReason.value = "";
+    editReason.value = "Corrección de cruces desde Admin";
     const groupPairIds = [...new Set(fixtureEditOriginal.flatMap((m) => [m.pair1_id, m.pair2_id]))];
     const pairMap = new Map(fixtureSnapshot.pairs.map((p) => [p.id, p]));
     const pairOptions = groupPairIds.map((id) => {
@@ -1101,7 +1182,7 @@
     for (let from = 0; ; from += pageSize) {
       const { data, error } = await supabaseClient
         .from("bp_tournament_group_matches")
-        .select("id,group_id,round_number,match_number,pair1_id,pair2_id,match_status,schedule_status,scheduled_at,scheduled_ends_at,court_label")
+        .select("id,group_id,round_number,match_number,pair1_id,pair2_id,pair1_source_match_number,pair1_source_outcome,pair2_source_match_number,pair2_source_outcome,match_status,schedule_status,scheduled_at,scheduled_ends_at,court_label")
         .eq("tournament_id", tournamentId)
         .order("round_number", { ascending: true })
         .order("group_id", { ascending: true })
@@ -1135,8 +1216,11 @@
     const hasSchedule = matches.some((m) => m.scheduled_at || m.court_label?.trim());
     fixtureSnapshot = { tournamentId, groups, pairs, matches, status: tournamentStatus };
     fixtureEditButton.hidden = fixturePublished || !matches.length;
-    fixtureEditButton.disabled = busy || !ready || hasStarted || hasSchedule;
-    fixtureEditButton.title = hasSchedule
+    const hasDependentMatches = matches.some((m) => m.pair1_source_match_number != null);
+    fixtureEditButton.disabled = busy || !ready || hasStarted || hasSchedule || hasDependentMatches;
+    fixtureEditButton.title = hasDependentMatches
+      ? "El editor de cruces condicionados tendrá su propio procedimiento; no se puede usar el editor de todos contra todos."
+      : hasSchedule
       ? "Hay partidos con fecha u horario/cancha asignados. Este editor no elimina programaciones."
       : hasStarted
         ? "No se permite reorganizar el fixture con partidos disputados."
@@ -1155,7 +1239,7 @@
       }
     } else {
       fixtureSummary.textContent = ready
-        ? "Los grupos están publicados. Podés generar los cruces de todos contra todos."
+        ? "Los grupos están publicados. Podés generar los 3 partidos por grupo de 3 y los 4 por grupo de 4."
         : "El fixture se habilitará cuando los grupos publicados estén completos y las inscripciones permitan generarlo.";
       setFixtureFeedback("Se crearán los enfrentamientos sin fechas, horarios ni reservas de canchas.");
     }
@@ -1238,17 +1322,12 @@
       // habrá dos primeros cruces, luego ganadores entre sí y perdedores entre sí.
       // Hasta implementar los cruces condicionados, impedir generar el fixture viejo.
       const hasFourPairGroup = groupSizes.some((size) => size === 4);
-      const readyForFixture = published && complete && balanced && !hasFourPairGroup &&
+      fixtureHasFourPairGroup = hasFourPairGroup;
+      const readyForFixture = published && complete && balanced &&
         !pairs.some((p) => p.status === "pending") &&
         ["registration_closed", "in_progress"].includes(tournament.status);
       const fixtureResult = await loadFixture(tournamentId, groups, pairs, published, Boolean(tournament.fixture_published_at), readyForFixture, seq, tournament.status);
       if (seq !== generation) return;
-      if (published && hasFourPairGroup && !tournament.fixture_published_at && !fixtureSnapshot?.matches?.length) {
-        fixtureButton.disabled = true;
-        fixtureButton.title = "Pendiente de incorporar la segunda ronda del grupo de 4.";
-        fixtureSummary.textContent = "Grupos publicados. El fixture de grupos de 4 se habilitará en la próxima etapa.";
-        setFixtureFeedback("En grupos de 4 hay cuatro partidos: dos iniciales y dos cruces según ganadores y perdedores. No se generará el todos contra todos anterior.");
-      }
       reviseGroupsButton.hidden = !published;
       reviseGroupsButton.disabled = busy || fixtureResult === null ||
         tournament.status !== "registration_closed" || Boolean(fixtureResult?.hasStarted);
@@ -1384,7 +1463,8 @@
     fixtureButton.disabled = true;
     setFixtureFeedback("Generando los partidos de cada grupo…");
     try {
-      const { error } = await supabaseClient.rpc("bp_tournament_generate_group_fixture", {
+      const { error } = await supabaseClient.rpc(
+        fixtureHasFourPairGroup ? "bp_tournament_generate_group_fixture_v60" : "bp_tournament_generate_group_fixture", {
         p_tournament_id: id,
       });
       if (error) throw error;
@@ -1446,7 +1526,7 @@
       acceptButton.textContent = "Sí, publicar fixture";
     } else if (mode === "fixture") {
       confirmTitle.textContent = "Generar fixture de grupos";
-      confirmDescription.textContent = `¿Generar el fixture de «${tournamentName}» para ${fixtureGroupCount} ${fixtureGroupCount === 1 ? "grupo" : "grupos"}? Cada pareja enfrentará una sola vez a las demás de su grupo. No se asignarán fechas, horarios ni canchas, ni se crearán reservas. Los partidos permanecerán privados por ahora.`;
+      confirmDescription.textContent = `¿Generar el fixture de «${tournamentName}» para ${fixtureGroupCount} ${fixtureGroupCount === 1 ? "grupo" : "grupos"}? En los grupos de 3 se generan tres partidos todos contra todos. En los grupos de 4 se generan dos duelos iniciales y dos cruces futuros entre ganadores y perdedores. No se asignarán fechas, horarios ni canchas, ni se crearán reservas. Los partidos permanecerán privados por ahora.`;
       acceptButton.textContent = "Sí, generar fixture";
     } else if (mode === "publish") {
       confirmTitle.textContent = "Publicar grupos";

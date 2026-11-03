@@ -2598,3 +2598,106 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 - **Pruebas:** `node --test tests/torneos-motor.test.js`: 8/8 correctas en el paquete de desarrollo. Casos: zonas 3 y 4, cruces A3/A4, orden 6/3/3/0 por sets, empate total, grupos incompletos, resultados inválidos y cálculo por cantidad aprobada.
 - **Estado:** CONFIRMADA la prueba unitaria. **PENDIENTE:** diseñar e instalar SQL de resultados, adaptar las tablas existentes de partidos para participantes todavía desconocidos, implementar carga y corrección de resultados segura en Admin, publicaciones y eliminatorias. **No hay función nueva operativa en Admin en esta fase.**
 - **Protección:** no altera ni ejecuta SQL, reservas, bloqueos, turnos fijos, torneos, funciones Supabase ni el sitio en producción. No realiza commit/push. Los archivos añadidos son una base de desarrollo sin referencias en `admin/index.html`.
+
+
+### 02/11/2026 — Parche 51 / SQL 61: resultados por sets (fase 2A)
+- **Fecha:** 02/11/2026.
+- **Motivo:** incorporar la carga de resultados al mejor de tres sets y el calculo de posiciones con 3 puntos por victoria, 0 por derrota; desempate por diferencia de sets y luego sets a favor.
+- **Estado: PENDIENTE DE VERIFICAR EN PRODUCCION.** Instalacion local del Admin no implica que SQL 61 este aplicado.
+- `js/admin-resultados.js`: panel separado, carga/correccion por sets e historial, tabla automatica de grupos de 3 usando `js/torneos-motor.js`.
+- `css/admin-resultados.css`: estilos responsivos exclusivos del nuevo panel.
+- `admin/index.html`: carga las hojas/archivos nuevos sin alterar el Admin de reservas.
+- `sql/SQL_61_resultados_sets.sql` (entregado fuera del repositorio): crea almacenamiento de resultados e historial con RLS exclusivo de admins; RPC `bp_admin_save_group_match_result` verifica administrador, estado de torneo y fixture publicado, valida 2/3 sets y registra correcciones con motivo.
+- **PENDIENTE:** generador del fixture condicionado de grupos de 4 (A1, A2, A3 y A4), tablas de grupos de 4, exposicion publica de resultados y eliminatorias. No habilitar un fixture de 6 partidos para cuatro parejas.
+- **Proteccion:** el parche NO ejecuta SQL ni modifica Supabase, torneos, reservas, blockouts o turnos fijos; no hace commit/push.
+
+
+### 02/11/2026 — SQL 60 / Parche 52: fixture de 3/4 y cruces diferidos
+- **Fecha:** 02/11/2026.
+- **Motivo:** habilitar el fixture de 4 partidos en grupos de cuatro, conservando el todos contra todos en grupos de tres.
+- **Estado: PENDIENTE DE VERIFICAR EN SUPABASE Y NAVEGADOR.** El SQL 60 se entrega en archivo separado y NO se ejecuta mediante este parche.
+- Los partidos A3 y A4 pueden mostrar Ganador A1 vs Ganador A2 y Perdedor A1 vs Perdedor A2 antes de los resultados; pueden programarse sin alterar el turnero.
+- El editor histórico de todos contra todos se deshabilita para los fixtures con dependencias hasta su actualización específica.
+- El SQL 60 modifica esquema y validaciones del fixture, no datos de torneos/partidos actuales ni reservas. Conservar SQL 61 sin ejecutar hasta revisión de compatibilidad con los cruces diferidos.
+- No se hicieron commits ni pushes.
+
+
+### 02/11/2026 — Parche 53: cruce condicionado visible al programar
+- **Fecha:** 02/11/2026.
+- **Motivo:** en los partidos A3 y A4 del fixture de cuatro parejas, la ventana «Programar partido» mostraba «Pareja no disponible» aunque la tarjeta del fixture identificaba correctamente al ganador o perdedor de A1/A2.
+- **Estado: PENDIENTE DE VERIFICAR EN NAVEGADOR.** El modal usará «Ganador A1 vs. Ganador A2» o «Perdedor A1 vs. Perdedor A2», y conservará los nombres reales en partidos directos.
+- **Alcance:** exclusivamente texto de la ventana de programación. Sin SQL; sin cambios de fecha, hora, duración, RPC, cancha, reservas, bloqueos, resultados ni publicación. Instalación local con respaldo y sin commit/push automático.
+
+
+### 02/11/2026 — Parche 54: resultados de grupos de 4 y SQL 61 corregida
+- **Fecha:** 02/11/2026.
+- **Motivo:** completar la carga y visualización de resultados de A1/A2/A3/A4 con cruces dependientes ya previstos por SQL 60, y clasificación de 3 parejas por puntos, diferencia de sets y sets a favor.
+- **Estado: PENDIENTE DE VERIFICAR EN SUPABASE Y NAVEGADOR.** La SQL 61 corregida todavía debe ejecutarse y verificarse por separado.
+- `js/admin-resultados.js`: muestra referencias de cruces y nombres reales cuando se conocen, habilita A3/A4 solo después de cargar A1/A2 y muestra tablas provisorias/definitivas en grupos de 4.
+- `sql/SQL_61_resultados_sets_CORREGIDA.sql` (entregada fuera del repositorio): registra rivales resueltos sin alterar el fixture; prohíbe corregir un resultado de origen si ya hay un cruce dependiente disputado. Conserva historial y RLS administrativo.
+- **Reglas:** 3 puntos por partido ganado, 0 por perdido; diferencia de sets y sets a favor en caso de empate; no inventar desempate final; W.O. pendiente.
+- **Protección:** sin cambios de turnero, programación, reservas, bloqueos ni SQL 60; este instalador no ejecuta SQL y no hace commit/push.
+
+
+### 02/11/2026 — Parche 55: reglas de super tie-break por fase
+- **Fecha:** 02/11/2026.
+- **Motivo:** Martín confirmó: grupos y cruces preliminares hasta cuartos, desempate 1-1 por super tie-break a 10 puntos y dos de ventaja; desde cuartos (incluidos), semifinal y final, tercer set normal.
+- **Estado: CÓDIGO LOCAL PREPARADO. SQL 62 PENDIENTE DE EJECUCIÓN Y VALIDACIÓN.**
+- **Cambios:** validación de sets ordinarios (6-0..6-4,7-5,7-6); tercer parcial de grupos como super tie-break; se deshabilita y vacía el tercero si los primeros sets ya deciden 2-0; el motor tiene mapa explícito de formato por etapa.
+- **Histórico:** la SQL 62 marca registros anteriores como legacy para preservarlos; no los cambia ni elimina. En la corrección de resultados preexistentes exige motivo y conserva historial.
+- **Seguridad:** sin mutaciones automáticas en Supabase, turnero, reservas o programación. Sin commit/push.
+- **Pendiente:** ejecutar/verificar SQL 62, revisar y corregir resultados ficticios antiguos, y desarrollar etapa de eliminatorias de modo coherente con las nuevas reglas.
+
+
+### 02/11/2026 — Parche 56: contraste del Admin de Torneos
+- **Fecha:** 02/11/2026.
+- **Motivo:** mejorar legibilidad de los grupos, fixture, tablas de posiciones y carga de resultados; textos y botones pálidos se confundían con el fondo.
+- **Estado: CÓDIGO LOCAL PREPARADO. PENDIENTE REVISIÓN VISUAL EN LOCALHOST.**
+- `css/admin-contraste.css`: hoja adicional exclusiva del Admin, con tipografías, líneas y botones más contrastados y tablas con filas alternadas.
+- `admin/index.html`: incorpora esa hoja al final, sin alterar scripts ni lógica.
+- **Protección:** no modifica Supabase, datos ni reservas. SQL 62 continúa pendiente de ejecución y verificación; los resultados anteriores se conservan. No hace commit/push.
+
+
+### 02/11/2026 — Parche 57: UI compacta verde-dorado sin motivos
+- **Fecha:** 02/11/2026.
+- **Motivo:** simplificar Admin para Martín: primer y segundo set en columnas, Pts al final de posiciones, verde oscuro/dorado, quitar el ingreso manual de motivo en operaciones.
+- **Estado: CAMBIOS LOCALES; PENDIENTE VERIFICACIÓN VISUAL Y FUNCIONAL.**
+- **Cambios:** `js/admin-resultados.js`, `js/admin-grupos.js`, `admin/index.html`, `js/admin.js`, nueva hoja `css/admin-ux57.css` y prueba estática.
+- **Auditoría:** las operaciones que requieren motivo ante Supabase envían una descripción AUTOMÁTICA de acción, manteniendo actor, antes/después y registro. La aplicación NO elimina ni desactiva funciones de control.
+- **Protección:** sin SQL, sin operaciones de Supabase, sin reservas ni cambios de horarios; sin commit ni push.
+
+
+### 02/11/2026 — Parche 58: grilla adaptable de grupos de resultados
+- **Fecha:** 02/11/2026.
+- **Motivo:** mejorar el aprovechamiento del ancho en «Resultados y posiciones» sin perder claridad.
+- **Estado: INSTALACIÓN LOCAL; PENDIENTE COMPROBACIÓN VISUAL Y COMMIT/PUSH.**
+- **Cambio:** grupos en tarjetas de 2 columnas cuando el ancho lo permite; hasta 3 columnas con tres o más grupos y suficiente ancho; 1 columna en pantallas angostas. Botones de resultados más compactos y tablas contenidas dentro de cada tarjeta.
+- **Archivos:** nueva `css/admin-grilla58.css`, referencia en `admin/index.html`, prueba automática y esta entrada en la bitácora única.
+- **Seguridad:** sin cambios en JavaScript, validaciones deportivas, resultados, Supabase, reservas ni horarios. Sin SQL.
+
+
+### 02/11/2026 — Parche 59: alta de parejas solo con inscripciones abiertas
+- **Fecha:** 02/11/2026. **Motivo:** impedir altas manuales en torneos sin período de inscripción abierto.
+- **Estado:** instalado localmente / SQL N°63 PENDIENTE de ejecutar y verificar; sin commit/push.
+- **Admin:** deshabilitar «+ Agregar pareja» salvo inscripciones abiertas y plazo vigente; volver a verificar justo antes de insertar.
+- **Supabase:** SQL N°63 crea guardia de BEFORE INSERT; se ejecuta por separado, no modifica inscripciones anteriores ni modifica reservas.
+- **Nota:** pueden editarse inscripciones existentes según las protecciones históricas. La prueba de 7 parejas existente permanece sin cambios.
+
+
+### 02/11/2026 — Parche 60: fixture agrupado por fecha real
+- **Fecha:** 02/11/2026. **Motivo:** eliminar bloques «Jornada 1/2/3» en visualización de partidos.
+- **Estado:** instalado localmente / SQL N°64 PENDIENTE de ejecutar y verificar; sin commit/push.
+- **Admin:** mismo fixture y programación, mostrado por «Sin programar» y fechas efectivas; tres columnas máximo en PC, dos en ancho mediano y una en celular. Las jornadas internas se conservan para dependencias y reglas, sin mostrarlas.
+- **Público:** mismo criterio visual en fixture autorizado. SQL N°64 agrega horarios a la vista pública solo con torneo, grupos y fixture publicados. No altera visibilidad ni reservas.
+- **Seguridad:** no altera resultados, programación, torneos ni reservas existentes; se preservan los listeners al reubicar tarjetas sin recrearlas.
+
+## 02/11/2026 — Unificación de acciones de partidos
+
+- Motivo: simplificar el Admin y reducir elementos duplicados.
+- Estado: PENDIENTE DE IMPLEMENTAR.
+- Decisión: incorporar Cargar resultado y Corregir resultado en las tarjetas del fixture, junto a Programar, Reprogramar y Postergar.
+- La sección Resultados y posiciones mostrará solamente las tablas de clasificación.
+- Respetar los estados de cada partido y los cruces dependientes.
+- Conservar las protecciones, resultados, reservas e historial existentes.
+- Parches 59 y 60: instalación local confirmada por el usuario.
+- SQL 63 y 64: ejecución exitosa informada por el usuario. Verificada directamente la presencia del trigger de SQL 63; verificación funcional final pendiente.
