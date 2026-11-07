@@ -20,8 +20,10 @@
   function registrationAllowsNewPair(t) {
     if (!t || t.status !== "registration_open") return false;
     const now = Date.now();
-    if (t.registration_opens_at && now < Date.parse(t.registration_opens_at)) return false;
-    if (t.registration_closes_at && now >= Date.parse(t.registration_closes_at)) return false;
+    if (t.registration_opens_at && now < Date.parse(t.registration_opens_at))
+      return false;
+    if (t.registration_closes_at && now >= Date.parse(t.registration_closes_at))
+      return false;
     return true;
   }
   const feedback = (msg) => {
@@ -77,13 +79,15 @@
     }
     if (failed) {
       capacityView.hidden = false;
-      capacityView.textContent = "No se pudo verificar el cupo. Actualizá e intentá nuevamente.";
+      capacityView.textContent =
+        "No se pudo verificar el cupo. Actualizá e intentá nuevamente.";
       addButton.disabled = true;
       return;
     }
     if (!registrationAllowsNewPair(tournamentSettings.get(current))) {
       capacityView.hidden = false;
-      capacityView.textContent = "Para agregar parejas, primero abrí las inscripciones del torneo.";
+      capacityView.textContent =
+        "Para agregar parejas, primero abrí las inscripciones del torneo.";
       addButton.disabled = true;
       return;
     }
@@ -123,7 +127,8 @@
       : `Quedan ${max - occupied} ${max - occupied === 1 ? "lugar disponible" : "lugares disponibles"}.`;
     capacityView.append(head, bar, notice);
     addButton.disabled = full;
-    if (full) addButton.textContent = `Cupo completo — ${occupied}/${max} parejas`;
+    if (full)
+      addButton.textContent = `Cupo completo — ${occupied}/${max} parejas`;
   }
   function button(text, handler, danger = false) {
     const b = document.createElement("button");
@@ -140,7 +145,9 @@
     const previous = select.value || current;
     const { data, error } = await supabaseClient
       .from("bp_tournaments")
-      .select("id,name,starts_on,max_pairs,status,registration_opens_at,registration_closes_at")
+      .select(
+        "id,name,starts_on,max_pairs,status,registration_opens_at,registration_closes_at",
+      )
       .order("created_at", { ascending: false })
       .limit(100);
     if (error) throw error;
@@ -169,7 +176,9 @@
     const [{ data, error }, { count, error: countError }] = await Promise.all([
       supabaseClient
         .from("bp_tournament_pairs")
-        .select("id,player1_name,player2_name,contact_phone,status,source,created_at")
+        .select(
+          "id,player1_name,player2_name,contact_phone,status,source,created_at",
+        )
         .eq("tournament_id", tournamentId)
         .order("created_at", { ascending: true })
         .limit(300),
@@ -210,8 +219,14 @@
       const actions = document.createElement("div");
       actions.className = "torneos-pair-entry__buttons";
       /* BVPadel Parche 45: estado junto a las acciones, en ese orden. */
-      actions.classList.toggle("torneos-pair-entry__buttons--approved", pair.status === "approved");
-      actions.append(st, button("Editar", () => openEdit(pair)));
+      actions.classList.toggle(
+        "torneos-pair-entry__buttons--approved",
+        pair.status === "approved",
+      );
+      actions.append(
+        st,
+        button("Editar", () => openEdit(pair)),
+      );
       if (pair.status !== "approved")
         actions.append(button("Aprobar", () => askStatus(pair, "approved")));
       if (pair.status !== "rejected")
@@ -222,7 +237,9 @@
       // Mantener «Aprobada · Editar · Rechazar» en una sola fila.
       const removeRow = document.createElement("div");
       removeRow.className = "torneos-pair-entry__remove";
-      removeRow.append(button("Eliminar inscripción", () => askRemove(pair), true));
+      removeRow.append(
+        button("Eliminar inscripción", () => askRemove(pair), true),
+      );
       row.append(name, tel, actions, removeRow);
       list.append(row);
     }
@@ -263,9 +280,12 @@
         const { data: latest, error: stateError } = await supabaseClient
           .from("bp_tournaments")
           .select("status,registration_opens_at,registration_closes_at")
-          .eq("id", current).maybeSingle();
+          .eq("id", current)
+          .maybeSingle();
         if (stateError || !registrationAllowsNewPair(latest))
-          throw new Error("Para agregar parejas, primero abrí las inscripciones del torneo.");
+          throw new Error(
+            "Para agregar parejas, primero abrí las inscripciones del torneo.",
+          );
         const { error } = await supabaseClient
           .from("bp_tournament_pairs")
           .insert({
@@ -343,9 +363,13 @@
           .eq("tournament_id", tournamentId)
           .select("id");
         if (error?.code === "23503" || error?.code === "23514")
-          throw new Error("No se puede eliminar esta inscripción: tiene vínculos con grupos publicados o partidos protegidos.");
+          throw new Error(
+            "No se puede eliminar esta inscripción: tiene vínculos con grupos publicados o partidos protegidos.",
+          );
         if (error || data?.length !== 1)
-          throw new Error("No se pudo eliminar la inscripción. Actualizá la página e intentá nuevamente.");
+          throw new Error(
+            "No se pudo eliminar la inscripción. Actualizá la página e intentá nuevamente.",
+          );
         feedback("Inscripción eliminada correctamente.");
       },
     );
@@ -378,10 +402,19 @@
     return { player1_name, player2_name, contact_phone };
   }
   function readableError(error) {
-    if (error.code === "23514" && /inscripciones|abiertas/i.test(error.message || ""))
-      return new Error("Para agregar parejas, primero abrí las inscripciones del torneo.");
-    if (error.code === "23514" &&
-        /cupo|capacity/i.test(`${error.message || ""} ${error.details || ""} ${error.hint || ""}`))
+    if (
+      error.code === "23514" &&
+      /inscripciones|abiertas/i.test(error.message || "")
+    )
+      return new Error(
+        "Para agregar parejas, primero abrí las inscripciones del torneo.",
+      );
+    if (
+      error.code === "23514" &&
+      /cupo|capacity/i.test(
+        `${error.message || ""} ${error.details || ""} ${error.hint || ""}`,
+      )
+    )
       return new Error("Cupo completo. No se pueden agregar más parejas.");
     if (error.code === "23505")
       return new Error(
@@ -407,7 +440,9 @@
       console.error(error);
       $("torneos-pair-dialog-error").textContent =
         error.message || "Error al guardar.";
-      if (error.message === "Cupo completo. No se pueden agregar más parejas.") {
+      if (
+        error.message === "Cupo completo. No se pueden agregar más parejas."
+      ) {
         // Otro administrador pudo ocupar el último cupo mientras estaba abierto el diálogo.
         await loadPairs().catch((refreshError) => console.error(refreshError));
       }

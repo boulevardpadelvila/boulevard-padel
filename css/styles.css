@@ -1541,7 +1541,9 @@ button {
 }
 
 /* Galería BP — cuatro tarjetas, modal y adaptación móvil. */
-.court__features > .feature-card { min-width: 0; }
+.court__features > .feature-card {
+  min-width: 0;
+}
 .feature-card--gallery {
   width: 100%;
   font: inherit;
@@ -1569,42 +1571,46 @@ button {
   max-height: 94svh;
   padding: clamp(14px, 2.5vw, 24px);
   overflow: auto;
-  border: 1px solid rgba(255,255,255,.20);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 20px;
   background: #11120f;
   color: #fff;
-  box-shadow: 0 28px 85px rgba(0,0,0,.65);
+  box-shadow: 0 28px 85px rgba(0, 0, 0, 0.65);
 }
 .bp-gallery::backdrop {
-  background: rgba(3, 4, 3, .87);
+  background: rgba(3, 4, 3, 0.87);
   backdrop-filter: blur(5px);
 }
-.bp-gallery__top, .bp-gallery__footer {
+.bp-gallery__top,
+.bp-gallery__footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
 }
-.bp-gallery__top { margin-bottom: 16px; }
+.bp-gallery__top {
+  margin-bottom: 16px;
+}
 .bp-gallery__eyebrow {
   color: var(--color-olive-light);
   font-family: var(--font-heading);
   font-weight: 700;
-  font-size: .68rem;
-  letter-spacing: .15em;
+  font-size: 0.68rem;
+  letter-spacing: 0.15em;
 }
 .bp-gallery__top h2 {
   margin: 3px 0 0;
   font-family: var(--font-heading);
   font-size: clamp(1.4rem, 4vw, 2rem);
 }
-.bp-gallery__close, .bp-gallery__nav {
+.bp-gallery__close,
+.bp-gallery__nav {
   display: grid;
   place-items: center;
   flex: 0 0 auto;
   width: 44px;
   height: 44px;
-  border: 1px solid rgba(255, 255, 255, .23);
+  border: 1px solid rgba(255, 255, 255, 0.23);
   border-radius: 50%;
   background: #282923;
   color: #fff;
@@ -1613,14 +1619,19 @@ button {
   line-height: 1;
   cursor: pointer;
 }
-.bp-gallery__close:hover, .bp-gallery__nav:hover:not(:disabled) {
+.bp-gallery__close:hover,
+.bp-gallery__nav:hover:not(:disabled) {
   background: var(--color-olive);
 }
-.bp-gallery__close:focus-visible, .bp-gallery__nav:focus-visible {
+.bp-gallery__close:focus-visible,
+.bp-gallery__nav:focus-visible {
   outline: 3px solid var(--color-olive-light);
   outline-offset: 2px;
 }
-.bp-gallery__nav:disabled { opacity: .3; cursor: default; }
+.bp-gallery__nav:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
 .bp-gallery__viewer {
   display: grid;
   place-items: center;
@@ -1637,20 +1648,55 @@ button {
   height: auto;
   object-fit: contain;
 }
-.bp-gallery__viewer img[hidden], .bp-gallery__message[hidden],
-.bp-gallery__footer[hidden] { display: none !important; }
-.bp-gallery__message { padding: 20px; text-align: center; color: #ddd; }
-.bp-gallery__footer { margin-top: 16px; justify-content: center; gap: 28px; }
-.bp-gallery__counter { font: 600 .82rem var(--font-heading); color: #ddd; min-width: 65px; text-align: center; }
-body:has(#bpGalleryDialog[open]) { overflow: hidden; }
+.bp-gallery__viewer img[hidden],
+.bp-gallery__message[hidden],
+.bp-gallery__footer[hidden] {
+  display: none !important;
+}
+.bp-gallery__message {
+  padding: 20px;
+  text-align: center;
+  color: #ddd;
+}
+.bp-gallery__footer {
+  margin-top: 16px;
+  justify-content: center;
+  gap: 28px;
+}
+.bp-gallery__counter {
+  font: 600 0.82rem var(--font-heading);
+  color: #ddd;
+  min-width: 65px;
+  text-align: center;
+}
+body:has(#bpGalleryDialog[open]) {
+  overflow: hidden;
+}
 @media (min-width: 901px) {
-  .court__features .feature-card { padding: 22px 19px; min-height: 198px; }
-  .court__features .feature-card h3 { font-size: clamp(1.04rem, 1.65vw, 1.21rem); }
-  .court__features .feature-card p { font-size: .9rem; }
+  .court__features .feature-card {
+    padding: 22px 19px;
+    min-height: 198px;
+  }
+  .court__features .feature-card h3 {
+    font-size: clamp(1.04rem, 1.65vw, 1.21rem);
+  }
+  .court__features .feature-card p {
+    font-size: 0.9rem;
+  }
 }
 @media (max-width: 640px) {
-  .court__features { grid-template-columns: 1fr; }
-  .bp-gallery { width: 96vw; max-height: 94svh; padding: 13px; }
-  .bp-gallery__viewer { min-height: 40svh; }
-  .bp-gallery__viewer img { max-height: 63svh; }
+  .court__features {
+    grid-template-columns: 1fr;
+  }
+  .bp-gallery {
+    width: 96vw;
+    max-height: 94svh;
+    padding: 13px;
+  }
+  .bp-gallery__viewer {
+    min-height: 40svh;
+  }
+  .bp-gallery__viewer img {
+    max-height: 63svh;
+  }
 }

@@ -57,8 +57,12 @@
     const values = Object.fromEntries(
       new Intl.DateTimeFormat("en-US", {
         timeZone: "America/Argentina/Cordoba",
-        year: "numeric", month: "2-digit", day: "2-digit",
-      }).formatToParts(new Date()).map((part) => [part.type, part.value]),
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      })
+        .formatToParts(new Date())
+        .map((part) => [part.type, part.value]),
     );
     return `${values.year}-${values.month}-${values.day}`;
   }
@@ -67,8 +71,12 @@
     return t.status === "completed";
   }
   function registrationOpen(t) {
-    return !isFinished(t) && t.status === "registration_open" &&
-      (!t.registration_closes_at || Date.now() < Date.parse(t.registration_closes_at));
+    return (
+      !isFinished(t) &&
+      t.status === "registration_open" &&
+      (!t.registration_closes_at ||
+        Date.now() < Date.parse(t.registration_closes_at))
+    );
   }
   function make(tag, className, content) {
     const el = document.createElement(tag);
@@ -207,7 +215,7 @@
     if (!Number.isSafeInteger(n) || n < 1) return String(groupNumber);
     while (n > 0) {
       n -= 1;
-      letters = String.fromCharCode(65 + n % 26) + letters;
+      letters = String.fromCharCode(65 + (n % 26)) + letters;
       n = Math.floor(n / 26);
     }
     return letters;
@@ -219,14 +227,27 @@
 
     const details = make("details", "public-tournament-groups");
     const title = make(
-      "summary", "public-tournament-groups__summary",
+      "summary",
+      "public-tournament-groups__summary",
       `Ver grupos · ${groups.length} ${groups.length === 1 ? "grupo" : "grupos"}`,
     );
     const grid = make("div", "public-tournament-groups__grid");
     for (const group of groups) {
       const section = make("section", "public-tournament-group");
-      section.append(make("h4", "public-tournament-group__title", `Grupo ${publicGroupLetter(group.number)}`));
-      section.append(make("p", "public-tournament-group__count", `${group.pairs.length} ${group.pairs.length === 1 ? "pareja" : "parejas"}`));
+      section.append(
+        make(
+          "h4",
+          "public-tournament-group__title",
+          `Grupo ${publicGroupLetter(group.number)}`,
+        ),
+      );
+      section.append(
+        make(
+          "p",
+          "public-tournament-group__count",
+          `${group.pairs.length} ${group.pairs.length === 1 ? "pareja" : "parejas"}`,
+        ),
+      );
       const members = make("ul", "public-tournament-group__pairs");
       for (const pair of group.pairs) {
         const entry = make("li", "public-tournament-group__pair");
@@ -267,7 +288,8 @@
       if (!data || data.length < pageSize) break;
     }
     for (const row of rows) {
-      if (!grouped.has(row.tournament_id)) grouped.set(row.tournament_id, new Map());
+      if (!grouped.has(row.tournament_id))
+        grouped.set(row.tournament_id, new Map());
       const byNumber = grouped.get(row.tournament_id);
       if (!byNumber.has(row.group_number)) {
         byNumber.set(row.group_number, { number: row.group_number, pairs: [] });
@@ -279,7 +301,10 @@
     }
     const result = new Map();
     for (const [id, groups] of grouped) {
-      result.set(id, Array.from(groups.values()).sort((a, b) => a.number - b.number));
+      result.set(
+        id,
+        Array.from(groups.values()).sort((a, b) => a.number - b.number),
+      );
     }
     return result;
   }
@@ -297,7 +322,9 @@
     for (let from = 0; ; from += pageSize) {
       const { data, error } = await supabaseClient
         .from("bp_public_tournament_group_fixture")
-        .select("tournament_id,group_number,round_number,match_number,pair1_player1_name,pair1_player2_name,pair2_player1_name,pair2_player2_name,schedule_status,scheduled_at,scheduled_ends_at")
+        .select(
+          "tournament_id,group_number,round_number,match_number,pair1_player1_name,pair1_player2_name,pair2_player1_name,pair2_player2_name,schedule_status,scheduled_at,scheduled_ends_at",
+        )
         .in("tournament_id", ids)
         .order("tournament_id", { ascending: true })
         .order("round_number", { ascending: true })
@@ -321,57 +348,123 @@
     const matches = publishedFixtureByTournament.get(t.id);
     if (!matches || !matches.length) return null;
     const details = make("details", "public-tournament-fixture");
-    const summary = make("summary", "public-tournament-fixture__summary",
-      `Ver partidos · ${matches.length} ${matches.length === 1 ? "partido" : "partidos"}`);
+    const summary = make(
+      "summary",
+      "public-tournament-fixture__summary",
+      `Ver partidos · ${matches.length} ${matches.length === 1 ? "partido" : "partidos"}`,
+    );
     const body = make("div", "public-tournament-fixture__body");
     const tz = "America/Argentina/Buenos_Aires";
-    const dateKey = (iso) => new Intl.DateTimeFormat("sv-SE", {timeZone:tz,
-      year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date(iso));
-    const labelDate = (iso) => new Intl.DateTimeFormat("es-AR", {timeZone:tz,
-      day:"numeric",month:"long",year:"numeric"}).format(new Date(iso));
+    const dateKey = (iso) =>
+      new Intl.DateTimeFormat("sv-SE", {
+        timeZone: tz,
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      }).format(new Date(iso));
+    const labelDate = (iso) =>
+      new Intl.DateTimeFormat("es-AR", {
+        timeZone: tz,
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      }).format(new Date(iso));
     const pending = [];
     const byDate = new Map();
     for (const match of matches) {
-      if (match.schedule_status !== "scheduled" || !match.scheduled_at ||
-          !Number.isFinite(Date.parse(match.scheduled_at))) { pending.push(match); continue; }
+      if (
+        match.schedule_status !== "scheduled" ||
+        !match.scheduled_at ||
+        !Number.isFinite(Date.parse(match.scheduled_at))
+      ) {
+        pending.push(match);
+        continue;
+      }
       const key = dateKey(match.scheduled_at);
       if (!byDate.has(key)) byDate.set(key, []);
       byDate.get(key).push(match);
     }
     const addSection = (title, games) => {
-      const section = make("section", "public-tournament-fixture__calendar-block");
-      section.append(make("h4", "public-tournament-fixture__calendar-heading", title));
+      const section = make(
+        "section",
+        "public-tournament-fixture__calendar-block",
+      );
+      section.append(
+        make("h4", "public-tournament-fixture__calendar-heading", title),
+      );
       const grid = make("div", "public-tournament-fixture__calendar-grid");
       for (const match of games) {
         const article = make("article", "public-tournament-fixture__match");
-        article.append(make("p", "public-tournament-fixture__match-group",
-          `Grupo ${publicGroupLetter(Number(match.group_number))}`));
+        article.append(
+          make(
+            "p",
+            "public-tournament-fixture__match-group",
+            `Grupo ${publicGroupLetter(Number(match.group_number))}`,
+          ),
+        );
         const players = make("div", "public-tournament-fixture__versus-row");
-        const pair1 = make("div", "public-tournament-fixture__pair public-tournament-fixture__pair--first");
-        const pair2 = make("div", "public-tournament-fixture__pair public-tournament-fixture__pair--second");
-        for (const n of [match.pair1_player1_name,match.pair1_player2_name])
-          if (n) pair1.append(make("span", "public-tournament-fixture__player", n));
-        for (const n of [match.pair2_player1_name,match.pair2_player2_name])
-          if (n) pair2.append(make("span", "public-tournament-fixture__player", n));
-        players.append(pair1,make("span", "public-tournament-fixture__vs", "VS"),pair2);
+        const pair1 = make(
+          "div",
+          "public-tournament-fixture__pair public-tournament-fixture__pair--first",
+        );
+        const pair2 = make(
+          "div",
+          "public-tournament-fixture__pair public-tournament-fixture__pair--second",
+        );
+        for (const n of [match.pair1_player1_name, match.pair1_player2_name])
+          if (n)
+            pair1.append(make("span", "public-tournament-fixture__player", n));
+        for (const n of [match.pair2_player1_name, match.pair2_player2_name])
+          if (n)
+            pair2.append(make("span", "public-tournament-fixture__player", n));
+        players.append(
+          pair1,
+          make("span", "public-tournament-fixture__vs", "VS"),
+          pair2,
+        );
         article.append(players);
         if (match.schedule_status === "scheduled" && match.scheduled_at) {
-          const time = new Intl.DateTimeFormat("es-AR", {timeZone:tz,
-            hour:"2-digit",minute:"2-digit",hourCycle:"h23"}).format(new Date(match.scheduled_at));
-          article.append(make("p", "public-tournament-fixture__date-meta", `Hora: ${time}`));
+          const time = new Intl.DateTimeFormat("es-AR", {
+            timeZone: tz,
+            hour: "2-digit",
+            minute: "2-digit",
+            hourCycle: "h23",
+          }).format(new Date(match.scheduled_at));
+          article.append(
+            make("p", "public-tournament-fixture__date-meta", `Hora: ${time}`),
+          );
         } else {
-          article.append(make("p", "public-tournament-fixture__date-meta",
-            match.schedule_status === "postponed" ? "Postergado · A reprogramar" : "Fecha pendiente"));
+          article.append(
+            make(
+              "p",
+              "public-tournament-fixture__date-meta",
+              match.schedule_status === "postponed"
+                ? "Postergado · A reprogramar"
+                : "Fecha pendiente",
+            ),
+          );
         }
         grid.append(article);
       }
       section.append(grid);
       body.append(section);
     };
-    if (pending.length) addSection("Sin programar", pending.sort((a,b)=>
-      Number(a.group_number)-Number(b.group_number) || Number(a.round_number)-Number(b.round_number) || Number(a.match_number)-Number(b.match_number)));
+    if (pending.length)
+      addSection(
+        "Sin programar",
+        pending.sort(
+          (a, b) =>
+            Number(a.group_number) - Number(b.group_number) ||
+            Number(a.round_number) - Number(b.round_number) ||
+            Number(a.match_number) - Number(b.match_number),
+        ),
+      );
     for (const key of [...byDate.keys()].sort()) {
-      const dayMatches=byDate.get(key).sort((a,b)=>Date.parse(a.scheduled_at)-Date.parse(b.scheduled_at));
+      const dayMatches = byDate
+        .get(key)
+        .sort(
+          (a, b) => Date.parse(a.scheduled_at) - Date.parse(b.scheduled_at),
+        );
       addSection(labelDate(dayMatches[0].scheduled_at), dayMatches);
     }
     details.append(summary, body);
@@ -486,18 +579,27 @@
       publishedFixtureByTournament = new Map();
       const notices = [];
       try {
-        publishedGroupsByTournament = await fetchPublishedGroups(tournamentsCache);
+        publishedGroupsByTournament =
+          await fetchPublishedGroups(tournamentsCache);
       } catch (groupsError) {
-        console.error("No se pudieron cargar los grupos publicados", groupsError);
+        console.error(
+          "No se pudieron cargar los grupos publicados",
+          groupsError,
+        );
         notices.push("No se pudieron consultar los grupos publicados.");
       }
       try {
-        publishedFixtureByTournament = await fetchPublishedFixture(tournamentsCache);
+        publishedFixtureByTournament =
+          await fetchPublishedFixture(tournamentsCache);
       } catch (fixtureError) {
         console.error("No se pudo cargar el fixture publicado", fixtureError);
         notices.push("No se pudieron consultar los fixtures publicados.");
       }
-      status(notices.length ? `${notices.join(" ")} Recargá la página para intentarlo nuevamente.` : "");
+      status(
+        notices.length
+          ? `${notices.join(" ")} Recargá la página para intentarlo nuevamente.`
+          : "",
+      );
       render();
     } catch (error) {
       console.error(error);
@@ -510,7 +612,8 @@
     event.preventDefault();
     if (loading || !selection) return;
     if (!registrationOpen(selection)) {
-      $("public-tournament-error").textContent = "Las inscripciones de este torneo están cerradas.";
+      $("public-tournament-error").textContent =
+        "Las inscripciones de este torneo están cerradas.";
       return;
     }
     const p1 = $("public-player1").value.trim().replace(/\s+/g, " ");

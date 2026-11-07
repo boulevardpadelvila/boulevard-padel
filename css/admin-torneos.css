@@ -578,7 +578,10 @@
   border-radius: 9px;
   background: #fff4f3;
   color: #982b2b;
-  font: 600 13px/1.5 Inter, Arial, sans-serif;
+  font:
+    600 13px/1.5 Inter,
+    Arial,
+    sans-serif;
 }
 
 /* BVPadel: avisos de exito - parche 06 */
@@ -593,7 +596,10 @@
   border-radius: 9px;
   background: #f3f8f1;
   color: #285439;
-  font: 600 13px/1.5 Inter, Arial, sans-serif;
+  font:
+    600 13px/1.5 Inter,
+    Arial,
+    sans-serif;
 }
 #torneo-feedback.torneo-feedback--success::before {
   content: "✓";
@@ -605,7 +611,10 @@
   border-radius: 50%;
   background: #dcebdc;
   color: #285439;
-  font: 800 13px/1 Inter, Arial, sans-serif;
+  font:
+    800 13px/1 Inter,
+    Arial,
+    sans-serif;
 }
 
 /* BVPadel: avisos informativos - parche 07 */
@@ -620,7 +629,10 @@
   border-radius: 9px;
   background: #f2f7fd;
   color: #24567f;
-  font: 600 13px/1.5 Inter, Arial, sans-serif;
+  font:
+    600 13px/1.5 Inter,
+    Arial,
+    sans-serif;
 }
 #torneo-feedback.torneo-feedback--info::before {
   content: "i";
@@ -632,7 +644,10 @@
   border-radius: 50%;
   background: #dceaf8;
   color: #24567f;
-  font: 800 13px/1 Inter, Arial, sans-serif;
+  font:
+    800 13px/1 Inter,
+    Arial,
+    sans-serif;
 }
 
 /* BVPadel: recuperacion opcional de categorias eliminadas. */
@@ -641,7 +656,10 @@
   border: 0;
   background: transparent;
   color: #526443;
-  font: 600 11px/1.5 Inter, Arial, sans-serif;
+  font:
+    600 11px/1.5 Inter,
+    Arial,
+    sans-serif;
   text-decoration: underline;
   text-underline-offset: 3px;
   padding: 9px 2px;
@@ -662,7 +680,10 @@
   background: #f2f3eb;
   border-radius: 9px;
   color: #616957;
-  font: 600 12px/1.5 Inter, Arial, sans-serif;
+  font:
+    600 12px/1.5 Inter,
+    Arial,
+    sans-serif;
   text-align: center;
 }
 
@@ -758,13 +779,24 @@
 .torneos-groups-summary,
 .torneos-groups-feedback {
   margin: 0 0 12px;
-  font: 400 12px/1.55 Inter, Arial, sans-serif;
+  font:
+    400 12px/1.55 Inter,
+    Arial,
+    sans-serif;
   color: #5c6656;
 }
-.torneos-groups-feedback:empty { display: none; }
-.torneos-groups-feedback--error { color: #a12323; }
-.torneos-groups-feedback--success { color: #2d653b; }
-.torneos-groups-setup[hidden] { display: none !important; }
+.torneos-groups-feedback:empty {
+  display: none;
+}
+.torneos-groups-feedback--error {
+  color: #a12323;
+}
+.torneos-groups-feedback--success {
+  color: #2d653b;
+}
+.torneos-groups-setup[hidden] {
+  display: none !important;
+}
 .torneos-groups-setup label {
   display: block;
   font-size: 12px;
@@ -780,11 +812,16 @@
   background: #fff;
   border-radius: 9px;
   color: #283229;
-  font: 500 13px Inter, Arial, sans-serif;
+  font:
+    500 13px Inter,
+    Arial,
+    sans-serif;
   padding: 7px 10px;
   margin-bottom: 8px;
 }
-.torneos-groups-setup .torneos-outline { margin: 1px 0 14px; }
+.torneos-groups-setup .torneos-outline {
+  margin: 1px 0 14px;
+}
 .torneos-groups-list {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr));
@@ -799,7 +836,10 @@
 }
 .torneos-group-card h3 {
   margin: 0 0 10px;
-  font: 700 14px/1.4 Inter, Arial, sans-serif;
+  font:
+    700 14px/1.4 Inter,
+    Arial,
+    sans-serif;
   color: #303a2c;
 }
 .torneos-group-card h3 span {
@@ -822,7 +862,10 @@
   border: 1px solid #ebeee8;
   border-radius: 7px;
   overflow-wrap: anywhere;
-  font: 500 12px/1.45 Inter, Arial, sans-serif;
+  font:
+    500 12px/1.45 Inter,
+    Arial,
+    sans-serif;
 }
 
 /* BVPadel parche 23: separacion del boton de sorteo y los grupos. */
@@ -867,7 +910,10 @@
   background: #f5f8f1;
   color: #3a5a39;
   padding: 6px 8px;
-  font: 600 11px/1.35 Inter, Arial, sans-serif;
+  font:
+    600 11px/1.35 Inter,
+    Arial,
+    sans-serif;
   cursor: pointer;
   white-space: nowrap;
 }
@@ -881,7 +927,10 @@
   text-align: left;
   margin: 13px 0;
   color: #394739;
-  font: 700 12px/1.5 Inter, Arial, sans-serif;
+  font:
+    700 12px/1.5 Inter,
+    Arial,
+    sans-serif;
 }
 .torneos-group-change-form .torneos-group-change-field[hidden] {
   display: none !important;
@@ -897,7 +946,10 @@
   color: #273328;
   border: 1px solid #ccd7c6;
   border-radius: 9px;
-  font: 500 13px Inter, Arial, sans-serif;
+  font:
+    500 13px Inter,
+    Arial,
+    sans-serif;
 }
 .torneos-group-change-form .torneos-group-change-hint {
   text-align: left;
@@ -934,7 +986,9 @@
 }
 
 /* BVPadel parche 29: fixture de grupos en el Admin. */
-.torneos-fixture-panel[hidden] { display: none !important; }
+.torneos-fixture-panel[hidden] {
+  display: none !important;
+}
 .torneos-fixture-panel {
   margin-top: 24px;
   padding-top: 19px;
@@ -951,23 +1005,37 @@
 .torneos-fixture-header h3 {
   margin: 0;
   color: #313d30;
-  font: 700 15px/1.4 Inter, Arial, sans-serif;
+  font:
+    700 15px/1.4 Inter,
+    Arial,
+    sans-serif;
 }
 .torneos-fixture-header .torneos-outline {
   margin: 0;
   min-width: 0;
   padding: 9px 13px;
 }
-.torneos-fixture-header .torneos-outline[hidden] { display: none !important; }
+.torneos-fixture-header .torneos-outline[hidden] {
+  display: none !important;
+}
 .torneos-fixture-summary,
 .torneos-fixture-feedback {
   margin: 0 0 11px;
-  font: 400 12px/1.55 Inter, Arial, sans-serif;
+  font:
+    400 12px/1.55 Inter,
+    Arial,
+    sans-serif;
   color: #586854;
 }
-.torneos-fixture-feedback:empty { display: none; }
-.torneos-fixture-feedback--error { color: #9e2d2d; }
-.torneos-fixture-feedback--success { color: #296a3b; }
+.torneos-fixture-feedback:empty {
+  display: none;
+}
+.torneos-fixture-feedback--error {
+  color: #9e2d2d;
+}
+.torneos-fixture-feedback--success {
+  color: #296a3b;
+}
 .torneos-fixture-list {
   display: grid;
   gap: 13px;
@@ -982,22 +1050,30 @@
 .torneos-fixture-round h4 {
   margin: 0 0 12px;
   color: #2a382b;
-  font: 700 13px/1.4 Inter, Arial, sans-serif;
+  font:
+    700 13px/1.4 Inter,
+    Arial,
+    sans-serif;
 }
 .torneos-fixture-round-groups {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
   gap: 12px;
 }
-.torneos-fixture-group { min-width: 0; }
+.torneos-fixture-group {
+  min-width: 0;
+}
 .torneos-fixture-group h5 {
   margin: 0 0 7px;
   color: #465944;
-  font: 700 12px/1.4 Inter, Arial, sans-serif;
+  font:
+    700 12px/1.4 Inter,
+    Arial,
+    sans-serif;
 }
 .torneos-fixture-match {
   display: grid;
-  grid-template-columns: minmax(0,1fr) 26px minmax(0,1fr);
+  grid-template-columns: minmax(0, 1fr) 26px minmax(0, 1fr);
   gap: 5px;
   align-items: center;
   padding: 9px 7px;
@@ -1013,17 +1089,29 @@
   min-width: 0;
   overflow-wrap: anywhere;
   color: #243225;
-  font: 600 11px/1.4 Inter, Arial, sans-serif;
+  font:
+    600 11px/1.4 Inter,
+    Arial,
+    sans-serif;
 }
 .torneos-fixture-versus {
   color: #7d8e7c;
   text-align: center;
-  font: 700 10px/1.4 Inter, Arial, sans-serif;
+  font:
+    700 10px/1.4 Inter,
+    Arial,
+    sans-serif;
 }
 @media (max-width: 520px) {
-  .torneos-fixture-header { align-items: stretch; }
-  .torneos-fixture-header .torneos-outline { width: 100%; }
-  .torneos-fixture-match { gap: 4px; }
+  .torneos-fixture-header {
+    align-items: stretch;
+  }
+  .torneos-fixture-header .torneos-outline {
+    width: 100%;
+  }
+  .torneos-fixture-match {
+    gap: 4px;
+  }
 }
 
 /* BVPadel parche 30: alinear a la derecha la segunda pareja del fixture. */
@@ -1043,12 +1131,19 @@
 }
 
 /* BVPadel parche 33: botones y motivo de correccion. */
-.torneos-groups-actions .torneos-groups-revise { grid-column: 1 / -1; }
-.torneos-groups-actions .torneos-groups-revise[hidden] { display: none !important; }
+.torneos-groups-actions .torneos-groups-revise {
+  grid-column: 1 / -1;
+}
+.torneos-groups-actions .torneos-groups-revise[hidden] {
+  display: none !important;
+}
 .torneos-revision-form .torneos-revision-label {
   display: block;
   margin: 14px 0 6px;
-  font: 700 12px/1.5 Inter, Arial, sans-serif;
+  font:
+    700 12px/1.5 Inter,
+    Arial,
+    sans-serif;
   text-align: left;
   color: #334233;
 }
@@ -1063,12 +1158,18 @@
   border-radius: 9px;
   color: #29382c;
   background: #fff;
-  font: 400 13px/1.5 Inter, Arial, sans-serif;
+  font:
+    400 13px/1.5 Inter,
+    Arial,
+    sans-serif;
 }
 .torneos-revision-form .torneos-revision-help {
   margin: 7px 0 11px;
   text-align: left;
-  font: 400 11px/1.5 Inter, Arial, sans-serif;
+  font:
+    400 11px/1.5 Inter,
+    Arial,
+    sans-serif;
   color: #697667;
 }
 .torneos-revision-form .torneos-revision-error {
@@ -1076,7 +1177,9 @@
   color: #a12d2d;
   font-size: 12px;
 }
-.torneos-revision-form .torneos-revision-error:empty { display: none; }
+.torneos-revision-form .torneos-revision-error:empty {
+  display: none;
+}
 
 /* BVPadel parche 35: pasos 01, 02 y 03 apilados en toda resolucion. */
 /* Solo modifica la distribucion de las tarjetas; no los formularios internos. */
@@ -1106,7 +1209,8 @@
 /* El sorteo determina la cantidad de grupos; en escritorios amplios,
    como maximo cuatro tarjetas por fila para conservar la lectura. */
 @media (min-width: 1150px) {
-  .admin-torneos #torneos-groups-list:has(> .torneos-group-card:nth-child(n + 4)) {
+  .admin-torneos
+    #torneos-groups-list:has(> .torneos-group-card:nth-child(n + 4)) {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
@@ -1140,7 +1244,9 @@
 /* BVPadel parche 37 — editor visual privado de cruces y jornadas. */
 .torneos-fixture-editor[hidden],
 .torneos-fixture-list[hidden],
-.torneos-fixture-edit-open[hidden] { display: none !important; }
+.torneos-fixture-edit-open[hidden] {
+  display: none !important;
+}
 .torneos-fixture-editor {
   margin: 15px 0 18px;
   padding: 16px;
@@ -1149,37 +1255,122 @@
   background: #f7faf5;
   min-width: 0;
 }
-.torneos-fixture-editor h4 { margin: 0 0 6px; color: #263e2d; font: 700 17px/1.3 Inter, Arial, sans-serif; }
-.torneos-fixture-editor__help { margin: 0 0 15px; color: #53634f; font: 400 12px/1.5 Inter, Arial, sans-serif; }
-.torneos-fixture-editor__field { display: grid; gap: 6px; min-width: 0; color: #394c37; font: 700 11px/1.4 Inter, Arial, sans-serif; }
+.torneos-fixture-editor h4 {
+  margin: 0 0 6px;
+  color: #263e2d;
+  font:
+    700 17px/1.3 Inter,
+    Arial,
+    sans-serif;
+}
+.torneos-fixture-editor__help {
+  margin: 0 0 15px;
+  color: #53634f;
+  font:
+    400 12px/1.5 Inter,
+    Arial,
+    sans-serif;
+}
+.torneos-fixture-editor__field {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  color: #394c37;
+  font:
+    700 11px/1.4 Inter,
+    Arial,
+    sans-serif;
+}
 .torneos-fixture-editor__field select,
 .torneos-fixture-editor__field textarea {
   box-sizing: border-box;
   display: block;
-  width: 100%; min-width: 0;
+  width: 100%;
+  min-width: 0;
   padding: 9px 8px;
-  background: #fff; border: 1px solid #cddbc6; border-radius: 8px;
-  font: 500 12px/1.45 Inter, Arial, sans-serif;
+  background: #fff;
+  border: 1px solid #cddbc6;
+  border-radius: 8px;
+  font:
+    500 12px/1.45 Inter,
+    Arial,
+    sans-serif;
   color: #28352a;
 }
-.torneos-fixture-editor__field textarea { resize: vertical; min-height: 75px; }
-.torneos-fixture-editor__matches { display: grid; gap: 12px; margin: 16px 0; }
-.torneos-fixture-editor__round { padding: 12px; border-radius: 10px; border: 1px solid #dce7d6; background: #fff; min-width: 0; }
-.torneos-fixture-editor__round h5 { margin: 0 0 12px; font: 700 13px/1.4 Inter, Arial, sans-serif; color: #42533e; }
-.torneos-fixture-editor__row { display: grid; grid-template-columns: repeat(2,minmax(0,2fr)) repeat(2,minmax(94px,1fr)); gap: 9px; align-items: end; min-width: 0; }
-.torneos-fixture-editor__row + .torneos-fixture-editor__row { margin-top: 12px; padding-top: 12px; border-top: 1px solid #edf1e9; }
-.torneos-fixture-editor__error { margin: 6px 0 14px; color: #a12c2c; font: 600 12px/1.5 Inter, Arial, sans-serif; }
-.torneos-fixture-editor__error--ok { color: #276a3c; }
-.torneos-fixture-editor__actions { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 9px; }
-.torneos-fixture-editor__actions .torneos-outline { margin: 0; min-width: 0; }
+.torneos-fixture-editor__field textarea {
+  resize: vertical;
+  min-height: 75px;
+}
+.torneos-fixture-editor__matches {
+  display: grid;
+  gap: 12px;
+  margin: 16px 0;
+}
+.torneos-fixture-editor__round {
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid #dce7d6;
+  background: #fff;
+  min-width: 0;
+}
+.torneos-fixture-editor__round h5 {
+  margin: 0 0 12px;
+  font:
+    700 13px/1.4 Inter,
+    Arial,
+    sans-serif;
+  color: #42533e;
+}
+.torneos-fixture-editor__row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 2fr)) repeat(2, minmax(94px, 1fr));
+  gap: 9px;
+  align-items: end;
+  min-width: 0;
+}
+.torneos-fixture-editor__row + .torneos-fixture-editor__row {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #edf1e9;
+}
+.torneos-fixture-editor__error {
+  margin: 6px 0 14px;
+  color: #a12c2c;
+  font:
+    600 12px/1.5 Inter,
+    Arial,
+    sans-serif;
+}
+.torneos-fixture-editor__error--ok {
+  color: #276a3c;
+}
+.torneos-fixture-editor__actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+}
+.torneos-fixture-editor__actions .torneos-outline {
+  margin: 0;
+  min-width: 0;
+}
 @media (max-width: 850px) {
-  .torneos-fixture-editor__row { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .torneos-fixture-editor__row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 @media (max-width: 520px) {
-  .torneos-fixture-editor { padding: 11px; }
-  .torneos-fixture-editor__round { padding: 9px; }
-  .torneos-fixture-editor__row { gap: 8px; }
-  .torneos-fixture-editor__actions { grid-template-columns: 1fr; }
+  .torneos-fixture-editor {
+    padding: 11px;
+  }
+  .torneos-fixture-editor__round {
+    padding: 9px;
+  }
+  .torneos-fixture-editor__row {
+    gap: 8px;
+  }
+  .torneos-fixture-editor__actions {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* BVPadel parche 38: avisos visuales del editor de fixture (sin cambios de validación). */
@@ -1196,7 +1387,10 @@
   border-radius: 10px;
   background: #fff8ed;
   color: #75491b;
-  font: 600 13px/1.55 Inter, Arial, sans-serif;
+  font:
+    600 13px/1.55 Inter,
+    Arial,
+    sans-serif;
   overflow-wrap: anywhere;
 }
 .torneos-fixture-editor__error:empty {
@@ -1212,7 +1406,10 @@
   border-radius: 50%;
   background: #bd7625;
   color: #fff;
-  font: 800 15px/1 Inter, Arial, sans-serif;
+  font:
+    800 15px/1 Inter,
+    Arial,
+    sans-serif;
 }
 .torneos-fixture-editor__error[data-state="info"] {
   border-color: #cbdced;
@@ -1256,7 +1453,9 @@
   }
 }
 /* Encabezado arriba; dos acciones del fixture alineadas y del mismo ancho. */
-.torneos-fixture-header h3 { flex: 0 0 100%; }
+.torneos-fixture-header h3 {
+  flex: 0 0 100%;
+}
 .torneos-fixture-header .torneos-outline:not([hidden]) {
   box-sizing: border-box;
   flex: 1 1 calc(50% - 5px);
@@ -1273,7 +1472,10 @@
   height: 56px;
   background: #fff1e8;
   color: #ad5728;
-  font: 800 30px/1 Inter, Arial, sans-serif;
+  font:
+    800 30px/1 Inter,
+    Arial,
+    sans-serif;
 }
 .torneos-fixture-discard-dialog .admin-save-dialog__actions .primary {
   background: #974b2c;
@@ -1283,13 +1485,19 @@
 .torneos-fixture-discard-dialog .admin-save-dialog__actions .primary:hover {
   background: #7d3b21;
 }
-.torneos-fixture-discard-dialog .admin-save-dialog__actions button:focus-visible {
+.torneos-fixture-discard-dialog
+  .admin-save-dialog__actions
+  button:focus-visible {
   outline: 3px solid #8b9f63;
   outline-offset: 2px;
 }
 @media (max-width: 390px) {
-  .torneos-fixture-discard-dialog .admin-save-dialog__body { padding: 22px 17px; }
-  .torneos-fixture-discard-dialog .admin-save-dialog__actions { grid-template-columns: 1fr; }
+  .torneos-fixture-discard-dialog .admin-save-dialog__body {
+    padding: 22px 17px;
+  }
+  .torneos-fixture-discard-dialog .admin-save-dialog__actions {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* BVPadel Parche 43 — programación flexible de partidos de grupos. */
@@ -1314,10 +1522,17 @@
 }
 .torneos-fixture-entry__status {
   color: #667663;
-  font: 600 11px/1.5 Inter, Arial, sans-serif;
+  font:
+    600 11px/1.5 Inter,
+    Arial,
+    sans-serif;
 }
-.torneos-fixture-entry__status--scheduled { color: #28703f; }
-.torneos-fixture-entry__status--postponed { color: #995521; }
+.torneos-fixture-entry__status--scheduled {
+  color: #28703f;
+}
+.torneos-fixture-entry__status--postponed {
+  color: #995521;
+}
 .torneos-fixture-entry__actions {
   display: flex;
   flex-wrap: wrap;
@@ -1335,7 +1550,10 @@
 }
 .torneos-fixture-entry__result {
   color: #536453;
-  font: 600 11px/1.5 Inter, Arial, sans-serif;
+  font:
+    600 11px/1.5 Inter,
+    Arial,
+    sans-serif;
 }
 .torneos-fixture-schedule-form {
   display: grid;
@@ -1345,20 +1563,28 @@
   margin: 0;
   color: #435843;
   overflow-wrap: anywhere;
-  font: 600 13px/1.5 Inter, Arial, sans-serif;
+  font:
+    600 13px/1.5 Inter,
+    Arial,
+    sans-serif;
 }
 .torneos-fixture-schedule-fields {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
 }
-.torneos-fixture-schedule-fields[hidden] { display: none !important; }
+.torneos-fixture-schedule-fields[hidden] {
+  display: none !important;
+}
 .torneos-fixture-schedule-form label {
   min-width: 0;
   display: grid;
   gap: 6px;
   color: #354635;
-  font: 600 12px/1.4 Inter, Arial, sans-serif;
+  font:
+    600 12px/1.4 Inter,
+    Arial,
+    sans-serif;
 }
 .torneos-fixture-schedule-form input,
 .torneos-fixture-schedule-form select,
@@ -1371,27 +1597,45 @@
   border-radius: 8px;
   background: #fff;
   color: #223224;
-  font: 500 13px/1.4 Inter, Arial, sans-serif;
+  font:
+    500 13px/1.4 Inter,
+    Arial,
+    sans-serif;
 }
 .torneos-fixture-schedule-hint {
   margin: 0;
   color: #536b52;
-  font: 400 12px/1.55 Inter, Arial, sans-serif;
+  font:
+    400 12px/1.55 Inter,
+    Arial,
+    sans-serif;
 }
 .torneos-fixture-schedule-error {
   margin: 0;
   color: #a12e31;
-  font: 600 12px/1.5 Inter, Arial, sans-serif;
+  font:
+    600 12px/1.5 Inter,
+    Arial,
+    sans-serif;
 }
-.torneos-fixture-schedule-error:empty { display: none; }
+.torneos-fixture-schedule-error:empty {
+  display: none;
+}
 .torneos-fixture-schedule-dialog .admin-save-dialog__body {
   max-height: min(88dvh, 700px);
   overflow-y: auto;
 }
 @media (max-width: 520px) {
-  .torneos-fixture-schedule-fields { grid-template-columns: minmax(0, 1fr); }
-  .torneos-fixture-entry__actions { flex-direction: column; }
-  .torneos-fixture-entry__button { flex: 0 0 auto; width: 100%; }
+  .torneos-fixture-schedule-fields {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .torneos-fixture-entry__actions {
+    flex-direction: column;
+  }
+  .torneos-fixture-entry__button {
+    flex: 0 0 auto;
+    width: 100%;
+  }
 }
 
 /* BVPadel Parche 45 — estado y botones de inscripciones en una sola fila. */
@@ -1411,7 +1655,9 @@
   display: none !important;
 }
 @media (max-width: 390px) {
-  #torneos-pairs-list .torneos-pair-entry__buttons--approved { gap: 4px; }
+  #torneos-pairs-list .torneos-pair-entry__buttons--approved {
+    gap: 4px;
+  }
   #torneos-pairs-list .torneos-pair-entry__buttons--approved button {
     padding-inline: 8px;
     font-size: 11px;
@@ -1420,9 +1666,13 @@
 
 /* BVPadel Parche 46: el fixture queda a la vista al guardar programación.
    Un pequeño espacio superior conserva el título visible. */
-.torneos-fixture-panel { scroll-margin-top: 38px; }
+.torneos-fixture-panel {
+  scroll-margin-top: 38px;
+}
 @media (max-width: 700px) {
-  .torneos-fixture-panel { scroll-margin-top: 72px; }
+  .torneos-fixture-panel {
+    scroll-margin-top: 72px;
+  }
 }
 
 /* BVPadel Parche 47 — eliminar inscripción sin romper la fila Aprobada/Editar/Rechazar. */
@@ -1443,6 +1693,8 @@
   text-underline-offset: 2px;
 }
 #torneos-pairs-list .torneos-pair-entry__remove .torneos-entry__button:hover,
-#torneos-pairs-list .torneos-pair-entry__remove .torneos-entry__button:focus-visible {
+#torneos-pairs-list
+  .torneos-pair-entry__remove
+  .torneos-entry__button:focus-visible {
   color: #721e1e;
 }

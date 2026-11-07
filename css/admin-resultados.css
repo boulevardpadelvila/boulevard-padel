@@ -1,30 +1,138 @@
 /* Boulevard Padel: resultados de grupos - aislado del turnero. */
-.bp-results-panel { margin-top: 1.25rem; }
-.bp-results-toolbar { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:.7rem; }
-.bp-results-panel h2 { margin: 0; }
-.bp-results-description { margin:.5rem 0 1rem; }
-.bp-results-group { margin:1rem 0; padding:1rem; border:1px solid var(--line,#d8dce3); border-radius:12px; }
-.bp-results-group h3 { margin:0 0 .6rem; }
-.bp-results-match { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:.55rem; padding:.65rem 0; border-bottom:1px solid #ccc5; }
-.bp-results-match:last-child { border-bottom:none; }
-.bp-results-match-main { min-width:210px; flex:1; font-size:.95rem; }
-.bp-results-match-meta { font-size:.84rem; opacity:.85; }
-.bp-results-table-wrap { overflow-x:auto; margin-top:.9rem; }
-.bp-results-table { width:100%; border-collapse:collapse; font-size:.9rem; }
-.bp-results-table th,.bp-results-table td { padding:.5rem .35rem; text-align:center; border-bottom:1px solid #ddd5; }
-.bp-results-table th:nth-child(2),.bp-results-table td:nth-child(2) { text-align:left; }
-.bp-results-table td:first-child { font-weight:700; }
-.bp-results-hint { font-size:.88rem; margin:.6rem 0; }
-.bp-results-error { color:#bf2525; }
-.bp-results-success { color:#21774d; }
-.bp-results-dialog { width:min(94vw,550px); max-height:90vh; overflow-y:auto; border:none; border-radius:16px; padding:0; box-shadow:0 10px 50px #0006; }
-.bp-results-dialog::backdrop { background:#0008; }
-.bp-results-dialog form { display:grid; gap:.8rem; padding:1.3rem; }
-.bp-results-dialog h3 { margin:0; }
-.bp-results-set { display:grid; grid-template-columns:70px 1fr 1fr; gap:.5rem; align-items:center; }
-.bp-results-set input { width:100%; box-sizing:border-box; min-width:0; }
-.bp-results-dialog label { display:grid; gap:.3rem; }
-.bp-results-dialog textarea { width:100%; box-sizing:border-box; }
-.bp-results-dialog-buttons { display:flex; justify-content:flex-end; gap:.6rem; flex-wrap:wrap; }
-@media(max-width:520px) { .bp-results-group {padding:.65rem;} .bp-results-dialog form{padding:1rem;} .bp-results-table{font-size:.8rem;} }
-.bp-results-dialog [hidden] { display:none !important; }
+.bp-results-panel {
+  margin-top: 1.25rem;
+}
+.bp-results-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem;
+}
+.bp-results-panel h2 {
+  margin: 0;
+}
+.bp-results-description {
+  margin: 0.5rem 0 1rem;
+}
+.bp-results-group {
+  margin: 1rem 0;
+  padding: 1rem;
+  border: 1px solid var(--line, #d8dce3);
+  border-radius: 12px;
+}
+.bp-results-group h3 {
+  margin: 0 0 0.6rem;
+}
+.bp-results-match {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.55rem;
+  padding: 0.65rem 0;
+  border-bottom: 1px solid #ccc5;
+}
+.bp-results-match:last-child {
+  border-bottom: none;
+}
+.bp-results-match-main {
+  min-width: 210px;
+  flex: 1;
+  font-size: 0.95rem;
+}
+.bp-results-match-meta {
+  font-size: 0.84rem;
+  opacity: 0.85;
+}
+.bp-results-table-wrap {
+  overflow-x: auto;
+  margin-top: 0.9rem;
+}
+.bp-results-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+.bp-results-table th,
+.bp-results-table td {
+  padding: 0.5rem 0.35rem;
+  text-align: center;
+  border-bottom: 1px solid #ddd5;
+}
+.bp-results-table th:nth-child(2),
+.bp-results-table td:nth-child(2) {
+  text-align: left;
+}
+.bp-results-table td:first-child {
+  font-weight: 700;
+}
+.bp-results-hint {
+  font-size: 0.88rem;
+  margin: 0.6rem 0;
+}
+.bp-results-error {
+  color: #bf2525;
+}
+.bp-results-success {
+  color: #21774d;
+}
+.bp-results-dialog {
+  width: min(94vw, 550px);
+  max-height: 90vh;
+  overflow-y: auto;
+  border: none;
+  border-radius: 16px;
+  padding: 0;
+  box-shadow: 0 10px 50px #0006;
+}
+.bp-results-dialog::backdrop {
+  background: #0008;
+}
+.bp-results-dialog form {
+  display: grid;
+  gap: 0.8rem;
+  padding: 1.3rem;
+}
+.bp-results-dialog h3 {
+  margin: 0;
+}
+.bp-results-set {
+  display: grid;
+  grid-template-columns: 70px 1fr 1fr;
+  gap: 0.5rem;
+  align-items: center;
+}
+.bp-results-set input {
+  width: 100%;
+  box-sizing: border-box;
+  min-width: 0;
+}
+.bp-results-dialog label {
+  display: grid;
+  gap: 0.3rem;
+}
+.bp-results-dialog textarea {
+  width: 100%;
+  box-sizing: border-box;
+}
+.bp-results-dialog-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+@media (max-width: 520px) {
+  .bp-results-group {
+    padding: 0.65rem;
+  }
+  .bp-results-dialog form {
+    padding: 1rem;
+  }
+  .bp-results-table {
+    font-size: 0.8rem;
+  }
+}
+.bp-results-dialog [hidden] {
+  display: none !important;
+}

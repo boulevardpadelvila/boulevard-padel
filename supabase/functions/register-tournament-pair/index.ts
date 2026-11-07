@@ -117,8 +117,12 @@ Deno.serve(async (req) => {
     const argDateParts = Object.fromEntries(
       new Intl.DateTimeFormat("en-US", {
         timeZone: "America/Argentina/Cordoba",
-        year: "numeric", month: "2-digit", day: "2-digit",
-      }).formatToParts(new Date()).map((part) => [part.type, part.value]),
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      })
+        .formatToParts(new Date())
+        .map((part) => [part.type, part.value]),
     );
     const argentinaToday = `${argDateParts.year}-${argDateParts.month}-${argDateParts.day}`;
     const closingTimestamp = competition?.registration_closes_at

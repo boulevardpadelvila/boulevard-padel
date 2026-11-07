@@ -7,7 +7,8 @@
     notice.textContent = message;
     // Los estilos son exclusivos: error rojo, exito verde o aviso informativo azul.
     const duplicate =
-      message === "Ya existe un torneo con ese nombre. Elegí otro para identificar correctamente esta competencia.";
+      message ===
+      "Ya existe un torneo con ese nombre. Elegí otro para identificar correctamente esta competencia.";
     const successMessages = new Set([
       "Cambios guardados correctamente.",
       "Torneo creado correctamente. Sigue oculto al público.",
@@ -31,7 +32,8 @@
         message === "Edición cancelada." ||
         message === "Guardando torneo…" ||
         message.startsWith("Cupo completo:") ||
-        message === "No se pudo verificar el cupo. Actualizá la vista e intentá nuevamente.");
+        message ===
+          "No se pudo verificar el cupo. Actualizá la vista e intentá nuevamente.");
     notice.classList.toggle("torneo-feedback--duplicate", duplicate);
     notice.classList.toggle("torneo-feedback--success", success);
     notice.classList.toggle("torneo-feedback--info", informative);
@@ -53,8 +55,12 @@
     const values = Object.fromEntries(
       new Intl.DateTimeFormat("en-US", {
         timeZone: "America/Argentina/Cordoba",
-        year: "numeric", month: "2-digit", day: "2-digit",
-      }).formatToParts(new Date()).map((part) => [part.type, part.value]),
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      })
+        .formatToParts(new Date())
+        .map((part) => [part.type, part.value]),
     );
     return `${values.year}-${values.month}-${values.day}`;
   }
@@ -63,16 +69,24 @@
     return t.status === "completed";
   }
   function registrationOpen(t) {
-    return t.status === "registration_open" && !isFinished(t) &&
-      (!t.registration_closes_at || Date.now() < Date.parse(t.registration_closes_at));
+    return (
+      t.status === "registration_open" &&
+      !isFinished(t) &&
+      (!t.registration_closes_at ||
+        Date.now() < Date.parse(t.registration_closes_at))
+    );
   }
   function closingDateInArgentina(iso) {
     if (!iso) return "";
     const values = Object.fromEntries(
       new Intl.DateTimeFormat("en-US", {
         timeZone: "America/Argentina/Cordoba",
-        year: "numeric", month: "2-digit", day: "2-digit",
-      }).formatToParts(new Date(iso)).map((part) => [part.type, part.value]),
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      })
+        .formatToParts(new Date(iso))
+        .map((part) => [part.type, part.value]),
     );
     return `${values.year}-${values.month}-${values.day}`;
   }
@@ -157,7 +171,8 @@
   function ensureEditingRetiredCategory(t) {
     if (!t?.category_id) return;
     const select = $("torneo-category");
-    if ([...select.options].some((option) => option.value === t.category_id)) return;
+    if ([...select.options].some((option) => option.value === t.category_id))
+      return;
     // Se muestra solo al editar el torneo que ya la utiliza, nunca en el alta.
     const name = t.bp_tournament_categories?.name || "Categoría histórica";
     const option = new Option(`${name} (histórica)`, t.category_id);
@@ -175,7 +190,8 @@
     const select = $("torneo-category");
     select.replaceChildren(new Option("Seleccionar categoría", ""));
     for (const c of data || []) select.add(new Option(c.name, c.id));
-    if (editing) ensureEditingRetiredCategory(records.find((t) => t.id === editing));
+    if (editing)
+      ensureEditingRetiredCategory(records.find((t) => t.id === editing));
     if (selected) select.value = selected;
   }
   /* BVPadel: administrar categorias - parche 02 */
@@ -191,9 +207,8 @@
   }
 
   async function refreshCategoryViews(selectedCategory = null) {
-    const selected = selectedCategory === null
-      ? $("torneo-category").value
-      : selectedCategory;
+    const selected =
+      selectedCategory === null ? $("torneo-category").value : selectedCategory;
     await loadCategories(selected);
     await loadTournaments();
     if (!categoryPanel.hidden) await loadCategoryManagement();
@@ -220,7 +235,9 @@
         if (error?.code === "23505")
           throw new Error("Ya existe una categoría con ese nombre.");
         if (error || data?.length !== 1)
-          throw new Error("No se pudo editar la categoría. Actualizá e intentá nuevamente.");
+          throw new Error(
+            "No se pudo editar la categoría. Actualizá e intentá nuevamente.",
+          );
         await refreshCategoryViews();
         feedback("Categoría actualizada correctamente.");
       },
@@ -250,7 +267,9 @@
             // El uso cambio desde que se mostro la lista: conservar el historial.
             preservedHistory = true;
           } else if (error || data?.length !== 1) {
-            throw new Error("No se pudo eliminar la categoría. Actualizá e intentá nuevamente.");
+            throw new Error(
+              "No se pudo eliminar la categoría. Actualizá e intentá nuevamente.",
+            );
           }
         }
         if (preservedHistory) {
@@ -261,15 +280,20 @@
             .eq("active", true)
             .select("id");
           if (error || data?.length !== 1)
-            throw new Error("No se pudo eliminar la categoría de las opciones. Actualizá e intentá nuevamente.");
+            throw new Error(
+              "No se pudo eliminar la categoría de las opciones. Actualizá e intentá nuevamente.",
+            );
         }
-        const selected = $("torneo-category").value === category.id
-          ? ""
-          : $("torneo-category").value;
+        const selected =
+          $("torneo-category").value === category.id
+            ? ""
+            : $("torneo-category").value;
         await refreshCategoryViews(selected);
-        feedback(preservedHistory
-          ? "Categoría eliminada de las opciones. Los torneos existentes se conservan."
-          : "Categoría eliminada correctamente.");
+        feedback(
+          preservedHistory
+            ? "Categoría eliminada de las opciones. Los torneos existentes se conservan."
+            : "Categoría eliminada correctamente.",
+        );
       },
     });
   }
@@ -288,7 +312,9 @@
           .eq("active", false)
           .select("id");
         if (error || data?.length !== 1)
-          throw new Error("No se pudo restaurar la categoría. Actualizá e intentá nuevamente.");
+          throw new Error(
+            "No se pudo restaurar la categoría. Actualizá e intentá nuevamente.",
+          );
         await refreshCategoryViews();
         feedback("Categoría restaurada correctamente.");
       },
@@ -305,15 +331,20 @@
         .select("id,name,active")
         .order("name");
       if (error) throw error;
-      const categories = await Promise.all((data || []).map(async (category) => {
-        const result = await supabaseClient
-          .from("bp_tournaments")
-          .select("id", { count: "exact", head: true })
-          .eq("category_id", category.id);
-        if (result.error || !Number.isInteger(result.count))
-          throw result.error || new Error("No se pudo verificar el uso de una categoría.");
-        return { ...category, tournamentsCount: result.count };
-      }));
+      const categories = await Promise.all(
+        (data || []).map(async (category) => {
+          const result = await supabaseClient
+            .from("bp_tournaments")
+            .select("id", { count: "exact", head: true })
+            .eq("category_id", category.id);
+          if (result.error || !Number.isInteger(result.count))
+            throw (
+              result.error ||
+              new Error("No se pudo verificar el uso de una categoría.")
+            );
+          return { ...category, tournamentsCount: result.count };
+        }),
+      );
       const active = categories.filter((category) => category.active);
       const inactive = categories.filter((category) => !category.active);
       list.replaceChildren();
@@ -326,9 +357,11 @@
         const title = document.createElement("strong");
         title.textContent = category.name;
         const meta = categoryInfo(
-          `${category.active ? "Disponible" : "Eliminada de las opciones"} · ${category.tournamentsCount === 0
-            ? "Sin torneos asociados"
-            : `${category.tournamentsCount} torneo(s) asociado(s)`}`,
+          `${category.active ? "Disponible" : "Eliminada de las opciones"} · ${
+            category.tournamentsCount === 0
+              ? "Sin torneos asociados"
+              : `${category.tournamentsCount} torneo(s) asociado(s)`
+          }`,
           "torneo-category-item__meta",
         );
         detail.append(title, meta);
@@ -336,11 +369,13 @@
         controls.className = "torneo-category-item__actions";
         if (category.active) {
           controls.append(action("Editar", () => editCategory(category)));
-          controls.append(action(
-            "Eliminar",
-            () => deleteCategory(category),
-            "torneos-entry__button--danger",
-          ));
+          controls.append(
+            action(
+              "Eliminar",
+              () => deleteCategory(category),
+              "torneos-entry__button--danger",
+            ),
+          );
         } else {
           controls.append(action("Restaurar", () => restoreCategory(category)));
         }
@@ -349,7 +384,12 @@
       }
 
       if (!active.length) {
-        list.append(categoryInfo("Aún no hay categorías disponibles.", "torneo-categories-empty"));
+        list.append(
+          categoryInfo(
+            "Aún no hay categorías disponibles.",
+            "torneo-categories-empty",
+          ),
+        );
       }
       for (const category of active) appendCategory(category);
 
@@ -372,10 +412,12 @@
       }
     } catch (error) {
       console.error(error);
-      list.replaceChildren(categoryInfo(
-        "No se pudieron consultar las categorías. Verificá la sesión y volvé a abrir este panel.",
-        "torneo-category-item__error",
-      ));
+      list.replaceChildren(
+        categoryInfo(
+          "No se pudieron consultar las categorías. Verificá la sesión y volvé a abrir este panel.",
+          "torneo-category-item__error",
+        ),
+      );
     }
   }
 
@@ -422,7 +464,7 @@
       const title = document.createElement("strong");
       title.textContent = t.name;
       const meta = document.createElement("p");
-      meta.textContent = `${t.bp_tournament_categories?.name || "Sin categoría"} · ${names[t.format] || t.format} · ${date(t.starts_on)} a ${date(t.ends_on)} (fin estimado) · ${isFinished(t) ? "Finalizado" : (t.status === "registration_open" && !registrationOpen(t) ? "Inscripciones cerradas por fecha" : (states[t.status] || t.status))} · ${t.is_published ? "Publicado" : "Oculto"}`;
+      meta.textContent = `${t.bp_tournament_categories?.name || "Sin categoría"} · ${names[t.format] || t.format} · ${date(t.starts_on)} a ${date(t.ends_on)} (fin estimado) · ${isFinished(t) ? "Finalizado" : t.status === "registration_open" && !registrationOpen(t) ? "Inscripciones cerradas por fecha" : states[t.status] || t.status} · ${t.is_published ? "Publicado" : "Oculto"}`;
       const actions = document.createElement("div");
       actions.className = "torneos-entry__actions";
       actions.append(
@@ -479,12 +521,16 @@
     $("torneo-edit-cancel").hidden = true;
     $("torneo-name").value = "";
     $("torneo-category").value = "";
-    [...$("torneo-category").options].filter((option) => option.dataset.retiredCategory === "true").forEach((option) => option.remove());
+    [...$("torneo-category").options]
+      .filter((option) => option.dataset.retiredCategory === "true")
+      .forEach((option) => option.remove());
     $("torneo-format").value = "groups_knockout";
     $("torneo-start").value = "";
     $("torneo-end").value = "";
     const stateSelect = $("torneo-state");
-    stateSelect.querySelectorAll('option[data-temporary-torneo-state="true"]').forEach((option) => option.remove());
+    stateSelect
+      .querySelectorAll('option[data-temporary-torneo-state="true"]')
+      .forEach((option) => option.remove());
     stateSelect.value = "draft";
     setPairs(12);
   }
@@ -500,7 +546,9 @@
     $("torneo-start").value = t.starts_on;
     $("torneo-end").value = t.ends_on;
     const stateSelect = $("torneo-state");
-    stateSelect.querySelectorAll('option[data-temporary-torneo-state="true"]').forEach((option) => option.remove());
+    stateSelect
+      .querySelectorAll('option[data-temporary-torneo-state="true"]')
+      .forEach((option) => option.remove());
     if (![...stateSelect.options].some((option) => option.value === t.status)) {
       const option = new Option(states[t.status] || t.status, t.status);
       option.dataset.temporaryTorneoState = "true";
@@ -594,38 +642,61 @@
     }
     openModal({
       title: "Cerrar inscripciones",
-      description: `¿Cerrar las inscripciones de «${t.name}» para comenzar a organizar los grupos? ` +
+      description:
+        `¿Cerrar las inscripciones de «${t.name}» para comenzar a organizar los grupos? ` +
         "Se utilizarán las parejas aprobadas. No se abrirá la inscripción pública " +
         `y el torneo seguirá ${t.is_published ? "publicado" : "oculto"}.`,
       confirm: "Cerrar inscripciones",
       action: async () => {
         await adminSession();
         const [approvedResult, pendingResult] = await Promise.all([
-          supabaseClient.from("bp_tournament_pairs")
+          supabaseClient
+            .from("bp_tournament_pairs")
             .select("id", { count: "exact", head: true })
-            .eq("tournament_id", t.id).eq("status", "approved"),
-          supabaseClient.from("bp_tournament_pairs")
+            .eq("tournament_id", t.id)
+            .eq("status", "approved"),
+          supabaseClient
+            .from("bp_tournament_pairs")
             .select("id", { count: "exact", head: true })
-            .eq("tournament_id", t.id).eq("status", "pending"),
+            .eq("tournament_id", t.id)
+            .eq("status", "pending"),
         ]);
-        if (approvedResult.error || pendingResult.error ||
-            approvedResult.count == null || pendingResult.count == null)
-          throw new Error("No se pudieron comprobar las parejas. Actualizá la vista.");
+        if (
+          approvedResult.error ||
+          pendingResult.error ||
+          approvedResult.count == null ||
+          pendingResult.count == null
+        )
+          throw new Error(
+            "No se pudieron comprobar las parejas. Actualizá la vista.",
+          );
         if (pendingResult.count > 0)
-          throw new Error("Primero aprobá o rechazá las inscripciones pendientes.");
+          throw new Error(
+            "Primero aprobá o rechazá las inscripciones pendientes.",
+          );
         if (approvedResult.count < 3)
-          throw new Error("Se necesitan al menos tres parejas aprobadas para formar grupos.");
+          throw new Error(
+            "Se necesitan al menos tres parejas aprobadas para formar grupos.",
+          );
         const now = new Date().toISOString();
         const { data, error } = await supabaseClient
           .from("bp_tournaments")
-          .update({ status: "registration_closed", registration_closes_at: now, updated_at: now })
+          .update({
+            status: "registration_closed",
+            registration_closes_at: now,
+            updated_at: now,
+          })
           .eq("id", t.id)
           .eq("status", "draft")
           .select("id");
         if (error || data?.length !== 1)
-          throw new Error("No se pudieron cerrar las inscripciones. Actualizá la vista e intentá nuevamente.");
+          throw new Error(
+            "No se pudieron cerrar las inscripciones. Actualizá la vista e intentá nuevamente.",
+          );
         await loadTournaments();
-        feedback("Inscripciones cerradas. Ahora podés organizar los grupos sin publicar el torneo.");
+        feedback(
+          "Inscripciones cerradas. Ahora podés organizar los grupos sin publicar el torneo.",
+        );
       },
     });
   }
@@ -633,7 +704,9 @@
   /* BVPadel parche 18 - aviso de cupo antes de abrir */
   async function toggleRegistration(t) {
     if (isFinished(t)) {
-      feedback("No se pueden modificar las inscripciones de un torneo finalizado.");
+      feedback(
+        "No se pueden modificar las inscripciones de un torneo finalizado.",
+      );
       return;
     }
     const opening = !registrationOpen(t);
@@ -649,12 +722,16 @@
           .in("status", ["pending", "approved"]);
         if (error || count == null) throw error || new Error("Sin contador");
         if (count >= t.max_pairs) {
-          feedback(`Cupo completo: ${count} de ${t.max_pairs} parejas. Liberá un lugar o ampliá el cupo para abrir inscripciones.`);
+          feedback(
+            `Cupo completo: ${count} de ${t.max_pairs} parejas. Liberá un lugar o ampliá el cupo para abrir inscripciones.`,
+          );
           return;
         }
       } catch (err) {
         console.error("No se pudo comprobar el cupo", err);
-        feedback("No se pudo verificar el cupo. Actualizá la vista e intentá nuevamente.");
+        feedback(
+          "No se pudo verificar el cupo. Actualizá la vista e intentá nuevamente.",
+        );
         return;
       }
     }
@@ -667,19 +744,29 @@
       inputType: opening ? "date" : "text",
       inputMin: opening ? localToday() : "",
       inputMax: opening ? t.ends_on : "",
-      value: opening && t.registration_closes_at && registrationOpen(t)
-        ? closingDateInArgentina(t.registration_closes_at) : "",
+      value:
+        opening && t.registration_closes_at && registrationOpen(t)
+          ? closingDateInArgentina(t.registration_closes_at)
+          : "",
       confirm: opening ? "Abrir inscripciones" : "Cerrar inscripciones",
       action: async (dateString) => {
         await adminSession();
         const now = new Date();
-        if (opening && dateString &&
+        if (
+          opening &&
+          dateString &&
           (!/^\d{4}-\d{2}-\d{2}$/.test(dateString) ||
-           dateString < localToday() || dateString > t.ends_on)) {
-          throw new Error("Elegí una fecha entre hoy y el fin del torneo, o dejala vacía.");
+            dateString < localToday() ||
+            dateString > t.ends_on)
+        ) {
+          throw new Error(
+            "Elegí una fecha entre hoy y el fin del torneo, o dejala vacía.",
+          );
         }
         const closing = opening
-          ? (dateString ? new Date(`${dateString}T23:59:59.999-03:00`).toISOString() : null)
+          ? dateString
+            ? new Date(`${dateString}T23:59:59.999-03:00`).toISOString()
+            : null
           : now.toISOString();
         if (opening && closing && Date.parse(closing) <= Date.now()) {
           throw new Error("La fecha de cierre ya venció. Elegí otra.");
@@ -705,16 +792,24 @@
           .eq("status", t.status)
           .eq("is_published", t.is_published)
           .select("id");
-        if (error?.code === "23514" &&
-            /cupo|capacity/i.test(`${error.message || ""} ${error.details || ""}`)) {
-          throw new Error("El cupo está completo. Liberá un lugar o ampliá el cupo para abrir inscripciones.");
+        if (
+          error?.code === "23514" &&
+          /cupo|capacity/i.test(`${error.message || ""} ${error.details || ""}`)
+        ) {
+          throw new Error(
+            "El cupo está completo. Liberá un lugar o ampliá el cupo para abrir inscripciones.",
+          );
         }
         if (error || data?.length !== 1)
-          throw new Error("No se pudo actualizar la inscripción. Actualizá la vista e intentá nuevamente.");
+          throw new Error(
+            "No se pudo actualizar la inscripción. Actualizá la vista e intentá nuevamente.",
+          );
         await loadTournaments();
-        feedback(opening
-          ? `Inscripciones abiertas. El torneo sigue ${t.is_published ? "publicado" : "oculto"}.`
-          : "Inscripciones cerradas correctamente.");
+        feedback(
+          opening
+            ? `Inscripciones abiertas. El torneo sigue ${t.is_published ? "publicado" : "oculto"}.`
+            : "Inscripciones cerradas correctamente.",
+        );
       },
     });
   }
@@ -740,7 +835,9 @@
           .eq("status", t.status)
           .select("id");
         if (error || data?.length !== 1)
-          throw new Error("No se pudo finalizar el torneo. Actualizá la vista e intentá nuevamente.");
+          throw new Error(
+            "No se pudo finalizar el torneo. Actualizá la vista e intentá nuevamente.",
+          );
         if (editing === t.id) resetForm();
         await loadTournaments();
         feedback("Torneo finalizado correctamente.");
@@ -750,12 +847,13 @@
   // Parche 48: eliminación integral, transaccional y autorizada desde Supabase.
   // Las cantidades de la vista son informativas: la RPC vuelve a validar todo.
   async function remove(t) {
-    const notice = (title, description) => openModal({
-      title,
-      description,
-      confirm: "Entendido",
-      action: async () => {},
-    });
+    const notice = (title, description) =>
+      openModal({
+        title,
+        description,
+        confirm: "Entendido",
+        action: async () => {},
+      });
     let actual;
     let pairsCount;
     let groupsCount;
@@ -765,35 +863,71 @@
     let scheduledCount;
     try {
       await adminSession();
-      const [tournamentResult, pairs, groups, matches, revisions, played, scheduled] =
-        await Promise.all([
-          supabaseClient.from("bp_tournaments")
-            .select("id,name,status,is_published,groups_published_at,fixture_published_at")
-            .eq("id", t.id).maybeSingle(),
-          supabaseClient.from("bp_tournament_pairs")
-            .select("id", { count: "exact", head: true }).eq("tournament_id", t.id),
-          supabaseClient.from("bp_tournament_groups")
-            .select("id", { count: "exact", head: true }).eq("tournament_id", t.id),
-          supabaseClient.from("bp_tournament_group_matches")
-            .select("id", { count: "exact", head: true }).eq("tournament_id", t.id),
-          supabaseClient.from("bp_tournament_revision_log")
-            .select("id", { count: "exact", head: true }).eq("tournament_id", t.id),
-          supabaseClient.from("bp_tournament_group_matches")
-            .select("id", { count: "exact", head: true })
-            .eq("tournament_id", t.id).in("match_status", ["played", "walkover"]),
-          supabaseClient.from("bp_tournament_group_matches")
-            .select("id", { count: "exact", head: true })
-            .eq("tournament_id", t.id).eq("schedule_status", "scheduled"),
-        ]);
-      if (tournamentResult.error || pairs.error || groups.error || matches.error ||
-          revisions.error || played.error || scheduled.error ||
-          pairs.count == null || groups.count == null || matches.count == null ||
-          revisions.count == null || played.count == null || scheduled.count == null) {
+      const [
+        tournamentResult,
+        pairs,
+        groups,
+        matches,
+        revisions,
+        played,
+        scheduled,
+      ] = await Promise.all([
+        supabaseClient
+          .from("bp_tournaments")
+          .select(
+            "id,name,status,is_published,groups_published_at,fixture_published_at",
+          )
+          .eq("id", t.id)
+          .maybeSingle(),
+        supabaseClient
+          .from("bp_tournament_pairs")
+          .select("id", { count: "exact", head: true })
+          .eq("tournament_id", t.id),
+        supabaseClient
+          .from("bp_tournament_groups")
+          .select("id", { count: "exact", head: true })
+          .eq("tournament_id", t.id),
+        supabaseClient
+          .from("bp_tournament_group_matches")
+          .select("id", { count: "exact", head: true })
+          .eq("tournament_id", t.id),
+        supabaseClient
+          .from("bp_tournament_revision_log")
+          .select("id", { count: "exact", head: true })
+          .eq("tournament_id", t.id),
+        supabaseClient
+          .from("bp_tournament_group_matches")
+          .select("id", { count: "exact", head: true })
+          .eq("tournament_id", t.id)
+          .in("match_status", ["played", "walkover"]),
+        supabaseClient
+          .from("bp_tournament_group_matches")
+          .select("id", { count: "exact", head: true })
+          .eq("tournament_id", t.id)
+          .eq("schedule_status", "scheduled"),
+      ]);
+      if (
+        tournamentResult.error ||
+        pairs.error ||
+        groups.error ||
+        matches.error ||
+        revisions.error ||
+        played.error ||
+        scheduled.error ||
+        pairs.count == null ||
+        groups.count == null ||
+        matches.count == null ||
+        revisions.count == null ||
+        played.count == null ||
+        scheduled.count == null
+      ) {
         throw new Error("No se pudo verificar el estado actual del torneo.");
       }
       actual = tournamentResult.data;
       if (!actual || actual.name !== t.name) {
-        throw new Error("El torneo ya no existe o cambió de nombre. Actualizá la lista.");
+        throw new Error(
+          "El torneo ya no existe o cambió de nombre. Actualizá la lista.",
+        );
       }
       pairsCount = pairs.count;
       groupsCount = groups.count;
@@ -803,42 +937,56 @@
       scheduledCount = scheduled.count;
     } catch (error) {
       console.error("Error al verificar la eliminación del torneo:", error);
-      feedback(error.message || "No se pudo verificar el torneo. Actualizá y volvé a intentar.");
+      feedback(
+        error.message ||
+          "No se pudo verificar el torneo. Actualizá y volvé a intentar.",
+      );
       return;
     }
 
     if (actual.is_published) {
-      notice("Primero ocultá el torneo",
-        `«${actual.name}» está publicado. Ocultalo antes de solicitar su eliminación definitiva.`);
+      notice(
+        "Primero ocultá el torneo",
+        `«${actual.name}» está publicado. Ocultalo antes de solicitar su eliminación definitiva.`,
+      );
       return;
     }
     if (playedCount > 0) {
-      notice("Torneo con resultados deportivos",
+      notice(
+        "Torneo con resultados deportivos",
         `«${actual.name}» tiene ${playedCount} partido(s) con resultados. ` +
-        "Su eliminación automática está bloqueada para conservar los resultados y el historial deportivo.");
+          "Su eliminación automática está bloqueada para conservar los resultados y el historial deportivo.",
+      );
       return;
     }
     if (scheduledCount > 0) {
-      notice("Primero liberá los horarios",
+      notice(
+        "Primero liberá los horarios",
         `«${actual.name}» tiene ${scheduledCount} partido(s) programado(s). ` +
-        "Postergá esos encuentros para liberar la cancha antes de eliminar el torneo.");
+          "Postergá esos encuentros para liberar la cancha antes de eliminar el torneo.",
+      );
       return;
     }
     if (actual.groups_published_at && actual.status !== "registration_closed") {
-      notice("Torneo que requiere revisión",
+      notice(
+        "Torneo que requiere revisión",
         "Este torneo tiene grupos publicados internamente y su estado actual no admite " +
-        "la revisión necesaria para eliminarlo. No se realizaron cambios.");
+          "la revisión necesaria para eliminarlo. No se realizaron cambios.",
+      );
       return;
     }
     if (actual.fixture_published_at && !actual.groups_published_at) {
-      notice("Publicación inconsistente",
-        "El fixture tiene un estado que requiere revisión técnica antes de eliminar el torneo.");
+      notice(
+        "Publicación inconsistente",
+        "El fixture tiene un estado que requiere revisión técnica antes de eliminar el torneo.",
+      );
       return;
     }
 
     openModal({
       title: "Eliminar torneo completo",
-      description: `¿Eliminar definitivamente «${actual.name}»? Se borrarán ${pairsCount} ` +
+      description:
+        `¿Eliminar definitivamente «${actual.name}»? Se borrarán ${pairsCount} ` +
         `inscripción(es), ${groupsCount} grupo(s), ${matchesCount} partido(s) sin resultado ` +
         `y ${revisionCount} registro(s) de revisión, además del historial de programación ` +
         "y los bloqueos inactivos vinculados a esos partidos. No se tocarán reservas " +
@@ -854,30 +1002,49 @@
         if (error) {
           const detail = String(error.message || "");
           console.error("Supabase rechazó la eliminación del torneo:", error);
-          if (/resultados deportivos|partido disputado|ya comenzó/i.test(detail))
-            throw new Error("El torneo ya tiene resultados deportivos y no puede eliminarse automáticamente.");
+          if (
+            /resultados deportivos|partido disputado|ya comenzó/i.test(detail)
+          )
+            throw new Error(
+              "El torneo ya tiene resultados deportivos y no puede eliminarse automáticamente.",
+            );
           if (/posterg|bloqueo activo|horarios|programad/i.test(detail))
-            throw new Error("Primero postergá los partidos programados para liberar los horarios de la cancha.");
+            throw new Error(
+              "Primero postergá los partidos programados para liberar los horarios de la cancha.",
+            );
           if (/ocult|público|publicado/i.test(detail))
             throw new Error("Primero ocultá el torneo al público.");
           if (/nombre|ya no existe/i.test(detail))
-            throw new Error("El torneo cambió o ya no existe. Actualizá la lista.");
+            throw new Error(
+              "El torneo cambió o ya no existe. Actualizá la lista.",
+            );
           if (/revisión técnica|estado antes/i.test(detail))
-            throw new Error("El estado del torneo requiere una revisión técnica antes de eliminarlo.");
+            throw new Error(
+              "El estado del torneo requiere una revisión técnica antes de eliminarlo.",
+            );
           if (error.code === "42501")
             throw new Error("No tenés permisos para eliminar este torneo.");
-          throw new Error("No se pudo eliminar el torneo. No se borraron datos parcialmente. Actualizá y volvé a intentar.");
+          throw new Error(
+            "No se pudo eliminar el torneo. No se borraron datos parcialmente. Actualizá y volvé a intentar.",
+          );
         }
         if (data?.deleted !== true || data?.tournament_id !== t.id) {
-          throw new Error("Supabase no confirmó la eliminación. Actualizá la lista antes de reintentar.");
+          throw new Error(
+            "Supabase no confirmó la eliminación. Actualizá la lista antes de reintentar.",
+          );
         }
         if (editing === t.id) resetForm();
         try {
           await loadTournaments();
           feedback("Torneo eliminado correctamente.");
         } catch (refreshError) {
-          console.error("Torneo eliminado; falló la actualización del listado:", refreshError);
-          feedback("Torneo eliminado correctamente. Actualizá la lista para ver el cambio.");
+          console.error(
+            "Torneo eliminado; falló la actualización del listado:",
+            refreshError,
+          );
+          feedback(
+            "Torneo eliminado correctamente. Actualizá la lista para ver el cambio.",
+          );
         }
       },
     });

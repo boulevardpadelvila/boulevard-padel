@@ -3,7 +3,7 @@
 .admin-torneos .torneos-fixture-date-grid .torneos-fixture-entry {
   border: 1px solid #b8c9b9;
   background: #ffffff;
-  box-shadow: 0 2px 8px rgba(12, 66, 44, .06);
+  box-shadow: 0 2px 8px rgba(12, 66, 44, 0.06);
 }
 .admin-torneos .torneos-fixture-entry__footer {
   gap: 8px;
@@ -21,24 +21,35 @@
   min-height: 39px;
   padding: 8px 9px;
   border-radius: 8px;
-  font: 700 11px/1.25 Inter,Arial,sans-serif;
+  font:
+    700 11px/1.25 Inter,
+    Arial,
+    sans-serif;
   white-space: normal;
   text-align: center;
   overflow-wrap: anywhere;
 }
-.admin-torneos .torneos-fixture-entry__actions .torneos-fixture-entry__button--result:not(:disabled) {
+.admin-torneos
+  .torneos-fixture-entry__actions
+  .torneos-fixture-entry__button--result:not(:disabled) {
   color: #163726;
   background: #d9b65a;
   border: 1px solid #a78a42;
-  box-shadow: inset 0 -2px 0 rgba(92, 69, 21, .12);
+  box-shadow: inset 0 -2px 0 rgba(92, 69, 21, 0.12);
 }
-.admin-torneos .torneos-fixture-entry__actions .torneos-fixture-entry__button--result:not(:disabled):hover,
-.admin-torneos .torneos-fixture-entry__actions .torneos-fixture-entry__button--result:not(:disabled):focus-visible {
+.admin-torneos
+  .torneos-fixture-entry__actions
+  .torneos-fixture-entry__button--result:not(:disabled):hover,
+.admin-torneos
+  .torneos-fixture-entry__actions
+  .torneos-fixture-entry__button--result:not(:disabled):focus-visible {
   color: #102d21;
   background: #eccd73;
   border-color: #92742d;
 }
-.admin-torneos .torneos-fixture-entry__actions .torneos-fixture-entry__button--result:disabled {
+.admin-torneos
+  .torneos-fixture-entry__actions
+  .torneos-fixture-entry__button--result:disabled {
   color: #5b6258;
   background: #eeefe9;
   border: 1px dashed #aab1a6;
@@ -67,13 +78,17 @@
   color: #526b58;
   font-size: 12px;
 }
-.admin-torneos .bp-results-panel .bp-results-table-wrap { margin-top: 8px; }
+.admin-torneos .bp-results-panel .bp-results-table-wrap {
+  margin-top: 8px;
+}
 @media (max-width: 580px) {
   .admin-torneos .torneos-fixture-date-grid .torneos-fixture-entry__actions {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-  .admin-torneos .torneos-fixture-date-grid .torneos-fixture-entry__button--result:last-child:nth-child(3) {
+  .admin-torneos
+    .torneos-fixture-date-grid
+    .torneos-fixture-entry__button--result:last-child:nth-child(3) {
     grid-column: 1 / -1;
   }
 }

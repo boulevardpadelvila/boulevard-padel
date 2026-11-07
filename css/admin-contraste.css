@@ -31,7 +31,7 @@
 .admin-torneos .torneos-fixture-feedback {
   color: var(--bp-ui-muted);
   opacity: 1;
-  font-size: max(12px, .84rem);
+  font-size: max(12px, 0.84rem);
 }
 .admin-torneos .torneos-stage,
 .admin-torneos .torneos-preview,
@@ -86,7 +86,7 @@
 .admin-torneos .torneos-fixture-round h4,
 .admin-torneos .torneos-fixture-group h5 {
   color: #1a3322;
-  font-size: max(14px, .9rem);
+  font-size: max(14px, 0.9rem);
 }
 .admin-torneos .torneos-fixture-round {
   background: #edf3ec;
@@ -106,8 +106,12 @@
   color: #354c3a;
   font-size: 12px;
 }
-.admin-torneos .torneos-fixture-entry__status--scheduled { color: #175a32; }
-.admin-torneos .torneos-fixture-entry__status--postponed { color: #865022; }
+.admin-torneos .torneos-fixture-entry__status--scheduled {
+  color: #175a32;
+}
+.admin-torneos .torneos-fixture-entry__status--postponed {
+  color: #865022;
+}
 .admin-torneos .torneos-fixture-entry__button {
   min-height: 38px;
   font-size: 12.5px;
@@ -121,7 +125,7 @@
 .bp-results-panel .bp-results-description {
   color: #26382b;
   line-height: 1.55;
-  font-size: .93rem;
+  font-size: 0.93rem;
 }
 .bp-results-panel .bp-results-group {
   padding: 16px;
@@ -191,16 +195,28 @@
   color: #364b3c;
   opacity: 1;
 }
-.bp-results-panel .bp-results-error { color: #a32127; font-weight: 700; }
-.bp-results-panel .bp-results-success { color: #176036; font-weight: 700; }
+.bp-results-panel .bp-results-error {
+  color: #a32127;
+  font-weight: 700;
+}
+.bp-results-panel .bp-results-success {
+  color: #176036;
+  font-weight: 700;
+}
 
 /* Ventana de marcadores: tercer parcial largo y entradas bien delimitadas. */
 .bp-results-dialog {
   color: #1c2b20;
   background: #fff;
 }
-.bp-results-dialog h3 { color: #193c27; }
-.bp-results-dialog .bp-results-hint { color: #425547; opacity: 1; line-height: 1.55; }
+.bp-results-dialog h3 {
+  color: #193c27;
+}
+.bp-results-dialog .bp-results-hint {
+  color: #425547;
+  opacity: 1;
+  line-height: 1.55;
+}
 .bp-results-dialog .bp-results-set {
   grid-template-columns: minmax(110px, 1.3fr) minmax(0, 1fr) minmax(0, 1fr);
   gap: 8px;
@@ -223,16 +239,30 @@
   border-color: #c1cdc3;
   color: #667369;
 }
-.bp-results-dialog .bp-results-error { color: #a32127; font-weight: 700; }
+.bp-results-dialog .bp-results-error {
+  color: #a32127;
+  font-weight: 700;
+}
 
 @media (max-width: 600px) {
-  .bp-results-panel .bp-results-group { padding: 10px; }
-  .bp-results-panel .bp-results-match { padding: 12px 4px; }
-  .bp-results-panel .bp-results-match-main { min-width: 0; flex-basis: 100%; }
-  .bp-results-panel .bp-results-match .torneos-outline { width: 100%; }
+  .bp-results-panel .bp-results-group {
+    padding: 10px;
+  }
+  .bp-results-panel .bp-results-match {
+    padding: 12px 4px;
+  }
+  .bp-results-panel .bp-results-match-main {
+    min-width: 0;
+    flex-basis: 100%;
+  }
+  .bp-results-panel .bp-results-match .torneos-outline {
+    width: 100%;
+  }
   .bp-results-dialog .bp-results-set {
     grid-template-columns: minmax(92px, 1.25fr) repeat(2, minmax(0, 1fr));
     gap: 6px;
   }
-  .bp-results-dialog .bp-results-set strong { font-size: 12px; }
+  .bp-results-dialog .bp-results-set strong {
+    font-size: 12px;
+  }
 }

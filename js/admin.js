@@ -63,8 +63,13 @@
     const start = new Date(item.starts_at).getTime();
     const end = new Date(item.ends_at).getTime();
     if (Number.isFinite(end) && end <= now) return "finished";
-    if (Number.isFinite(start) && Number.isFinite(end) &&
-        start <= now && now < end) return "playing";
+    if (
+      Number.isFinite(start) &&
+      Number.isFinite(end) &&
+      start <= now &&
+      now < end
+    )
+      return "playing";
     return "confirmed";
   };
 
@@ -140,7 +145,8 @@
     const now = Date.now();
     for (const item of rows) {
       const displayStatus = reservationDisplayStatus(item, now);
-      const canManage = item.status === "confirmed" && displayStatus !== "finished";
+      const canManage =
+        item.status === "confirmed" && displayStatus !== "finished";
       const card = document.createElement("article");
       card.className = "reservation-card";
       const top = document.createElement("div");
@@ -153,8 +159,11 @@
       const status = document.createElement("span");
       status.className =
         "reservation-status" +
-        (displayStatus === "finished" ? " reservation-status--finished" :
-         displayStatus === "playing" ? " reservation-status--playing" : "");
+        (displayStatus === "finished"
+          ? " reservation-status--finished"
+          : displayStatus === "playing"
+            ? " reservation-status--playing"
+            : "");
       const statuses = {
         confirmed: "Confirmada",
         playing: "Jugando",
@@ -162,7 +171,10 @@
         finished: "Finalizada",
         no_show: "No asistió",
       };
-      safeText(status, statuses[displayStatus] || displayStatus || "Sin estado");
+      safeText(
+        status,
+        statuses[displayStatus] || displayStatus || "Sin estado",
+      );
       top.append(schedule, status);
       const name = document.createElement("h3");
       safeText(
@@ -377,11 +389,14 @@
     display("edit-booking-message", "");
     if (!day || !editing || ![90, 120].includes(duration)) return;
     try {
-      const { data, error } = await supabaseClient.rpc("get_admin_edit_slots_flexible", {
-        p_date: day,
-        p_duration_minutes: duration,
-        p_reservation_id: editing.id,
-      });
+      const { data, error } = await supabaseClient.rpc(
+        "get_admin_edit_slots_flexible",
+        {
+          p_date: day,
+          p_duration_minutes: duration,
+          p_reservation_id: editing.id,
+        },
+      );
       if (error) throw error;
       if (req !== editSlotsRequest || !editing || editPanel.hidden) return;
       const slots = (data || []).filter(
@@ -397,28 +412,45 @@
         // Si el inicio original ya pasó, dejarlo seleccionado únicamente cuando
         // se conserva la duración: permite corregir datos sin mover el turno.
         // Los cambios de horario/duración requieren disponibilidad real.
-        if (!slots.some((v) => isoMillis(v.starts_at) === isoMillis(editing.starts_at))) {
+        if (
+          !slots.some(
+            (v) => isoMillis(v.starts_at) === isoMillis(editing.starts_at),
+          )
+        ) {
           slots.push({ starts_at: editing.starts_at, current: true });
         }
       }
       slots.sort((a, b) => isoMillis(a.starts_at) - isoMillis(b.starts_at));
       editSlots = slots;
-      select.replaceChildren(new Option(
-        slots.length ? "Seleccioná un horario" : "No hay horarios disponibles", "",
-      ));
+      select.replaceChildren(
+        new Option(
+          slots.length
+            ? "Seleccioná un horario"
+            : "No hay horarios disponibles",
+          "",
+        ),
+      );
       slots.forEach((slot, i) => {
-        const isCurrent = isoMillis(slot.starts_at) === isoMillis(editing.starts_at);
-        select.add(new Option(
-          `${timeFormatter.format(new Date(slot.starts_at))}${isCurrent ? " (horario actual)" : ""}`,
-          String(i),
-        ));
+        const isCurrent =
+          isoMillis(slot.starts_at) === isoMillis(editing.starts_at);
+        select.add(
+          new Option(
+            `${timeFormatter.format(new Date(slot.starts_at))}${isCurrent ? " (horario actual)" : ""}`,
+            String(i),
+          ),
+        );
         if (isCurrent) select.value = String(i);
       });
       select.disabled = !slots.length;
     } catch (error) {
       if (req !== editSlotsRequest) return;
-      select.replaceChildren(new Option("No se pudieron cargar los horarios", ""));
-      display("edit-booking-message", "No se pudo consultar la disponibilidad. Intentá cambiar la fecha y volver.");
+      select.replaceChildren(
+        new Option("No se pudieron cargar los horarios", ""),
+      );
+      display(
+        "edit-booking-message",
+        "No se pudo consultar la disponibilidad. Intentá cambiar la fecha y volver.",
+      );
       console.error("Error cargando horarios de edición:", error);
     }
   }
@@ -429,8 +461,12 @@
     editPanel.hidden = false;
     safeText($("edit-booking-code"), `Código: ${item.reservation_code}`);
     $("edit-booking-date").value = argentinaDay(new Date(item.starts_at));
-    const savedDuration = Math.round((new Date(item.ends_at) - new Date(item.starts_at)) / 60000);
-    $("edit-booking-duration").value = [90, 120].includes(savedDuration) ? String(savedDuration) : "90";
+    const savedDuration = Math.round(
+      (new Date(item.ends_at) - new Date(item.starts_at)) / 60000,
+    );
+    $("edit-booking-duration").value = [90, 120].includes(savedDuration)
+      ? String(savedDuration)
+      : "90";
     $("edit-booking-name").value =
       item.booking_name || item.customers?.full_name || "";
     $("edit-booking-phone").value =
@@ -462,14 +498,17 @@
     $("edit-booking-save").disabled = true;
     display("edit-booking-message", "Guardando cambios…", true);
     try {
-      const { data, error } = await supabaseClient.rpc("update_admin_booking_flexible", {
-        p_reservation_id: editing.id,
-        p_duration_minutes: Number($("edit-booking-duration").value),
-        p_full_name: name,
-        p_phone: phone,
-        p_starts_at: slot.starts_at,
-        p_notes: $("edit-booking-notes").value.trim() || null,
-      });
+      const { data, error } = await supabaseClient.rpc(
+        "update_admin_booking_flexible",
+        {
+          p_reservation_id: editing.id,
+          p_duration_minutes: Number($("edit-booking-duration").value),
+          p_full_name: name,
+          p_phone: phone,
+          p_starts_at: slot.starts_at,
+          p_notes: $("edit-booking-notes").value.trim() || null,
+        },
+      );
       if (error) throw error;
       if (!data || !data.length)
         throw new Error("No recibimos confirmación de los cambios.");
@@ -520,10 +559,13 @@
     display("new-booking-message", "");
     if (!day) return;
     try {
-      const { data, error } = await supabaseClient.rpc("get_available_slots_flexible", {
-        p_date: day,
-        p_duration_minutes: duration,
-      });
+      const { data, error } = await supabaseClient.rpc(
+        "get_available_slots_flexible",
+        {
+          p_date: day,
+          p_duration_minutes: duration,
+        },
+      );
       if (error) throw error;
       if (request !== slotsRequest || editor.hidden) return;
       const select = $("new-booking-slot");
@@ -589,13 +631,16 @@
     $("new-booking-save").disabled = true;
     display("new-booking-message", "Guardando reserva…", true);
     try {
-      const { data, error } = await supabaseClient.rpc("create_admin_booking_flexible", {
-        p_full_name: fullName,
-        p_phone: phone,
-        p_starts_at: slot.starts_at,
-        p_duration_minutes: Number($("new-booking-duration").value),
-        p_notes: $("new-booking-notes").value.trim() || null,
-      });
+      const { data, error } = await supabaseClient.rpc(
+        "create_admin_booking_flexible",
+        {
+          p_full_name: fullName,
+          p_phone: phone,
+          p_starts_at: slot.starts_at,
+          p_duration_minutes: Number($("new-booking-duration").value),
+          p_notes: $("new-booking-notes").value.trim() || null,
+        },
+      );
       if (error) throw error;
       if (!data || !data.length)
         throw new Error("No recibimos confirmación de la reserva.");
@@ -736,7 +781,9 @@
     const hh = String(Math.floor(index / 2)).padStart(2, "0");
     return `${hh}:${index % 2 === 0 ? "00" : "30"}`;
   });
-  for (const select of document.querySelectorAll(".admin-weekly-time__select")) {
+  for (const select of document.querySelectorAll(
+    ".admin-weekly-time__select",
+  )) {
     const initialTime = select.value;
     const options = availableConfigTimes.map((time) => new Option(time, time));
     select.replaceChildren(...options);
@@ -752,9 +799,15 @@
     for (let day = 1; day <= 7; day++) {
       const row = byDay.get(day);
       const dayFields = configDays[day - 1];
-      dayFields.querySelector('input[type="checkbox"]').checked = Boolean(row.is_open);
-      dayFields.querySelector('.admin-weekly-time--start select').value = hhmm(row.opening_time);
-      dayFields.querySelector('.admin-weekly-time--end select').value = hhmm(row.last_start_time);
+      dayFields.querySelector('input[type="checkbox"]').checked = Boolean(
+        row.is_open,
+      );
+      dayFields.querySelector(".admin-weekly-time--start select").value = hhmm(
+        row.opening_time,
+      );
+      dayFields.querySelector(".admin-weekly-time--end select").value = hhmm(
+        row.last_start_time,
+      );
     }
     const windowMonths = $("admin-preview-window");
     windowMonths.value = String(currentSettings.default_window_months);
@@ -772,7 +825,9 @@
           .single(),
         supabaseClient
           .from("weekly_hours")
-          .select("id, court_id, weekday, is_open, opening_time, last_start_time")
+          .select(
+            "id, court_id, weekday, is_open, opening_time, last_start_time",
+          )
           .order("weekday"),
       ]);
       if (seq !== configLoadCounter) return;
@@ -789,13 +844,18 @@
         );
       }
       if (
-        ![1, 2, 3].includes(Number(settingsResult.data?.default_window_months)) ||
-        rows.some((row) =>
-          !validConfigTime(hhmm(row.opening_time)) ||
-          !validConfigTime(hhmm(row.last_start_time))
+        ![1, 2, 3].includes(
+          Number(settingsResult.data?.default_window_months),
+        ) ||
+        rows.some(
+          (row) =>
+            !validConfigTime(hhmm(row.opening_time)) ||
+            !validConfigTime(hhmm(row.last_start_time)),
         )
       ) {
-        throw new Error("Los horarios o el período almacenados no son válidos. Revisá la configuración en Supabase.");
+        throw new Error(
+          "Los horarios o el período almacenados no son válidos. Revisá la configuración en Supabase.",
+        );
       }
       currentSettings = settingsResult.data;
       configRows = rows;
@@ -847,15 +907,17 @@
     for (let index = 0; index < configDays.length; index++) {
       const dayFields = configDays[index];
       const open = dayFields.querySelector('input[type="checkbox"]');
-      const first = dayFields.querySelector('.admin-weekly-time--start select');
-      const last = dayFields.querySelector('.admin-weekly-time--end select');
+      const first = dayFields.querySelector(".admin-weekly-time--start select");
+      const last = dayFields.querySelector(".admin-weekly-time--end select");
       const name = configDays[index].querySelector("strong").textContent;
       if (
         !validConfigTime(first.value) ||
         !validConfigTime(last.value) ||
         first.value > last.value
       ) {
-        configNote(`Revisá los horarios de ${name}: usá horas en :00 o :30 y asegurate de que el último inicio no sea anterior al primero.`);
+        configNote(
+          `Revisá los horarios de ${name}: usá horas en :00 o :30 y asegurate de que el último inicio no sea anterior al primero.`,
+        );
         return;
       }
       days.push({
@@ -870,17 +932,24 @@
     configSave.disabled = true;
     configNote("Guardando cambios…", true);
     try {
-      const { error } = await supabaseClient.rpc("save_admin_booking_config_flexible", {
-        p_window_months: months,
-        p_days: days,
-      });
+      const { error } = await supabaseClient.rpc(
+        "save_admin_booking_config_flexible",
+        {
+          p_window_months: months,
+          p_days: days,
+        },
+      );
       if (error) throw error;
       await loadConfig();
-      if (!currentSettings) throw new Error("No se pudo verificar la configuración guardada.");
+      if (!currentSettings)
+        throw new Error("No se pudo verificar la configuración guardada.");
       configNote("Configuración guardada correctamente.", true);
     } catch (error) {
       await loadConfig();
-      configNote(error.message || "No se pudo guardar la configuración. Revisá los datos y reintentá.");
+      configNote(
+        error.message ||
+          "No se pudo guardar la configuración. Revisá los datos y reintentá.",
+      );
       console.error("Error guardando configuración:", error);
     } finally {
       configBusy = false;
@@ -943,9 +1012,13 @@
     p_day: $("bp-block-day").value,
     p_full_day: $("bp-block-type").value === "all",
     p_from:
-      $("bp-block-type").value === "all" ? null : $("bp-block-from").value.trim(),
+      $("bp-block-type").value === "all"
+        ? null
+        : $("bp-block-from").value.trim(),
     p_until:
-      $("bp-block-type").value === "all" ? null : $("bp-block-until").value.trim(),
+      $("bp-block-type").value === "all"
+        ? null
+        : $("bp-block-until").value.trim(),
   });
   const blockKey = () => JSON.stringify(blockFields());
   const blockTimeLabel = (stamp) => timeFormatter.format(new Date(stamp));
@@ -956,7 +1029,9 @@
       throw new Error("Elegí una fecha actual o futura.");
     if (!v.p_full_day) {
       if (!isBlockTime24h(v.p_from) || !isBlockTime24h(v.p_until))
-        throw new Error("Ingresá los horarios en formato de 24 horas (HH:MM), por ejemplo 15:00.");
+        throw new Error(
+          "Ingresá los horarios en formato de 24 horas (HH:MM), por ejemplo 15:00.",
+        );
       if (v.p_from >= v.p_until)
         throw new Error("La hora «Hasta» debe ser posterior a «Desde».");
     }
@@ -1306,7 +1381,9 @@
         "admin-fixed__status" +
         (item.status === "pending" ? " admin-fixed__status--pending" : "") +
         (fixedShowHistory ? " admin-fixed__status--history" : "");
-      tag.textContent = expired ? "Finalizado" : fixedStatus[item.status] || item.status;
+      tag.textContent = expired
+        ? "Finalizado"
+        : fixedStatus[item.status] || item.status;
       const when = document.createElement("strong");
       when.textContent = `${fixedDays[item.weekday]} · ${fixedHour(item.start_time)}`;
       head.append(when, tag);
@@ -1554,8 +1631,11 @@
   updateFixedHistoryButton();
   // Al comenzar otro día local, los períodos aprobados vencidos pasan al historial.
   setInterval(() => {
-    if (fixedRenderedDay !== argentinaDay(new Date()) &&
-        !$("admin-fijos-view").hidden && !$("dashboard-panel").hidden) {
+    if (
+      fixedRenderedDay !== argentinaDay(new Date()) &&
+      !$("admin-fijos-view").hidden &&
+      !$("dashboard-panel").hidden
+    ) {
       loadFixedRequests();
     }
   }, 60000);
@@ -1588,9 +1668,12 @@
     setAdminSection("torneos"),
   );
   document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState === "visible" &&
-        !$("admin-fijos-view").hidden && !$("dashboard-panel").hidden &&
-        fixedRenderedDay !== argentinaDay(new Date())) {
+    if (
+      document.visibilityState === "visible" &&
+      !$("admin-fijos-view").hidden &&
+      !$("dashboard-panel").hidden &&
+      fixedRenderedDay !== argentinaDay(new Date())
+    ) {
       loadFixedRequests();
     }
   });
@@ -1610,11 +1693,16 @@
     firstVisibleDate = mondayOf(parseDay(today));
     loadReservations();
     requestAnimationFrame(() => {
-      const card = dateCardsHost.querySelector('.admin-date-card[aria-pressed="true"]');
+      const card = dateCardsHost.querySelector(
+        '.admin-date-card[aria-pressed="true"]',
+      );
       if (!card) return;
       const containerRect = dateCardsHost.getBoundingClientRect();
       const cardRect = card.getBoundingClientRect();
-      if (cardRect.left < containerRect.left || cardRect.right > containerRect.right) {
+      if (
+        cardRect.left < containerRect.left ||
+        cardRect.right > containerRect.right
+      ) {
         dateCardsHost.scrollLeft += cardRect.left - containerRect.left;
       }
     });

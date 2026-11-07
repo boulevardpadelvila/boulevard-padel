@@ -13,7 +13,20 @@
   const previous = document.getElementById("bpGalleryPrev");
   const next = document.getElementById("bpGalleryNext");
   const counter = document.getElementById("bpGalleryCounter");
-  if (![button, dialog, image, message, closeButton, footer, previous, next, counter].every(Boolean)) return;
+  if (
+    ![
+      button,
+      dialog,
+      image,
+      message,
+      closeButton,
+      footer,
+      previous,
+      next,
+      counter,
+    ].every(Boolean)
+  )
+    return;
 
   const root = "assets/img/BP_Galeria/";
   let photos = [];
@@ -35,8 +48,17 @@
         if (number === 1) throw error;
         break;
       }
-      if (!response.ok || !((response.headers.get("content-type") || "").toLowerCase().startsWith("image/"))) break;
-      found.push({ url, alt: `Boulevard Pádel — fotografía ${number} de la cancha` });
+      if (
+        !response.ok ||
+        !(response.headers.get("content-type") || "")
+          .toLowerCase()
+          .startsWith("image/")
+      )
+        break;
+      found.push({
+        url,
+        alt: `Boulevard Pádel — fotografía ${number} de la cancha`,
+      });
     }
     return found;
   }
@@ -57,7 +79,10 @@
   async function openGallery() {
     dialog.showModal();
     closeButton.focus();
-    if (loaded) { showPhoto(current); return; }
+    if (loaded) {
+      showPhoto(current);
+      return;
+    }
     message.textContent = "Cargando fotografías…";
     message.hidden = false;
     image.hidden = true;
@@ -71,7 +96,9 @@
       else message.textContent = "Todavía no hay fotos en la galería.";
     } catch (error) {
       loadingPromise = null;
-      if (dialog.open) message.textContent = "No se pudieron cargar las fotografías. Intentá nuevamente.";
+      if (dialog.open)
+        message.textContent =
+          "No se pudieron cargar las fotografías. Intentá nuevamente.";
     }
   }
 
@@ -83,17 +110,32 @@
     if (event.target === dialog) dialog.close();
   });
   dialog.addEventListener("keydown", (event) => {
-    if (event.key === "ArrowLeft") { event.preventDefault(); showPhoto(current - 1); }
-    if (event.key === "ArrowRight") { event.preventDefault(); showPhoto(current + 1); }
+    if (event.key === "ArrowLeft") {
+      event.preventDefault();
+      showPhoto(current - 1);
+    }
+    if (event.key === "ArrowRight") {
+      event.preventDefault();
+      showPhoto(current + 1);
+    }
   });
-  image.addEventListener("touchstart", (event) => {
-    touchStartX = event.changedTouches[0]?.screenX ?? null;
-  }, { passive: true });
-  image.addEventListener("touchend", (event) => {
-    if (touchStartX === null) return;
-    const delta = (event.changedTouches[0]?.screenX ?? touchStartX) - touchStartX;
-    if (Math.abs(delta) >= 45) showPhoto(current + (delta < 0 ? 1 : -1));
-    touchStartX = null;
-  }, { passive: true });
+  image.addEventListener(
+    "touchstart",
+    (event) => {
+      touchStartX = event.changedTouches[0]?.screenX ?? null;
+    },
+    { passive: true },
+  );
+  image.addEventListener(
+    "touchend",
+    (event) => {
+      if (touchStartX === null) return;
+      const delta =
+        (event.changedTouches[0]?.screenX ?? touchStartX) - touchStartX;
+      if (Math.abs(delta) >= 45) showPhoto(current + (delta < 0 ? 1 : -1));
+      touchStartX = null;
+    },
+    { passive: true },
+  );
   dialog.addEventListener("close", () => button.focus());
 })();

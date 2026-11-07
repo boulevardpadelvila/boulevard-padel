@@ -9,22 +9,38 @@
   const caption = document.getElementById("shopLightboxCaption");
   const closeButton = document.getElementById("shopLightboxClose");
 
-  if (!dialog || !image || !caption || !closeButton ||
-      typeof dialog.showModal !== "function") return;
+  if (
+    !dialog ||
+    !image ||
+    !caption ||
+    !closeButton ||
+    typeof dialog.showModal !== "function"
+  )
+    return;
 
   document.querySelectorAll(".shop-card__photo").forEach((link) => {
     link.setAttribute("aria-haspopup", "dialog");
 
     link.addEventListener("click", (event) => {
       // Respetar gestos propios del navegador, como Ctrl+clic.
-      if (event.button !== 0 || event.ctrlKey || event.metaKey ||
-          event.shiftKey || event.altKey) return;
+      if (
+        event.button !== 0 ||
+        event.ctrlKey ||
+        event.metaKey ||
+        event.shiftKey ||
+        event.altKey
+      )
+        return;
 
       event.preventDefault();
       const thumbnail = link.querySelector("img");
       const card = link.closest(".shop-card");
-      const name = card?.querySelector(".shop-card__name h3")?.textContent?.trim() || "Producto";
-      const variant = card?.querySelector(".shop-card__variant")?.textContent?.trim();
+      const name =
+        card?.querySelector(".shop-card__name h3")?.textContent?.trim() ||
+        "Producto";
+      const variant = card
+        ?.querySelector(".shop-card__variant")
+        ?.textContent?.trim();
 
       image.src = link.href;
       image.alt = thumbnail?.alt || name;
@@ -39,8 +55,12 @@
   // Cerrar también tocando fuera de la ventana o con Escape (nativo).
   dialog.addEventListener("click", (event) => {
     const bounds = dialog.getBoundingClientRect();
-    if (event.clientX < bounds.left || event.clientX > bounds.right ||
-        event.clientY < bounds.top || event.clientY > bounds.bottom) {
+    if (
+      event.clientX < bounds.left ||
+      event.clientX > bounds.right ||
+      event.clientY < bounds.top ||
+      event.clientY > bounds.bottom
+    ) {
       dialog.close();
     }
   });

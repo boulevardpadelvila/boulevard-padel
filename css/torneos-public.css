@@ -22,7 +22,9 @@
   color: var(--color-muted);
 }
 @media (min-width: 1150px) {
-  .public-tournaments__intro { white-space: nowrap; }
+  .public-tournaments__intro {
+    white-space: nowrap;
+  }
 }
 .public-tournaments__list {
   display: grid;
@@ -468,7 +470,9 @@
 /* BVPadel parche 36: grupos publicos en hasta cuatro columnas. */
 /* El diseno auto-fit anterior permanece para tabletas y celulares. */
 @media (min-width: 1100px) {
-  .public-tournament-groups__grid:has(> .public-tournament-group:nth-child(n + 4)) {
+  .public-tournament-groups__grid:has(
+    > .public-tournament-group:nth-child(n + 4)
+  ) {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
@@ -492,7 +496,12 @@
   outline: 2px solid var(--color-olive);
   outline-offset: 3px;
 }
-.public-tournament-fixture__body { display: grid; gap: 14px; margin-top: 10px; min-width: 0; }
+.public-tournament-fixture__body {
+  display: grid;
+  gap: 14px;
+  margin-top: 10px;
+  min-width: 0;
+}
 .public-tournament-card .public-tournament-fixture__notice {
   margin: 0;
   font-size: 0.79rem;
@@ -519,7 +528,9 @@
   gap: 11px;
   min-width: 0;
 }
-.public-tournament-fixture__group { min-width: 0; }
+.public-tournament-fixture__group {
+  min-width: 0;
+}
 .public-tournament-fixture__group-title {
   margin: 0 0 7px;
   font-size: 0.83rem;
@@ -559,9 +570,17 @@
   font-weight: 600;
   color: var(--color-text);
 }
-.public-tournament-fixture__pair--first { text-align: right; align-items: flex-end; }
-.public-tournament-fixture__pair--second { text-align: left; align-items: flex-start; }
-.public-tournament-fixture__player { display: block; }
+.public-tournament-fixture__pair--first {
+  text-align: right;
+  align-items: flex-end;
+}
+.public-tournament-fixture__pair--second {
+  text-align: left;
+  align-items: flex-start;
+}
+.public-tournament-fixture__player {
+  display: block;
+}
 .public-tournament-fixture__vs {
   text-align: center;
   font-size: 0.68rem;
@@ -569,8 +588,16 @@
   color: var(--color-muted);
 }
 @media (max-width: 390px) {
-  .public-tournament-fixture__round { padding: 9px; }
-  .public-tournament-fixture__match { padding: 8px 5px; }
-  .public-tournament-fixture__versus-row { gap: 3px; }
-  .public-tournament-fixture__pair { font-size: 0.73rem; }
+  .public-tournament-fixture__round {
+    padding: 9px;
+  }
+  .public-tournament-fixture__match {
+    padding: 8px 5px;
+  }
+  .public-tournament-fixture__versus-row {
+    gap: 3px;
+  }
+  .public-tournament-fixture__pair {
+    font-size: 0.73rem;
+  }
 }

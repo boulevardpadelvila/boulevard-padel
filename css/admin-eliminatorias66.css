@@ -5,71 +5,214 @@
   border-top: 3px solid #b29442;
   background: #fffefb;
 }
-.admin-torneos .bp-ko-panel[hidden] { display:none!important; }
+.admin-torneos .bp-ko-panel[hidden] {
+  display: none !important;
+}
 .admin-torneos .bp-ko-heading {
-  display:flex;align-items:center;justify-content:space-between;gap:15px;flex-wrap:wrap;
-  border-bottom:1px solid #e1e8dc;padding-bottom:12px;margin-bottom:14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  flex-wrap: wrap;
+  border-bottom: 1px solid #e1e8dc;
+  padding-bottom: 12px;
+  margin-bottom: 14px;
 }
-.admin-torneos .bp-ko-heading small {display:block;font-size:10px;letter-spacing:.12em;color:#9c7833;font-weight:900;}
-.admin-torneos .bp-ko-heading h2 {color:#073e2d;font-size:25px;margin:2px 0 3px;}
-.admin-torneos .bp-ko-heading p {color:#53695b;margin:0;font-size:12px;}
-.admin-torneos .bp-ko-heading .torneos-outline {width:auto;min-width:112px;padding:10px 14px;}
-.admin-torneos .bp-ko-message {font-size:12px;margin:4px 0 12px;color:#3b5745;}
-.admin-torneos .bp-ko-message--success {color:#0d6b3c;font-weight:800;}
-.admin-torneos .bp-ko-message--error {color:#a63429;font-weight:700;}
-.admin-torneos .bp-ko-description {font-size:13px;color:#3d5949;margin-bottom:13px;}
+.admin-torneos .bp-ko-heading small {
+  display: block;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: #9c7833;
+  font-weight: 900;
+}
+.admin-torneos .bp-ko-heading h2 {
+  color: #073e2d;
+  font-size: 25px;
+  margin: 2px 0 3px;
+}
+.admin-torneos .bp-ko-heading p {
+  color: #53695b;
+  margin: 0;
+  font-size: 12px;
+}
+.admin-torneos .bp-ko-heading .torneos-outline {
+  width: auto;
+  min-width: 112px;
+  padding: 10px 14px;
+}
+.admin-torneos .bp-ko-message {
+  font-size: 12px;
+  margin: 4px 0 12px;
+  color: #3b5745;
+}
+.admin-torneos .bp-ko-message--success {
+  color: #0d6b3c;
+  font-weight: 800;
+}
+.admin-torneos .bp-ko-message--error {
+  color: #a63429;
+  font-weight: 700;
+}
+.admin-torneos .bp-ko-description {
+  font-size: 13px;
+  color: #3d5949;
+  margin-bottom: 13px;
+}
 .admin-torneos .bp-ko-choice {
-  padding:14px 16px;background:#eef4e9;border:1px solid #c6d7c3;
-  border-radius:12px;margin-bottom:16px;
+  padding: 14px 16px;
+  background: #eef4e9;
+  border: 1px solid #c6d7c3;
+  border-radius: 12px;
+  margin-bottom: 16px;
 }
-.admin-torneos .bp-ko-choice h3,.admin-torneos #bp-ko-content > h3 {
-  font-size:18px;color:#0a432f;margin:0 0 8px;
+.admin-torneos .bp-ko-choice h3,
+.admin-torneos #bp-ko-content > h3 {
+  font-size: 18px;
+  color: #0a432f;
+  margin: 0 0 8px;
 }
-.admin-torneos .bp-ko-hint {font-size:12px;color:#536b58;line-height:1.5;margin:7px 0;}
-.admin-torneos .bp-ko-hint--warning {padding:9px 10px;color:#7a4b15;background:#fff4d5;border:1px solid #e6ca85;border-radius:8px;}
-.admin-torneos .bp-ko-choice label {display:block;margin:10px 0 5px;color:#204f36;font-size:12px;font-weight:700;}
-.admin-torneos #bp-ko-bye,.admin-torneos .bp-ko-match select {
-  width:100%;max-width:100%;min-width:0;box-sizing:border-box;
-  min-height:42px;padding:9px 12px;border:1px solid #aabfad;border-radius:8px;
-  font:600 12px/1.35 Inter,Arial,sans-serif;color:#123a28;background:#fff;
+.admin-torneos .bp-ko-hint {
+  font-size: 12px;
+  color: #536b58;
+  line-height: 1.5;
+  margin: 7px 0;
 }
-.admin-torneos #bp-ko-bye {max-width:560px;}
-.admin-torneos #bp-ko-bye:focus-visible,.admin-torneos .bp-ko-match select:focus-visible {
-  outline:3px solid #bf9b48;outline-offset:2px;
+.admin-torneos .bp-ko-hint--warning {
+  padding: 9px 10px;
+  color: #7a4b15;
+  background: #fff4d5;
+  border: 1px solid #e6ca85;
+  border-radius: 8px;
+}
+.admin-torneos .bp-ko-choice label {
+  display: block;
+  margin: 10px 0 5px;
+  color: #204f36;
+  font-size: 12px;
+  font-weight: 700;
+}
+.admin-torneos #bp-ko-bye,
+.admin-torneos .bp-ko-match select {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  min-height: 42px;
+  padding: 9px 12px;
+  border: 1px solid #aabfad;
+  border-radius: 8px;
+  font:
+    600 12px/1.35 Inter,
+    Arial,
+    sans-serif;
+  color: #123a28;
+  background: #fff;
+}
+.admin-torneos #bp-ko-bye {
+  max-width: 560px;
+}
+.admin-torneos #bp-ko-bye:focus-visible,
+.admin-torneos .bp-ko-match select:focus-visible {
+  outline: 3px solid #bf9b48;
+  outline-offset: 2px;
 }
 .admin-torneos .bp-ko-grid {
-  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:11px 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 11px 0;
 }
 .admin-torneos .bp-ko-match {
-  min-width:0;padding:13px;background:#fff;
-  border:1px solid #d5e0d0;border-top:3px solid #0c573b;border-radius:10px;
+  min-width: 0;
+  padding: 13px;
+  background: #fff;
+  border: 1px solid #d5e0d0;
+  border-top: 3px solid #0c573b;
+  border-radius: 10px;
 }
-.admin-torneos .bp-ko-match > strong {font-size:13px;color:#10442f;}
-.admin-torneos .bp-ko-match-rivals {display:grid;grid-template-columns:minmax(0,1fr);gap:7px;margin-top:9px;}
-.admin-torneos .bp-ko-versus {text-align:center;color:#9f8039;font-weight:900;font-size:11px;letter-spacing:.11em;}
+.admin-torneos .bp-ko-match > strong {
+  font-size: 13px;
+  color: #10442f;
+}
+.admin-torneos .bp-ko-match-rivals {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 7px;
+  margin-top: 9px;
+}
+.admin-torneos .bp-ko-versus {
+  text-align: center;
+  color: #9f8039;
+  font-weight: 900;
+  font-size: 11px;
+  letter-spacing: 0.11em;
+}
 .admin-torneos .bp-ko-path {
-  border:1px solid #d6dcbf;background:#f7f9ee;border-radius:10px;
-  padding:12px 14px;margin-top:14px;
+  border: 1px solid #d6dcbf;
+  background: #f7f9ee;
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-top: 14px;
 }
-.admin-torneos .bp-ko-path strong {color:#0b4831;}
-.admin-torneos .bp-ko-path p {font-size:12px;margin:6px 0;color:#3b5844;}
-.admin-torneos .bp-ko-actions {display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:14px;}
+.admin-torneos .bp-ko-path strong {
+  color: #0b4831;
+}
+.admin-torneos .bp-ko-path p {
+  font-size: 12px;
+  margin: 6px 0;
+  color: #3b5844;
+}
+.admin-torneos .bp-ko-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
 .admin-torneos .bp-ko-save {
-  padding:11px 17px;min-height:43px;border:1px solid #a4883f;
-  background:#b69950;color:#193b26;border-radius:9px;
-  font:800 12px/1.2 Inter,Arial,sans-serif;cursor:pointer;
+  padding: 11px 17px;
+  min-height: 43px;
+  border: 1px solid #a4883f;
+  background: #b69950;
+  color: #193b26;
+  border-radius: 9px;
+  font:
+    800 12px/1.2 Inter,
+    Arial,
+    sans-serif;
+  cursor: pointer;
 }
-.admin-torneos .bp-ko-save:hover:not(:disabled) {background:#d2b568;}
-.admin-torneos .bp-ko-save:disabled {opacity:.65;cursor:default;}
-.admin-torneos .bp-ko-actions small {color:#607367;font-size:11px;max-width:480px;}
-@media(max-width:1080px) {
- .admin-torneos .bp-ko-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+.admin-torneos .bp-ko-save:hover:not(:disabled) {
+  background: #d2b568;
 }
-@media(max-width:650px) {
- .admin-torneos .bp-ko-heading h2{font-size:21px;}
- .admin-torneos .bp-ko-grid{grid-template-columns:minmax(0,1fr);}
- .admin-torneos .bp-ko-actions{align-items:stretch;flex-direction:column;}
- .admin-torneos .bp-ko-save{width:100%;}
+.admin-torneos .bp-ko-save:disabled {
+  opacity: 0.65;
+  cursor: default;
+}
+.admin-torneos .bp-ko-actions small {
+  color: #607367;
+  font-size: 11px;
+  max-width: 480px;
+}
+@media (max-width: 1080px) {
+  .admin-torneos .bp-ko-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 650px) {
+  .admin-torneos .bp-ko-heading h2 {
+    font-size: 21px;
+  }
+  .admin-torneos .bp-ko-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .admin-torneos .bp-ko-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .admin-torneos .bp-ko-save {
+    width: 100%;
+  }
 }
 /* 03/11/2026 · Parche 67: confirmación personalizada, verde y dorado. */
 .bp-ko-confirm-dialog {
@@ -79,33 +222,84 @@
   overflow-y: auto;
   border-top: 4px solid #bd9b4e;
 }
-.bp-ko-confirm-dialog .admin-save-dialog__body {padding:25px 27px 23px;}
+.bp-ko-confirm-dialog .admin-save-dialog__body {
+  padding: 25px 27px 23px;
+}
 .bp-ko-confirm-dialog .admin-save-dialog__icon {
-  width:56px;height:56px;font-size:25px;background:#edf6eb;color:#134631;margin-bottom:13px;
+  width: 56px;
+  height: 56px;
+  font-size: 25px;
+  background: #edf6eb;
+  color: #134631;
+  margin-bottom: 13px;
 }
-.bp-ko-confirm-dialog h2 {font-size:27px;color:#0a402e;margin-bottom:8px;}
-.bp-ko-confirm-dialog #bp-ko-confirm-description {color:#506755;}
+.bp-ko-confirm-dialog h2 {
+  font-size: 27px;
+  color: #0a402e;
+  margin-bottom: 8px;
+}
+.bp-ko-confirm-dialog #bp-ko-confirm-description {
+  color: #506755;
+}
 .bp-ko-confirm-summary {
-  margin-top:13px;padding:15px;text-align:left;background:#f6f9f2;
-  border:1px solid #d3dfcb;border-radius:10px;
+  margin-top: 13px;
+  padding: 15px;
+  text-align: left;
+  background: #f6f9f2;
+  border: 1px solid #d3dfcb;
+  border-radius: 10px;
 }
-.bp-ko-confirm-summary > strong {display:block;color:#10442f;font-size:13px;margin-bottom:6px;}
+.bp-ko-confirm-summary > strong {
+  display: block;
+  color: #10442f;
+  font-size: 13px;
+  margin-bottom: 6px;
+}
 .bp-ko-confirm-summary #bp-ko-confirm-bye {
-  color:#125238;font-size:14px;font-weight:800;margin:0 0 13px;overflow-wrap:anywhere;
+  color: #125238;
+  font-size: 14px;
+  font-weight: 800;
+  margin: 0 0 13px;
+  overflow-wrap: anywhere;
 }
-.bp-ko-confirm-summary ol {margin:4px 0 0 20px;padding:0;color:#284d36;font-size:12px;line-height:1.55;}
-.bp-ko-confirm-summary li {margin-bottom:5px;overflow-wrap:anywhere;}
+.bp-ko-confirm-summary ol {
+  margin: 4px 0 0 20px;
+  padding: 0;
+  color: #284d36;
+  font-size: 12px;
+  line-height: 1.55;
+}
+.bp-ko-confirm-summary li {
+  margin-bottom: 5px;
+  overflow-wrap: anywhere;
+}
 .bp-ko-confirm-dialog .admin-save-dialog__actions .primary {
-  color:#fff;background:#095138;border:1px solid #095138;
+  color: #fff;
+  background: #095138;
+  border: 1px solid #095138;
 }
-.bp-ko-confirm-dialog .admin-save-dialog__actions .primary:hover {background:#0d6847;}
+.bp-ko-confirm-dialog .admin-save-dialog__actions .primary:hover {
+  background: #0d6847;
+}
 .bp-ko-confirm-dialog .admin-save-dialog__actions button:focus-visible {
-  outline:3px solid #b69443;outline-offset:2px;
+  outline: 3px solid #b69443;
+  outline-offset: 2px;
 }
-@media (max-width:480px) {
- .bp-ko-confirm-dialog .admin-save-dialog__body {padding:22px 17px;}
- .bp-ko-confirm-dialog h2 {font-size:24px;}
- .bp-ko-confirm-summary {padding:11px;}
- .bp-ko-confirm-dialog .admin-save-dialog__actions {grid-template-columns:repeat(2,minmax(0,1fr));}
- .bp-ko-confirm-dialog .admin-save-dialog__actions button {padding:8px 6px;font-size:12px!important;}
+@media (max-width: 480px) {
+  .bp-ko-confirm-dialog .admin-save-dialog__body {
+    padding: 22px 17px;
+  }
+  .bp-ko-confirm-dialog h2 {
+    font-size: 24px;
+  }
+  .bp-ko-confirm-summary {
+    padding: 11px;
+  }
+  .bp-ko-confirm-dialog .admin-save-dialog__actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .bp-ko-confirm-dialog .admin-save-dialog__actions button {
+    padding: 8px 6px;
+    font-size: 12px !important;
+  }
 }

@@ -1019,9 +1019,7 @@
                 Organizá torneos, inscripciones y partidos desde un solo lugar.
               </p>
             </div>
-            <span class="torneos-preview"
-              >Panel de gestión · Torneos</span
-            >
+            <span class="torneos-preview">Panel de gestión · Torneos</span>
           </header>
           <div class="torneos-overview" aria-label="Resumen de torneos">
             <article class="torneos-stat">
@@ -1039,14 +1037,22 @@
               ><small>Torneo · Parejas · Partidos</small>
             </article>
           </div>
-          <section class="torneos-panel torneos-library" aria-labelledby="torneos-library-title">
+          <section
+            class="torneos-panel torneos-library"
+            aria-labelledby="torneos-library-title"
+          >
             <div class="torneos-panel__heading">
               <div>
                 <p class="torneos-library__eyebrow">ELEGÍ TU COMPETENCIA</p>
                 <h2 id="torneos-library-title">Torneos registrados</h2>
-                <p>Consultá su estado, editá los datos y administrá sus inscripciones.</p>
+                <p>
+                  Consultá su estado, editá los datos y administrá sus
+                  inscripciones.
+                </p>
               </div>
-              <span class="torneos-library__legend">Hasta 3 tarjetas por fila</span>
+              <span class="torneos-library__legend"
+                >Hasta 3 tarjetas por fila</span
+              >
             </div>
             <div id="torneos-list" aria-live="polite"></div>
           </section>
@@ -1062,149 +1068,162 @@
                 </div>
                 <div class="torneos-create__tools">
                   <span class="torneos-step">01</span>
-                  <button type="button" id="torneos-create-toggle" class="torneos-create__toggle" aria-controls="torneos-create-details" aria-expanded="true">Ocultar formulario</button>
-                </div>
-              </div>
-              <div id="torneos-create-details" class="torneos-create-details">
-              <div class="torneos-fields">
-                <div class="torneos-field torneos-field--full">
-                  <label for="torneo-name">Nombre del torneo</label
-                  ><input
-                    id="torneo-name"
-                    type="text"
-                    placeholder="Ej.: Torneo de Primavera"
-                    maxlength="100"
-                  />
-                </div>
-                <div class="torneos-field">
-                  <label for="torneo-category">Categoría</label
-                  ><select id="torneo-category">
-                    <option value="">Seleccionar categoría</option></select
-                  >
-                </div>
-                <div class="torneos-field">
-                  <label for="torneo-format">Modalidad</label
-                  ><select id="torneo-format">
-                    <option value="groups_knockout" selected>
-                      Fase de grupos + eliminatorias
-                    </option>
-                    <option value="knockout">Eliminación directa</option>
-                    <option value="league">Todos contra todos</option>
-                  </select>
-                </div>
-                <div class="torneos-category-tools torneos-field--full">
-                  <div class="torneo-category-actions">
-                                      <button
-                                        type="button"
-                                        class="torneos-outline"
-                                        id="torneo-add-category"
-                                      >
-                                        + Nueva categoría
-                                      </button>
-                  
-                                      <button
-                                        type="button"
-                                        class="torneos-outline"
-                                        id="torneo-manage-categories"
-                                        aria-expanded="false"
-                                        aria-controls="torneo-categories-panel"
-                                      >
-                                        <svg
-                                          xmlns="http://www.w3.org/2000/svg"
-                                          width="17"
-                                          height="17"
-                                          viewBox="0 0 24 24"
-                                          fill="none"
-                                          stroke="currentColor"
-                                          stroke-width="2"
-                                          stroke-linecap="round"
-                                          stroke-linejoin="round"
-                                          aria-hidden="true"
-                                        >
-                                          <line x1="21" x2="14" y1="4" y2="4" />
-                                          <line x1="10" x2="3" y1="4" y2="4" />
-                                          <line x1="21" x2="12" y1="12" y2="12" />
-                                          <line x1="8" x2="3" y1="12" y2="12" />
-                                          <line x1="21" x2="16" y1="20" y2="20" />
-                                          <line x1="12" x2="3" y1="20" y2="20" />
-                                          <line x1="14" x2="14" y1="2" y2="6" />
-                                          <line x1="8" x2="8" y1="10" y2="14" />
-                                          <line x1="16" x2="16" y1="18" y2="22" />
-                                        </svg>
-                                        <span>Administrar categorías</span>
-                                      </button>
-                                    </div>
-                  
-                                    <div
-                                      id="torneo-categories-panel"
-                                      class="torneo-categories-panel"
-                                      hidden
-                                    >
-                                      <p>
-                                        Administrá las categorías disponibles para tus
-                                        competencias.
-                                      </p>
-                                      <div id="torneo-categories-list" aria-live="polite"></div>
-                                    </div>
-                </div>
-                <div class="torneos-field">
-                  <label for="torneo-start">Fecha de inicio</label
-                  ><input id="torneo-start" type="date" />
-                </div>
-                <div class="torneos-field">
-                  <label for="torneo-end">Fecha estimada de finalización</label
-                  ><input id="torneo-end" type="date" />
-                </div>
-                <div class="torneos-field">
-                  <label for="torneo-pairs">Cupo de parejas</label
-                  ><select id="torneo-pairs">
-                    <option value="8">8 parejas</option>
-                    <option value="12" selected>12 parejas</option>
-                    <option value="16">16 parejas</option>
-                    <option value="custom">Personalizado</option></select
-                  ><input
-                    id="torneo-pairs-custom"
-                    type="number"
-                    min="2"
-                    max="256"
-                    step="1"
-                    placeholder="Cantidad de parejas"
-                    aria-label="Cantidad personalizada de parejas"
-                    hidden
-                  />
-                </div>
-                <!-- El estado se administra con acciones dedicadas.
-                     Este selector oculto conserva el estado real al editar. -->
-                <div class="torneos-field" hidden>
-                  <label for="torneo-state">Estado</label>
-                  <select id="torneo-state">
-                    <option value="draft" selected>Borrador</option>
-                    <option value="registration_open">Inscripciones abiertas</option>
-                    <option value="registration_closed">Inscripciones cerradas</option>
-                    <option value="in_progress">En juego</option>
-                    <option value="completed">Finalizado</option>
-                  </select>
-                </div>
-              </div>
-              <div class="torneos-panel__bottom">
-                <span
-                  >Los torneos nuevos quedan ocultos al público hasta que los
-                  publiques.</span
-                >
-                <div class="torneos-form-actions">
                   <button
                     type="button"
-                    id="torneo-edit-cancel"
-                    class="torneos-outline"
-                    hidden
+                    id="torneos-create-toggle"
+                    class="torneos-create__toggle"
+                    aria-controls="torneos-create-details"
+                    aria-expanded="true"
                   >
-                    Cancelar edición</button
-                  ><button type="button" id="torneo-create-button">
-                    Crear torneo
+                    Ocultar formulario
                   </button>
                 </div>
               </div>
-              <p id="torneo-feedback" role="status" aria-live="polite"></p>
+              <div id="torneos-create-details" class="torneos-create-details">
+                <div class="torneos-fields">
+                  <div class="torneos-field torneos-field--full">
+                    <label for="torneo-name">Nombre del torneo</label
+                    ><input
+                      id="torneo-name"
+                      type="text"
+                      placeholder="Ej.: Torneo de Primavera"
+                      maxlength="100"
+                    />
+                  </div>
+                  <div class="torneos-field">
+                    <label for="torneo-category">Categoría</label
+                    ><select id="torneo-category">
+                      <option value="">Seleccionar categoría</option>
+                    </select>
+                  </div>
+                  <div class="torneos-field">
+                    <label for="torneo-format">Modalidad</label
+                    ><select id="torneo-format">
+                      <option value="groups_knockout" selected>
+                        Fase de grupos + eliminatorias
+                      </option>
+                      <option value="knockout">Eliminación directa</option>
+                      <option value="league">Todos contra todos</option>
+                    </select>
+                  </div>
+                  <div class="torneos-category-tools torneos-field--full">
+                    <div class="torneo-category-actions">
+                      <button
+                        type="button"
+                        class="torneos-outline"
+                        id="torneo-add-category"
+                      >
+                        + Nueva categoría
+                      </button>
+
+                      <button
+                        type="button"
+                        class="torneos-outline"
+                        id="torneo-manage-categories"
+                        aria-expanded="false"
+                        aria-controls="torneo-categories-panel"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="17"
+                          height="17"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          aria-hidden="true"
+                        >
+                          <line x1="21" x2="14" y1="4" y2="4" />
+                          <line x1="10" x2="3" y1="4" y2="4" />
+                          <line x1="21" x2="12" y1="12" y2="12" />
+                          <line x1="8" x2="3" y1="12" y2="12" />
+                          <line x1="21" x2="16" y1="20" y2="20" />
+                          <line x1="12" x2="3" y1="20" y2="20" />
+                          <line x1="14" x2="14" y1="2" y2="6" />
+                          <line x1="8" x2="8" y1="10" y2="14" />
+                          <line x1="16" x2="16" y1="18" y2="22" />
+                        </svg>
+                        <span>Administrar categorías</span>
+                      </button>
+                    </div>
+
+                    <div
+                      id="torneo-categories-panel"
+                      class="torneo-categories-panel"
+                      hidden
+                    >
+                      <p>
+                        Administrá las categorías disponibles para tus
+                        competencias.
+                      </p>
+                      <div id="torneo-categories-list" aria-live="polite"></div>
+                    </div>
+                  </div>
+                  <div class="torneos-field">
+                    <label for="torneo-start">Fecha de inicio</label
+                    ><input id="torneo-start" type="date" />
+                  </div>
+                  <div class="torneos-field">
+                    <label for="torneo-end"
+                      >Fecha estimada de finalización</label
+                    ><input id="torneo-end" type="date" />
+                  </div>
+                  <div class="torneos-field">
+                    <label for="torneo-pairs">Cupo de parejas</label
+                    ><select id="torneo-pairs">
+                      <option value="8">8 parejas</option>
+                      <option value="12" selected>12 parejas</option>
+                      <option value="16">16 parejas</option>
+                      <option value="custom">Personalizado</option></select
+                    ><input
+                      id="torneo-pairs-custom"
+                      type="number"
+                      min="2"
+                      max="256"
+                      step="1"
+                      placeholder="Cantidad de parejas"
+                      aria-label="Cantidad personalizada de parejas"
+                      hidden
+                    />
+                  </div>
+                  <!-- El estado se administra con acciones dedicadas.
+                     Este selector oculto conserva el estado real al editar. -->
+                  <div class="torneos-field" hidden>
+                    <label for="torneo-state">Estado</label>
+                    <select id="torneo-state">
+                      <option value="draft" selected>Borrador</option>
+                      <option value="registration_open">
+                        Inscripciones abiertas
+                      </option>
+                      <option value="registration_closed">
+                        Inscripciones cerradas
+                      </option>
+                      <option value="in_progress">En juego</option>
+                      <option value="completed">Finalizado</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="torneos-panel__bottom">
+                  <span
+                    >Los torneos nuevos quedan ocultos al público hasta que los
+                    publiques.</span
+                  >
+                  <div class="torneos-form-actions">
+                    <button
+                      type="button"
+                      id="torneo-edit-cancel"
+                      class="torneos-outline"
+                      hidden
+                    >
+                      Cancelar edición</button
+                    ><button type="button" id="torneo-create-button">
+                      Crear torneo
+                    </button>
+                  </div>
+                </div>
+                <p id="torneo-feedback" role="status" aria-live="polite"></p>
               </div>
             </section>
             <div class="torneos-side">
@@ -1265,23 +1284,47 @@
                   ><span>3. Eliminatorias</span>
                 </div>
                 <p class="torneos-hint">
-                  Cerrá las inscripciones para sortear los grupos. Después organizá y programá los partidos con libertad.
+                  Cerrá las inscripciones para sortear los grupos. Después
+                  organizá y programá los partidos con libertad.
                 </p>
                 <div id="torneos-groups-panel" class="torneos-groups-panel">
                   <p id="torneos-groups-context" class="torneos-groups-context">
-                    Seleccioná arriba una competencia para administrar sus grupos.
+                    Seleccioná arriba una competencia para administrar sus
+                    grupos.
                   </p>
-                  <div id="torneos-groups-setup" class="torneos-groups-setup" hidden>
+                  <div
+                    id="torneos-groups-setup"
+                    class="torneos-groups-setup"
+                    hidden
+                  >
                     <label for="torneos-groups-count">Cantidad de grupos</label>
-                    <select id="torneos-groups-count" aria-label="Cantidad de grupos"></select>
-                    <p id="torneos-groups-summary" class="torneos-groups-summary"></p>
-                    <button type="button" class="torneos-outline" id="torneos-groups-draw" disabled>
+                    <select
+                      id="torneos-groups-count"
+                      aria-label="Cantidad de grupos"
+                    ></select>
+                    <p
+                      id="torneos-groups-summary"
+                      class="torneos-groups-summary"
+                    ></p>
+                    <button
+                      type="button"
+                      class="torneos-outline"
+                      id="torneos-groups-draw"
+                      disabled
+                    >
                       Sortear grupos
                     </button>
                   </div>
-                  <p id="torneos-groups-feedback" class="torneos-groups-feedback"
-                     role="status" aria-live="polite"></p>
-                  <div id="torneos-groups-list" class="torneos-groups-list"></div>
+                  <p
+                    id="torneos-groups-feedback"
+                    class="torneos-groups-feedback"
+                    role="status"
+                    aria-live="polite"
+                  ></p>
+                  <div
+                    id="torneos-groups-list"
+                    class="torneos-groups-list"
+                  ></div>
                 </div>
               </section>
             </div>
@@ -1334,7 +1377,8 @@
             </form>
           </dialog>
           <p class="torneos-disclaimer">
-            Gestioná los torneos desde aquí. Las acciones sobre partidos respetan las reservas y la disponibilidad de la cancha.
+            Gestioná los torneos desde aquí. Las acciones sobre partidos
+            respetan las reservas y la disponibilidad de la cancha.
           </p>
         </section>
       </section>

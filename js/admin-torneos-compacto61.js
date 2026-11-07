@@ -19,15 +19,22 @@
   // Con JavaScript deshabilitado, el formulario permanece visible.
   // Al editar desde la lista, se despliega automáticamente.
   setExpanded(!cancelEdit.hidden);
-  toggle.addEventListener("click", () => setExpanded(content.hidden, content.hidden));
+  toggle.addEventListener("click", () =>
+    setExpanded(content.hidden, content.hidden),
+  );
 
   new MutationObserver(() => {
     if (!cancelEdit.hidden) setExpanded(true, true);
   }).observe(cancelEdit, { attributes: true, attributeFilter: ["hidden"] });
 
   // Abrir antes del manejador del botón Editar, para permitir foco y scroll.
-  document.getElementById("torneos-list")?.addEventListener("click", (event) => {
-    const button = event.target.closest("button");
-    if (button && /^editar$/i.test(button.textContent.trim())) setExpanded(true);
-  }, { capture: true });
+  document.getElementById("torneos-list")?.addEventListener(
+    "click",
+    (event) => {
+      const button = event.target.closest("button");
+      if (button && /^editar$/i.test(button.textContent.trim()))
+        setExpanded(true);
+    },
+    { capture: true },
+  );
 })();

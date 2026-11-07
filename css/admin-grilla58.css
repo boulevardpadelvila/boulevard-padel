@@ -41,11 +41,11 @@
 .bp-results-panel .bp-results-group .bp-results-match-main {
   min-width: 0;
   overflow-wrap: anywhere;
-  font-size: .84rem;
+  font-size: 0.84rem;
   line-height: 1.45;
 }
 .bp-results-panel .bp-results-group .bp-results-match-meta {
-  font-size: .78rem;
+  font-size: 0.78rem;
 }
 .bp-results-panel .bp-results-group .bp-results-match > button {
   width: auto;
@@ -54,7 +54,7 @@
   justify-self: end;
   padding: 7px 14px;
   border-radius: 8px;
-  font-size: .78rem;
+  font-size: 0.78rem;
 }
 
 /* Las nueve columnas siguen disponibles; la tabla nunca desborda su tarjeta. */
@@ -67,11 +67,11 @@
 .bp-results-panel .bp-results-group .bp-results-table {
   width: 100%;
   min-width: 475px;
-  font-size: .76rem;
+  font-size: 0.76rem;
 }
 .bp-results-panel .bp-results-group .bp-results-table th,
 .bp-results-panel .bp-results-group .bp-results-table td {
-  padding: .43rem .22rem;
+  padding: 0.43rem 0.22rem;
   line-height: 1.35;
 }
 .bp-results-panel .bp-results-group .bp-results-table th:not(:nth-child(2)),
@@ -102,12 +102,16 @@
 /* Respaldo para navegadores sin consultas de contenedor. */
 @supports not (container-type: inline-size) {
   @media (max-width: 1150px) {
-    #bp-results-content { grid-template-columns: minmax(0, 1fr); }
+    #bp-results-content {
+      grid-template-columns: minmax(0, 1fr);
+    }
   }
 }
 
 @media (max-width: 550px) {
-  .bp-results-panel #bp-results-content > .bp-results-group { padding: 11px; }
+  .bp-results-panel #bp-results-content > .bp-results-group {
+    padding: 11px;
+  }
   .bp-results-panel .bp-results-group .bp-results-match > button {
     justify-self: stretch;
     width: 100%;
