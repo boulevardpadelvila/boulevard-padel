@@ -222,7 +222,7 @@
     const pairs = new Map(groups.flatMap((g) => (g.pairs||[]).map((p) => [p.id,p])));
     const nameOf = (id, fallback) => publicPairName(pairs.get(id), fallback || "A definir");
     const groupNumber = new Map(groups.map((g) => [g.id,g.number]));
-    const matchesSection = make("section","public-tournament-data");
+    const matchesSection = make("section","public-tournament-data public-tournament-group-results");
     matchesSection.append(make("h4","","Resultados de la fase de grupos"));
     const played = matches.filter((m) => m.winner_pair_id && Array.isArray(m.sets));
     if (played.length) {
@@ -310,7 +310,7 @@
             make("strong","public-tournament-highlight__value",value));
           podium.append(item);
         }
-        knockout.prepend(podium);
+        knockout.append(podium);
       }
       content.append(knockout);
     } else {
@@ -664,19 +664,6 @@
         button.addEventListener("click", () => open(t));
         card.append(button);
       }
-    }
-    const followup = publicFollowupByTournament.get(t.id);
-    const final = followup?.knockout?.matches?.find((m) => m.stage === "final" && m.slot === 1);
-    if (final?.winner_pair_id && final?.resolved_pair1_id && final?.resolved_pair2_id) {
-      const pairMap = new Map((followup.groups || []).flatMap((g) => (g.pairs || []).map((p) => [p.id,p])));
-      const secondId = final.winner_pair_id === final.resolved_pair1_id
-        ? final.resolved_pair2_id : final.resolved_pair1_id;
-      const podium = make("p","public-tournament-card__winner");
-      podium.append(make("strong","","🏆 Campeones: "),
-        document.createTextNode(publicPairName(pairMap.get(final.winner_pair_id))),
-        make("span",""," · Subcampeones: "),
-        document.createTextNode(publicPairName(pairMap.get(secondId))));
-      card.append(podium);
     }
     const groupsBlock = publishedGroupsBlock(t);
     if (groupsBlock) card.append(groupsBlock);
