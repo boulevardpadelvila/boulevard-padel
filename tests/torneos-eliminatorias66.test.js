@@ -113,8 +113,8 @@ test("panel Admin enlazado y sin alterar las reservas", () => {
   assert.match(js, /recommendSevenBye/);
   assert.match(js, /planSevenKnockout/);
   assert.match(js, /result_revision/);
-  assert.match(css, /repeat\(3,minmax\(0,1fr\)\)/);
-  assert.match(css, /@media\(max-width:650px\)/);
+  assert.match(css, /repeat\(\s*3\s*,\s*minmax\(\s*0\s*,\s*1fr\s*\)\s*\)/);
+  assert.match(css, /@media\s*\(\s*max-width\s*:\s*650px\s*\)/);
   assert.doesNotMatch(js, /from\(['"](?:reservations|blockouts)['"]\)/);
 });
 test("SQL restringe al Admin y valida 3 cuartos completos", () => {
