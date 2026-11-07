@@ -2954,3 +2954,5 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 - **Pruebas CONFIRMADAS:** PR #5, GitHub Actions `42426649955`, `node --test tests/*.test.js` **67 aprobadas, 0 fallidas, 0 omitidas**; tests nuevos revisan la grilla, DOM, alineación visual mediante CSS y que las eliminatorias no cambien. Workflow temporal retirado antes de fusionar.
 - **Sin modificaciones en Supabase:** no se alteraron tablas, torneos, parejas, marcadores, reservas, permisos, SQL 71, eliminatorias ni podio.
 - **Pendiente:** integrar PR #5 en `main` y solicitar revisión visual en PC y celular; eliminación de Copa Norte Seguros pendiente de aprobación.
+
+- **Publicación Parche 74 — CONFIRMADA:** PR #5 fusionado a `main` en commit `7ea382db9d107862421062c057ab5ef2caef4d30`. Verificado en GitHub que la grilla de posiciones responsive, la alineación fija de 9 columnas, el desplazamiento móvil y los estilos Admin están en la versión principal. Las eliminatorias continúan intactas. **Pendiente validar el despliegue real en Cloudflare Pages y la presentación en PC y celular.** No se ejecutó SQL ni se alteraron datos.
