@@ -1,7 +1,7 @@
 -- Boulevard Pádel · SQL 71 · Seguimiento público de torneos
--- PREPARADA, NO APLICADA. Solicitar autorización expresa antes de instalarla.
--- DEFINITIVA: SÍ guardar en SQL Editor si se ejecuta allí, o archivarla como
--- migración en Supabase/GitHub. NO ejecutar dos veces manualmente.
+-- APLICADA en Supabase como migración bp_public_tournament_followup_71 (07/11/2026).
+-- DEFINITIVA: SÍ conservar en GitHub como fuente de la migración. El Editor
+-- SQL no guarda automáticamente las migraciones; NO volver a ejecutar.
 --
 -- Lectura estrictamente limitada a torneos VISIBLES y su estructura publicada.
 -- Respuesta JSON: sin teléfonos, correos, usuarios administradores ni auditorías.
