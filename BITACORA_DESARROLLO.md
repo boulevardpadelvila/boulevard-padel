@@ -2956,3 +2956,12 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 - **Pendiente:** integrar PR #5 en `main` y solicitar revisión visual en PC y celular; eliminación de Copa Norte Seguros pendiente de aprobación.
 
 - **Publicación Parche 74 — CONFIRMADA:** PR #5 fusionado a `main` en commit `7ea382db9d107862421062c057ab5ef2caef4d30`. Verificado en GitHub que la grilla de posiciones responsive, la alineación fija de 9 columnas, el desplazamiento móvil y los estilos Admin están en la versión principal. Las eliminatorias continúan intactas. **Pendiente validar el despliegue real en Cloudflare Pages y la presentación en PC y celular.** No se ejecutó SQL ni se alteraron datos.
+
+## 07/11/2026 — Parche 75: resultados de grupos distribuidos por fecha
+
+- **Fecha:** 07/11/2026. **Motivo:** usuario aprobó la visual de resultados compactos y pidió probar tres columnas, una por fecha (05, 06, 07/03/2027), con los partidos de ese día ordenados por hora y mostrando los marcadores.
+- **Cambio CONFIRMADO:** `js/torneos-public.js` agrupa exclusivamente los resultados confirmados de fase de grupos por día LOCAL del complejo en `America/Argentina/Cordoba` usando `Intl.DateTimeFormat(...).formatToParts`. La fecha se presenta en el encabezado (DD/MM/AAAA), la hora junto al partido; dentro de cada día, ordena cronológicamente por `scheduled_at`, sin confundir las fechas UTC al cruzar medianoche. Cuando un resultado no tiene programación, lo muestra en la columna «Fecha por confirmar»; no inventa hora.
+- **CSS CONFIRMADO:** `css/torneos-public.css` reemplaza solo la vieja disposición de dos tarjetas por fila en grupos con columnas por fecha: máximo tres en escritorio, dos para ancho de contenedor hasta 810 px y una hasta 530 px. Admite cualquier cantidad de fechas; si hay una o dos, la grilla no agrega una columna vacía. Tarjetas dentro de cada día se apilan verticalmente.
+- **Protección de módulos:** tablas de posiciones (Parche 74), cuadro eliminatorio, podio oro/plata, inscripciones, reservas y SQL 71 no se modificaron. No se ejecutó SQL ni se alteraron registros en Supabase.
+- **Pruebas CONFIRMADAS:** PR #6, GitHub Actions `42427226845`, suite completa `node --test tests/*.test.js`: **68 aprobadas, 0 fallidas, 0 omitidas**. Incluye validación DOM de las tres fechas y del huso argentino ante cruce de medianoche UTC. Workflow temporal retirado.
+- **Pendiente de comprobar:** integración a `main` y revisión visual de la nueva organización en PC y celular; no borrar Copa Norte Seguros antes de completar las pruebas.
