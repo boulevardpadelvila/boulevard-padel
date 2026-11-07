@@ -13,6 +13,7 @@
       "Cambios guardados correctamente.",
       "Torneo creado correctamente. Sigue oculto al público.",
       "Torneo eliminado correctamente.",
+      "Torneo eliminado definitivamente.",
       "Torneo finalizado correctamente.",
       "Torneo publicado.",
       "Torneo ocultado.",
@@ -94,6 +95,7 @@
     editing = null,
     records = [],
     modalAction = null;
+  let pendingNextModal = null;
   const modal = $("torneo-dialog");
   async function adminSession() {
     const {
@@ -150,6 +152,11 @@
   $("torneo-dialog-cancel").addEventListener("click", closeModal);
   modal.addEventListener("close", () => {
     modalAction = null;
+    if (pendingNextModal) {
+      const next = pendingNextModal;
+      pendingNextModal = null;
+      openModal(next);
+    }
   });
   $("torneo-dialog-form").addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -157,7 +164,8 @@
     busy = true;
     $("torneo-dialog-accept").disabled = true;
     try {
-      await modalAction($("torneo-dialog-input").value.trim());
+      const outcome = await modalAction($("torneo-dialog-input").value.trim());
+      if (outcome?.nextModal) pendingNextModal = outcome.nextModal;
       closeModal();
     } catch (err) {
       console.error(err);
@@ -844,209 +852,82 @@
       },
     });
   }
-  // Parche 48: eliminación integral, transaccional y autorizada desde Supabase.
-  // Las cantidades de la vista son informativas: la RPC vuelve a validar todo.
+  // SQL 70: eliminación DEFINITIVA y completa, con verificación doble.
+  // La vista previa no modifica nada; la RPC verifica admin, nombre y alcance.
   async function remove(t) {
-    const notice = (title, description) =>
-      openModal({
-        title,
-        description,
-        confirm: "Entendido",
-        action: async () => {},
-      });
-    let actual;
-    let pairsCount;
-    let groupsCount;
-    let matchesCount;
-    let revisionCount;
-    let playedCount;
-    let scheduledCount;
+    let preview;
     try {
       await adminSession();
-      const [
-        tournamentResult,
-        pairs,
-        groups,
-        matches,
-        revisions,
-        played,
-        scheduled,
-      ] = await Promise.all([
-        supabaseClient
-          .from("bp_tournaments")
-          .select(
-            "id,name,status,is_published,groups_published_at,fixture_published_at",
-          )
-          .eq("id", t.id)
-          .maybeSingle(),
-        supabaseClient
-          .from("bp_tournament_pairs")
-          .select("id", { count: "exact", head: true })
-          .eq("tournament_id", t.id),
-        supabaseClient
-          .from("bp_tournament_groups")
-          .select("id", { count: "exact", head: true })
-          .eq("tournament_id", t.id),
-        supabaseClient
-          .from("bp_tournament_group_matches")
-          .select("id", { count: "exact", head: true })
-          .eq("tournament_id", t.id),
-        supabaseClient
-          .from("bp_tournament_revision_log")
-          .select("id", { count: "exact", head: true })
-          .eq("tournament_id", t.id),
-        supabaseClient
-          .from("bp_tournament_group_matches")
-          .select("id", { count: "exact", head: true })
-          .eq("tournament_id", t.id)
-          .in("match_status", ["played", "walkover"]),
-        supabaseClient
-          .from("bp_tournament_group_matches")
-          .select("id", { count: "exact", head: true })
-          .eq("tournament_id", t.id)
-          .eq("schedule_status", "scheduled"),
-      ]);
-      if (
-        tournamentResult.error ||
-        pairs.error ||
-        groups.error ||
-        matches.error ||
-        revisions.error ||
-        played.error ||
-        scheduled.error ||
-        pairs.count == null ||
-        groups.count == null ||
-        matches.count == null ||
-        revisions.count == null ||
-        played.count == null ||
-        scheduled.count == null
-      ) {
-        throw new Error("No se pudo verificar el estado actual del torneo.");
-      }
-      actual = tournamentResult.data;
-      if (!actual || actual.name !== t.name) {
-        throw new Error(
-          "El torneo ya no existe o cambió de nombre. Actualizá la lista.",
-        );
-      }
-      pairsCount = pairs.count;
-      groupsCount = groups.count;
-      matchesCount = matches.count;
-      revisionCount = revisions.count;
-      playedCount = played.count;
-      scheduledCount = scheduled.count;
+      const { data, error } = await supabaseClient.rpc(
+        "bp_admin_tournament_delete_preview",
+        { p_tournament_id: t.id },
+      );
+      if (error) throw error;
+      if (!data || data.tournament_id !== t.id || data.tournament_name !== t.name)
+        throw new Error("El torneo cambió. Actualizá la lista antes de eliminarlo.");
+      preview = data;
     } catch (error) {
-      console.error("Error al verificar la eliminación del torneo:", error);
-      feedback(
-        error.message ||
-          "No se pudo verificar el torneo. Actualizá y volvé a intentar.",
-      );
+      console.error("No se pudo preparar la eliminación:", error);
+      feedback("No se pudo verificar el torneo para eliminarlo. Actualizá la lista e intentá de nuevo.");
       return;
     }
 
-    if (actual.is_published) {
-      notice(
-        "Primero ocultá el torneo",
-        `«${actual.name}» está publicado. Ocultalo antes de solicitar su eliminación definitiva.`,
-      );
-      return;
-    }
-    if (playedCount > 0) {
-      notice(
-        "Torneo con resultados deportivos",
-        `«${actual.name}» tiene ${playedCount} partido(s) con resultados. ` +
-          "Su eliminación automática está bloqueada para conservar los resultados y el historial deportivo.",
-      );
-      return;
-    }
-    if (scheduledCount > 0) {
-      notice(
-        "Primero liberá los horarios",
-        `«${actual.name}» tiene ${scheduledCount} partido(s) programado(s). ` +
-          "Postergá esos encuentros para liberar la cancha antes de eliminar el torneo.",
-      );
-      return;
-    }
-    if (actual.groups_published_at && actual.status !== "registration_closed") {
-      notice(
-        "Torneo que requiere revisión",
-        "Este torneo tiene grupos publicados internamente y su estado actual no admite " +
-          "la revisión necesaria para eliminarlo. No se realizaron cambios.",
-      );
-      return;
-    }
-    if (actual.fixture_published_at && !actual.groups_published_at) {
-      notice(
-        "Publicación inconsistente",
-        "El fixture tiene un estado que requiere revisión técnica antes de eliminar el torneo.",
-      );
-      return;
-    }
-
+    const totalMatches = Number(preview.group_matches) + Number(preview.knockout_matches);
+    const totalResults = Number(preview.group_results) + Number(preview.knockout_results);
+    const publicNotice = preview.is_published
+      ? " También dejará de aparecer inmediatamente en la página pública."
+      : "";
     openModal({
       title: "Eliminar torneo completo",
       description:
-        `¿Eliminar definitivamente «${actual.name}»? Se borrarán ${pairsCount} ` +
-        `inscripción(es), ${groupsCount} grupo(s), ${matchesCount} partido(s) sin resultado ` +
-        `y ${revisionCount} registro(s) de revisión, además del historial de programación ` +
-        "y los bloqueos inactivos vinculados a esos partidos. No se tocarán reservas " +
-        "ni bloqueos independientes. Esta acción no se puede deshacer.",
-      confirm: "Eliminar definitivamente",
-      danger: true,
-      action: async () => {
-        await adminSession();
-        const { data, error } = await supabaseClient.rpc(
-          "bp_admin_delete_tournament_safely",
-          { p_tournament_id: t.id, p_expected_name: actual.name },
-        );
-        if (error) {
-          const detail = String(error.message || "");
-          console.error("Supabase rechazó la eliminación del torneo:", error);
-          if (
-            /resultados deportivos|partido disputado|ya comenzó/i.test(detail)
-          )
-            throw new Error(
-              "El torneo ya tiene resultados deportivos y no puede eliminarse automáticamente.",
+        `Vas a eliminar definitivamente «${preview.tournament_name}» y TODAS sus dependencias: ` +
+        `${preview.pairs} inscripciones, ${preview.groups} grupos, ${totalMatches} partidos, ` +
+        `${totalResults} resultados y ${preview.linked_blockouts} bloqueos de cancha de sus encuentros, ` +
+        "incluyendo eliminatorias, cruces, historial de programación y revisiones. " +
+        "No se borrarán reservas de jugadores, bloqueos independientes ni categorías compartidas." +
+        publicNotice +
+        " Esta operación NO SE PUEDE DESHACER.",
+      confirm: "Entiendo, continuar",
+      action: () => ({
+        nextModal: {
+          title: "Confirmación definitiva",
+          description:
+            `Última confirmación: «${preview.tournament_name}» desaparecerá por completo ` +
+            "del sistema de torneos, junto con sus inscripciones, partidos y resultados. " +
+            "No existe una opción para recuperarlo.",
+          label: `Escribí exactamente: ${preview.tournament_name}`,
+          value: "",
+          confirm: "Sí, eliminar definitivamente",
+          danger: true,
+          action: async (typedName) => {
+            if (typedName !== preview.tournament_name)
+              throw new Error("El nombre no coincide. No se eliminó nada.");
+            await adminSession();
+            const { data, error } = await supabaseClient.rpc(
+              "bp_admin_delete_tournament_safely",
+              { p_tournament_id: t.id, p_expected_name: typedName },
             );
-          if (/posterg|bloqueo activo|horarios|programad/i.test(detail))
-            throw new Error(
-              "Primero postergá los partidos programados para liberar los horarios de la cancha.",
-            );
-          if (/ocult|público|publicado/i.test(detail))
-            throw new Error("Primero ocultá el torneo al público.");
-          if (/nombre|ya no existe/i.test(detail))
-            throw new Error(
-              "El torneo cambió o ya no existe. Actualizá la lista.",
-            );
-          if (/revisión técnica|estado antes/i.test(detail))
-            throw new Error(
-              "El estado del torneo requiere una revisión técnica antes de eliminarlo.",
-            );
-          if (error.code === "42501")
-            throw new Error("No tenés permisos para eliminar este torneo.");
-          throw new Error(
-            "No se pudo eliminar el torneo. No se borraron datos parcialmente. Actualizá y volvé a intentar.",
-          );
-        }
-        if (data?.deleted !== true || data?.tournament_id !== t.id) {
-          throw new Error(
-            "Supabase no confirmó la eliminación. Actualizá la lista antes de reintentar.",
-          );
-        }
-        if (editing === t.id) resetForm();
-        try {
-          await loadTournaments();
-          feedback("Torneo eliminado correctamente.");
-        } catch (refreshError) {
-          console.error(
-            "Torneo eliminado; falló la actualización del listado:",
-            refreshError,
-          );
-          feedback(
-            "Torneo eliminado correctamente. Actualizá la lista para ver el cambio.",
-          );
-        }
-      },
+            if (error) {
+              console.error("Supabase rechazó la eliminación:", error);
+              if (error.code === "42501")
+                throw new Error("No tenés permisos de administrador para eliminar torneos.");
+              if (/cambió|no existe|nombre/i.test(String(error.message || "")))
+                throw new Error("El torneo cambió o ya no existe. Actualizá la lista antes de reintentar.");
+              throw new Error("No se pudo confirmar la eliminación. Actualizá la lista antes de reintentar. El proceso nunca borra datos parcialmente.");
+            }
+            if (data?.deleted !== true || data?.tournament_id !== t.id)
+              throw new Error("Supabase no confirmó la eliminación completa. Actualizá y verificá el estado.");
+            if (editing === t.id) resetForm();
+            try {
+              await loadTournaments();
+              feedback("Torneo eliminado definitivamente.");
+            } catch (refreshError) {
+              console.error("El torneo se eliminó, pero no se pudo refrescar:", refreshError);
+              feedback("Torneo eliminado definitivamente. Actualizá la lista para ver el cambio.");
+            }
+          },
+        },
+      }),
     });
   }
   // Aviso inmediato con los torneos cargados; Supabase aplica la regla definitiva.
