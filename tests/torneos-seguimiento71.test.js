@@ -100,6 +100,7 @@ test("La interfaz dibuja tabla real, resultados, campeón y subcampeón sin escr
   const doc={
     getElementById:get,
     createElement(tag){return new Element(tag);},
+    createElementNS(namespace,tag){return new Element(tag);},
     createTextNode(text){const n=new Element("#text");n.textContent=String(text);return n;},
     querySelectorAll(selector){return selector==="[data-tournament-tab]"?[currentTab,finishedTab]:[];}
   };
@@ -154,6 +155,36 @@ test("La interfaz dibuja tabla real, resultados, campeón y subcampeón sin escr
   assert.ok(screen.indexOf("Final · Partido 1") < screen.indexOf("Campeones"));
   assert.equal((screen.match(/Campeones/g)||[]).length,1);
   assert.equal((screen.match(/Subcampeones/g)||[]).length,1);
+  // Cada selector despliega solamente los datos de su propia sección.
+  const card=get("public-tournaments-list").children[0];
+  const openers=card.children.filter((el)=>el.tag==="details");
+  const group= openers.find((el)=>el.className==="public-tournament-more");
+  const knockout= openers.find((el)=>el.className.includes("public-tournament-knockout"));
+  assert.ok(group && knockout);
+  assert.equal(group.children[0].textContent,"Seguimiento · Resultados, posiciones");
+  assert.equal(knockout.children[0].textContent,"Eliminatorias");
+  assert.match(collect(group),/Resultados de la fase de grupos/);
+  assert.match(collect(group),/Tablas de posiciones/);
+  assert.doesNotMatch(collect(group),/Cuartos de final/);
+  assert.match(collect(knockout),/Cuartos de final/);
+  assert.match(collect(knockout),/Semifinales/);
+  assert.match(collect(knockout),/Campeones/);
+  assert.doesNotMatch(collect(knockout),/Resultados de la fase de grupos/);
+  const search=(el, predicate)=>[
+    ...(predicate(el)?[el]:[]),
+    ...(el.children||[]).flatMap((child)=>search(child,predicate))
+  ];
+  const podium=search(knockout,(el)=>el.className==="public-tournament-highlight");
+  assert.equal(podium.length,1);
+  assert.equal(podium[0].children.length,2);
+  const [gold,silver]=podium[0].children;
+  assert.match(gold.className,/item--gold/);
+  assert.match(silver.className,/item--silver/);
+  assert.equal(gold.children[0].tag,"svg");
+  assert.equal(silver.children[0].tag,"svg");
+  assert.match(gold.children[0].attributes.class,/trophy--gold/);
+  assert.match(silver.children[0].attributes.class,/trophy--silver/);
+  assert.equal(gold.children[0].attributes["aria-hidden"],"true");
   assert.ok(!calls.some((c)=>/(?:insert|update|delete)/i.test(c)));
 });
 
@@ -169,3 +200,17 @@ test("Parche 72: resultados de grupos compactos, eliminatorias intactas y podio 
   assert.doesNotMatch(js,/public-tournament-card__winner/);
 });
 
+
+test("Parche 73: podio a dos columnas con oro y plata, y sin cambios en las tarjetas de eliminatorias",()=>{
+  assert.match(js,/function knockoutBlock\(t\)/);
+  assert.match(js,/const summary = make\("summary", "public-tournament-more__summary", "Eliminatorias"\)/);
+  assert.match(js,/card\.append\(detailBlock\(t\)\)/);
+  assert.match(js,/if \(eliminatorias\) card\.append\(eliminatorias\)/);
+  assert.match(css,/\.public-tournament-knockout \.public-tournament-highlight\s*\{\s*display:\s*grid;\s*grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)/);
+  assert.match(css,/public-tournament-highlight__item--gold/);
+  assert.match(css,/public-tournament-highlight__item--silver/);
+  assert.match(css,/\.public-tournament-knockout \.public-tournament-highlight__trophy--gold/);
+  assert.match(css,/\.public-tournament-knockout \.public-tournament-highlight__trophy--silver/);
+  assert.match(css,/@media \(max-width: 480px\)/);
+  assert.match(css,/\.public-tournament-ko-stage \.public-tournament-results\s*\{\s*grid-template-columns:\s*repeat\(auto-fit, minmax\(min\(100%, 260px\), 1fr\)\)/);
+});
