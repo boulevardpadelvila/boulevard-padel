@@ -2913,3 +2913,13 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 - **Integridad:** antes/después: 1 torneo, 10 parejas, 10 partidos y resultados de grupos, 6 partidos y resultados de eliminatorias, 107 reservas, 9 solicitudes fijas y 14 bloqueos. Todos idénticos.
 - **SQL Editor:** SQL 71 **DEFINITIVA, SÍ conservar** en GitHub como migración aplicada; no hace falta guardarla manualmente en SQL Editor. **NO volver a ejecutar**. El archivo SQL en esta rama se marca como ya instalada.
 - **Pendientes:** integrar PR #2 después de comprobar rama y pruebas, verificar despliegue en sitio real; `Copa Norte Seguros` sigue oculta y finalizada, su publicación debe realizarse voluntariamente desde Admin. **NO borrar el torneo de prueba** hasta revisar la vista pública con usuario.
+
+## 07/11/2026 — Seguimiento público publicado en main
+
+- **Fecha:** 07/11/2026. **Motivo:** completar seguimiento público de torneos antes de la prueba de eliminación definitiva.
+- **CONFIRMADO — SQL:** `bp_public_tournament_followup_71` instalada por migración, solo lectura. Comprobado en Supabase: torneo oculto, inexistente o ID NULL retornan `NULL`; como `anon` el torneo oculto sigue sin entregar datos. Se verificaron permisos de ejecución públicos para respuestas filtradas.
+- **CONFIRMADO — GitHub:** PR #2 fusionado en `main`, SHA de merge `869b24130e12a22b8bd725005a46292d9d3a8efb`. Incluye `js/torneos-public.js`, `css/torneos-public.css`, SQL 71 y pruebas; la integración no publica por sí misma los torneos.
+- **CONFIRMADO — tests:** 64 aprobados, 0 fallidos, 0 omitidos en GitHub Actions `42423844165`, antes de fusionar. Workflow temporal retirado.
+- **CONFIRMADO — datos:** 1 torneo (Copa Norte Seguros, `completed`, `is_published=false`), 10 parejas, 10 resultados de grupos, 6 de eliminatorias, 107 reservas, 14 bloqueos. Todo intacto.
+- **PENDIENTE de verificar:** Cloudflare Pages no pudo consultarse directamente desde esta sesión (acceso externo bloqueado); comprobar la versión del frontend en navegador. Desde Admin, el botón «Publicar» sí aparece para torneos finalizados; la publicación corresponde a Martín/usuario cuando acepten visibilidad pública. En el sitio se localizará bajo «Finalizados». No borrar hasta revisar completamente el sitio.
+- **SQL Editor:** SQL 71 DEFINITIVA: **SÍ conservar** en GitHub como migración ejecutada; no es necesario duplicarla en el editor SQL. **NO repetir ejecución.**
