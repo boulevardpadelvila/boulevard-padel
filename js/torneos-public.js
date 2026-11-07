@@ -557,6 +557,18 @@
           pair2,
         );
         article.append(players);
+        const followup = publicFollowupByTournament.get(t.id);
+        const currentGroup = (followup?.groups || []).find((g) => g.number === Number(match.group_number));
+        const official = (followup?.group_matches || []).find((m) =>
+          m.group_id === currentGroup?.id &&
+          m.round_number === match.round_number &&
+          m.match_number === match.match_number);
+        if (official?.winner_pair_id && Array.isArray(official.sets)) {
+          article.append(make("strong","public-tournament-fixture__score",publicScore(official.sets)));
+          const winningPair = currentGroup?.pairs?.find((p) => p.id === official.winner_pair_id);
+          if (winningPair) article.append(make("span","public-tournament-fixture__winner",
+            `Ganó ${publicPairName(winningPair)}`));
+        }
         if (match.schedule_status === "scheduled" && match.scheduled_at) {
           const time = new Intl.DateTimeFormat("es-AR", {
             timeZone: tz,
