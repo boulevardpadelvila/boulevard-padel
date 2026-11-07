@@ -18,12 +18,12 @@ test("Parche 68 enlazado después de la planificación del cuadro", () => {
   assert.match(app, /bp-ko68-panel/);
   assert.match(
     app,
-    /stageName=\{quarterfinal:'Cuartos de final',semifinal:'Semifinales',final:'Final'\}/,
+    /stageName\s*=\s*\{\s*quarterfinal\s*:\s*["']Cuartos de final["']\s*,\s*semifinal\s*:\s*["']Semifinales["']\s*,\s*final\s*:\s*["']Final["']/,
   );
   assert.match(app, /bp_tournament_knockout_matches/);
   assert.match(app, /bp_tournament_knockout_results/);
-  assert.match(app, /winner\('quarterfinal',1\)/);
-  assert.match(app, /winner\('semifinal',1\)/);
+  assert.match(app, /winner\(\s*["']quarterfinal["']\s*,\s*1\s*\)/);
+  assert.match(app, /winner\(\s*["']semifinal["']\s*,\s*1\s*\)/);
   assert.match(app, /bp-ko68-champion/);
 });
 test("modales propios para horarios y marcadores, sin confirmaciones nativas", () => {
@@ -39,20 +39,20 @@ test("modales propios para horarios y marcadores, sin confirmaciones nativas", (
 });
 test("RPC nuevas, programación futura 90-120 y postergación con motivo", () => {
   const app = read("js/admin-eliminatorias-partidos68.js");
-  assert.match(app, /rpc\('bp_admin_set_knockout_match_schedule'/);
-  assert.match(app, /rpc\('bp_admin_save_knockout_result'/);
-  assert.match(app, /p_action:action/);
-  assert.match(app, /action==='postpone'/);
-  assert.match(app, /duration=Number/);
-  assert.match(app, /\[90,120\]\.includes\(duration\)/);
-  assert.match(app, /new Date\(day\+'T'\+time\+':00-03:00'\)/);
+  assert.match(app, /rpc\(\s*["']bp_admin_set_knockout_match_schedule["']/);
+  assert.match(app, /rpc\(\s*["']bp_admin_save_knockout_result["']/);
+  assert.match(app, /p_action\s*:\s*action/);
+  assert.match(app, /action\s*===\s*["']postpone["']/);
+  assert.match(app, /duration\s*=\s*Number/);
+  assert.match(app, /\[\s*90\s*,\s*120\s*\]\.includes\(\s*duration\s*\)/);
+  assert.match(app, /new Date\(\s*day\s*\+\s*["']T["']\s*\+\s*time\s*\+\s*["']:00-03:00["']\s*\)/);
   assert.match(app, /America\/Argentina\/Cordoba/);
-  assert.match(app, /reason\.length<5/);
+  assert.match(app, /reason\.length\s*<\s*5/);
 });
 test("tercer set normal y nunca súper tie-break en eliminatorias", () => {
   const app = read("js/admin-eliminatorias-partidos68.js");
-  assert.match(app, /evaluateSets\(\{sets\},'three_sets'\)/);
-  assert.doesNotMatch(app, /evaluateSets\(\{sets\},'super_tb'\)/);
+  assert.match(app, /evaluateSets\(\s*\{\s*sets\s*\}\s*,\s*["']three_sets["']\s*\)/);
+  assert.doesNotMatch(app, /evaluateSets\(\s*\{\s*sets\s*\}\s*,\s*["']super_tb["']\s*\)/);
   assert.equal(
     motor.evaluateSets(
       {
@@ -101,9 +101,9 @@ test("sin tocar turnero ni exponer escrituras directas", () => {
 });
 test("tarjetas compactas y modales responsive", () => {
   const css = read("css/admin-eliminatorias68.css");
-  assert.match(css, /repeat\(3,minmax\(0,1fr\)\)/);
-  assert.match(css, /@media\(max-width:1100px\)/);
-  assert.match(css, /@media\(max-width:690px\)/);
+  assert.match(css, /repeat\(\s*3\s*,\s*minmax\(\s*0\s*,\s*1fr\s*\)\s*\)/);
+  assert.match(css, /@media\s*\(\s*max-width\s*:\s*1100px\s*\)/);
+  assert.match(css, /@media\s*\(\s*max-width\s*:\s*690px\s*\)/);
   assert.match(css, /\.bp-ko68-dialog/);
   assert.match(css, /\[hidden\]/);
 });
