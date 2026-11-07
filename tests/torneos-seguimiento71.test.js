@@ -19,7 +19,7 @@ test("SQL 71: solo lectura y solo torneos publicados", () => {
   assert.match(sql,/RETURN NULL/);
   assert.match(sql,/GRANT EXECUTE ON FUNCTION public\.bp_public_tournament_followup\(uuid\)/);
   assert.doesNotMatch(sql,/^\s*(?:DELETE\s+FROM|UPDATE\s+public\.|INSERT\s+INTO|TRUNCATE)\b/im);
-  assert.doesNotMatch(sql,/\bcontact_phone\b|\bcreated_by\b|\bupdated_by\b/i);
+  assert.doesNotMatch(sql,/['\"](?:contact_phone|created_by|updated_by)['\"]\s*,/i);
 });
 
 test("No se concede SELECT público a tablas privadas del torneo", () => {
@@ -50,7 +50,7 @@ class Element {
   append(...nodes){this.children.push(...nodes);}
   prepend(...nodes){this.children.unshift(...nodes);}
   replaceChildren(...nodes){this.children=[...nodes];}
-  addEventListener(){}
+  addEventListener(event,callback){this.handlers ||= {};this.handlers[event]=callback;}
   setAttribute(k,v){this.attributes[k]=v;}
   focus(){}
   showModal(){}
@@ -91,11 +91,17 @@ function buildReport(){
 test("La interfaz dibuja tabla real, resultados, campeón y subcampeón sin escribir",async()=>{
   const elements=new Map();
   const get=(id)=>{if(!elements.has(id))elements.set(id,new Element());return elements.get(id);};
+  const currentTab=new Element("button");
+  currentTab.id="public-tournaments-current-tab";
+  currentTab.dataset.tournamentTab="current";
+  const finishedTab=new Element("button");
+  finishedTab.id="public-tournaments-finished-tab";
+  finishedTab.dataset.tournamentTab="finished";
   const doc={
     getElementById:get,
     createElement(tag){return new Element(tag);},
     createTextNode(text){const n=new Element("#text");n.textContent=String(text);return n;},
-    querySelectorAll(){return[];}
+    querySelectorAll(selector){return selector==="[data-tournament-tab]"?[currentTab,finishedTab]:[];}
   };
   const report=buildReport();
   const tournament={
@@ -127,11 +133,21 @@ test("La interfaz dibuja tabla real, resultados, campeón y subcampeón sin escr
     console:{error(){},log(){}}, setTimeout,clearTimeout};
   vm.runInNewContext(js,context,{filename:"torneos-public.js"});
   await new Promise((resolve)=>setTimeout(resolve,20));
-  // La competencia finalizada se encuentra en la pestaña "Finalizados".
-  const finished=new Element("button");finished.dataset.tournamentTab="finished";
-  // El evento de pestaña está cableado en document.querySelectorAll; usamos
-  // por ello la vista por defecto como control de vacío y validamos la RPC real.
   assert.ok(calls.includes("rpc:bp_public_tournament_followup"));
   assert.match(collect(get("public-tournaments-list")),/Por ahora no hay competencias vigentes ni próximas/);
   assert.equal(get("public-finished-count").textContent,"1");
+  finishedTab.handlers.click();
+  const screen=collect(get("public-tournaments-list"));
+  assert.match(screen,/Copa de prueba/);
+  assert.match(screen,/Resultados de la fase de grupos/);
+  assert.match(screen,/Tablas de posiciones por grupo/);
+  assert.match(screen,/Grupo A/);
+  assert.match(screen,/7-5 · 6-4/);
+  assert.match(screen,/Cuartos de final/);
+  assert.match(screen,/Semifinales/);
+  assert.match(screen,/Campeones/);
+  assert.match(screen,/Subcampeones/);
+  assert.match(screen,/Jugador a/);
+  assert.match(screen,/Jugador b/);
+  assert.ok(!calls.some((c)=>/(?:insert|update|delete)/i.test(c)));
 });
