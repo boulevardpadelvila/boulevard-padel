@@ -2931,3 +2931,5 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 - **Pruebas CONFIRMADAS:** PR #3; GitHub Actions `42425341233`, `node --test tests/*.test.js`: **65 tests aprobados, 0 fallidos, 0 omitidos**. El nuevo test verifica orden del podio, ausencia de duplicados, CSS compacto y que los estilos KO continúen idénticos. Workflow temporal retirado antes de publicar.
 - **Supabase:** ninguna operación SQL ni modificación de torneos, resultados, inscripciones, bloques o reservas. SQL71 permanece intacta y aplicada.
 - **Pendiente:** revisión visual en desktop y celular, desde `https://boulevard-padel.pages.dev/#torneos`, pestaña **Finalizados**. No borrar Copa Norte Seguros hasta la aprobación visual.
+
+- **Publicación Parche 72 — CONFIRMADA**: PR #3 fusionado en `main`, commit `cfb8d57caf7dfb86f9054ee59e6c6d3628a5be2c`. Tras fusionar se comprobó que `main` contiene el podio solo al final, una grilla exclusiva de resultados de grupos y la regla anterior de tarjetas KO intacta. El despliegue externo de Cloudflare Pages y el aspecto en navegador de escritorio/celular quedan pendientes de revisión con el usuario.
