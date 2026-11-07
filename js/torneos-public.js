@@ -208,7 +208,7 @@
   function detailBlock(t) {
     const details = make("details", "public-tournament-more");
     const summary = make("summary", "public-tournament-more__summary",
-      "Seguimiento · Resultados, posiciones y eliminatorias");
+      "Seguimiento · Resultados, posiciones");
     const content = make("div", "public-tournament-more__body");
     const report = publicFollowupByTournament.get(t.id);
     if (!report || (!report.groups?.length && !report.group_matches?.length)) {
@@ -256,6 +256,40 @@
     if (!groups.length) standings.append(make("p","public-tournament-data__empty","Grupos pendientes de publicación."));
     content.append(matchesSection,standings);
 
+    details.append(summary,content);
+    return details;
+  }
+
+  // El mismo trofeo vectorial usa color dorado o plateado según el puesto.
+  function publicTrophyIcon(rank) {
+    const ns = "http://www.w3.org/2000/svg";
+    const icon = document.createElementNS(ns, "svg");
+    icon.setAttribute("viewBox", "0 0 24 24");
+    icon.setAttribute("fill", "none");
+    icon.setAttribute("stroke", "currentColor");
+    icon.setAttribute("stroke-width", "1.8");
+    icon.setAttribute("stroke-linecap", "round");
+    icon.setAttribute("stroke-linejoin", "round");
+    icon.setAttribute("aria-hidden", "true");
+    icon.setAttribute("class", "public-tournament-highlight__trophy public-tournament-highlight__trophy--" + rank);
+    for (const d of [
+      "M8 21h8", "M12 17v4", "M7 4h10v7a5 5 0 0 1-10 0V4Z",
+      "M7 6H4v3a3 3 0 0 0 3 3", "M17 6h3v3a3 3 0 0 1-3 3"
+    ]) {
+      const path = document.createElementNS(ns, "path");
+      path.setAttribute("d", d);
+      icon.append(path);
+    }
+    return icon;
+  }
+  function knockoutBlock(t) {
+    if (t.format !== "groups_knockout") return null;
+    const details = make("details", "public-tournament-more public-tournament-knockout");
+    const summary = make("summary", "public-tournament-more__summary", "Eliminatorias");
+    const content = make("div", "public-tournament-more__body");
+    const report = publicFollowupByTournament.get(t.id);
+    const pairs = new Map((report?.groups || []).flatMap((g) => (g.pairs || []).map((p) => [p.id, p])));
+    const nameOf = (id, fallback) => publicPairName(pairs.get(id), fallback || "A definir");
     const bracket = report.knockout;
     if (bracket && Array.isArray(bracket.matches) && bracket.matches.length) {
       const knockout = make("section","public-tournament-data");
@@ -304,10 +338,17 @@
         const secondId = finalMatch.winner_pair_id === finalMatch.resolved_pair1_id
           ? finalMatch.resolved_pair2_id : finalMatch.resolved_pair1_id;
         const podium = make("div","public-tournament-highlight");
-        for (const [label,value] of [["Campeones",champion],["Subcampeones",nameOf(secondId)]]) {
-          const item = make("div","public-tournament-highlight__item");
-          item.append(make("span","public-tournament-highlight__label",label),
-            make("strong","public-tournament-highlight__value",value));
+        for (const [rank,label,value] of [
+          ["gold","Campeones",champion],
+          ["silver","Subcampeones",nameOf(secondId)]
+        ]) {
+          const item = make("div","public-tournament-highlight__item public-tournament-highlight__item--" + rank);
+          const textBox = make("div","public-tournament-highlight__text");
+          textBox.append(
+            make("span","public-tournament-highlight__label",label),
+            make("strong","public-tournament-highlight__value",value)
+          );
+          item.append(publicTrophyIcon(rank), textBox);
           podium.append(item);
         }
         knockout.append(podium);
@@ -670,6 +711,8 @@
     const fixtureBlock = publishedFixtureBlock(t);
     if (fixtureBlock) card.append(fixtureBlock);
     card.append(detailBlock(t));
+    const eliminatorias = knockoutBlock(t);
+    if (eliminatorias) card.append(eliminatorias);
     return card;
   }
   function render() {
