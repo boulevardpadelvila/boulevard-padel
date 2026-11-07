@@ -2933,3 +2933,12 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 - **Pendiente:** revisión visual en desktop y celular, desde `https://boulevard-padel.pages.dev/#torneos`, pestaña **Finalizados**. No borrar Copa Norte Seguros hasta la aprobación visual.
 
 - **Publicación Parche 72 — CONFIRMADA**: PR #3 fusionado en `main`, commit `cfb8d57caf7dfb86f9054ee59e6c6d3628a5be2c`. Tras fusionar se comprobó que `main` contiene el podio solo al final, una grilla exclusiva de resultados de grupos y la regla anterior de tarjetas KO intacta. El despliegue externo de Cloudflare Pages y el aspecto en navegador de escritorio/celular quedan pendientes de revisión con el usuario.
+
+## 07/11/2026 — Parche 73: desplegables públicos separados y trofeos
+
+- **Fecha:** 07/11/2026. **Motivo:** el usuario aprobó la vista actual de cuartos, semifinales y final y solicitó separar «Eliminatorias» del seguimiento de grupos, además de destacar campeones y subcampeones en tarjetas grandes y contiguas con trofeos oro/plata.
+- **Cambios CONFIRMADOS:** `js/torneos-public.js` conserva el acordeón «Seguimiento · Resultados, posiciones» con los resultados y tablas de grupos, y agrega otro acordeón independiente «Eliminatorias» con los cruces de cuartos, semifinales, final y podio. Se mantienen los mismos marcadores, etapas, datos y diseño de los partidos; ninguna modificación deportiva ni de backend.
+- **Diseño CONFIRMADO:** `css/torneos-public.css` agrega exclusivamente reglas del nuevo selector y el podio responsive; dos tarjetas iguales lado a lado tanto en PC como en móvil, con trofeo SVG vectorial dorado para campeones y plateado para subcampeones, fondo y borde diferenciados, tamaño mayor y nombres legibles. Podio único después de la final.
+- **Pruebas CONFIRMADAS:** PR #4, GitHub Actions `42426063405`, suite completa `node --test tests/*.test.js`: **66 aprobadas, 0 fallidas, 0 omitidas**. Pruebas de DOM verifican que ambos desplegables tienen solo sus propios contenidos y que ambos trofeos SVG corresponden al puesto indicado. Workflow temporal retirado antes de integrar.
+- **Sin efectos en Supabase:** no se ejecutó SQL ni se tocaron torneo, resultados, parejas, reservas, bloqueos, categorías o permisos. La SQL 71 continúa instalada y disponible. El torneo Copa Norte Seguros permanece como referencia hasta que el usuario apruebe visualmente el sitio.
+- **Pendiente:** fusionar PR #4 a `main` y revisar con el usuario los dos desplegables y trofeos en PC/celular antes de cualquier prueba de eliminación.
