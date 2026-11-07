@@ -667,3 +667,23 @@
     gap: 5px;
   }
 }
+
+
+/* Parche 72 · Compactar SOLO los resultados de grupos.
+   Contenedor adaptable: dos tarjetas por fila cuando hay ancho real,
+   una en el teléfono o dentro de tarjetas estrechas. */
+.public-tournament-group-results {
+  container-type: inline-size;
+}
+.public-tournament-group-results .public-tournament-result {
+  min-width: 0;
+  padding: 10px 12px;
+}
+.public-tournament-group-results .public-tournament-result__teams {
+  overflow-wrap: anywhere;
+}
+@container (min-width: 700px) {
+  .public-tournament-group-results .public-tournament-results {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

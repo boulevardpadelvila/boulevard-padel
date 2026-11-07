@@ -149,5 +149,23 @@ test("La interfaz dibuja tabla real, resultados, campeón y subcampeón sin escr
   assert.match(screen,/Subcampeones/);
   assert.match(screen,/Jugador a/);
   assert.match(screen,/Jugador b/);
+  assert.ok(screen.indexOf("Cuartos de final") < screen.indexOf("Semifinales"));
+  assert.ok(screen.indexOf("Semifinales") < screen.indexOf("Final · Partido 1"));
+  assert.ok(screen.indexOf("Final · Partido 1") < screen.indexOf("Campeones"));
+  assert.equal((screen.match(/Campeones/g)||[]).length,1);
+  assert.equal((screen.match(/Subcampeones/g)||[]).length,1);
   assert.ok(!calls.some((c)=>/(?:insert|update|delete)/i.test(c)));
 });
+
+test("Parche 72: resultados de grupos compactos, eliminatorias intactas y podio al cierre",()=>{
+  assert.match(js,/const matchesSection = make\("section","public-tournament-data public-tournament-group-results"\)/);
+  assert.match(css,/\.public-tournament-group-results \{/);
+  assert.match(css,/container-type:\s*inline-size/);
+  assert.match(css,/@container\s*\(min-width:\s*700px\)/);
+  assert.match(css,/grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)/);
+  assert.match(css,/\.public-tournament-ko-stage \.public-tournament-results\s*\{\s*grid-template-columns:\s*repeat\(auto-fit, minmax\(min\(100%, 260px\), 1fr\)\)/);
+  assert.match(js,/knockout\.append\(podium\)/);
+  assert.doesNotMatch(js,/knockout\.prepend\(podium\)/);
+  assert.doesNotMatch(js,/public-tournament-card__winner/);
+});
+
