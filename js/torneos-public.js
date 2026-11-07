@@ -158,6 +158,21 @@
       hour: "2-digit", minute: "2-digit", hourCycle: "h23",
     }).format(new Date(iso));
   }
+  // Fecha y hora de cancha: Argentina, sin depender del huso del navegador.
+  // Usamos formatToParts para evitar que cambie el formato según el dispositivo.
+  function tournamentMatchDay(iso) {
+    if (!iso || !Number.isFinite(Date.parse(iso))) return null;
+    const parts = Object.fromEntries(new Intl.DateTimeFormat("en-GB", {
+      timeZone: tournamentTZ,
+      year: "numeric", month: "2-digit", day: "2-digit",
+      hour: "2-digit", minute: "2-digit", hourCycle: "h23",
+    }).formatToParts(new Date(iso)).map(({type,value}) => [type,value]));
+    return {
+      key: `${parts.year}-${parts.month}-${parts.day}`,
+      label: `${parts.day}/${parts.month}/${parts.year}`,
+      time: `${parts.hour}:${parts.minute}`,
+    };
+  }
   function publicScore(sets) {
     return Array.isArray(sets) && sets.length
       ? sets.map((s) => Array.isArray(s) ? s.join("-") : "").filter(Boolean).join(" · ")
@@ -226,13 +241,42 @@
     matchesSection.append(make("h4","","Resultados de la fase de grupos"));
     const played = matches.filter((m) => m.winner_pair_id && Array.isArray(m.sets));
     if (played.length) {
-      appendResults(matchesSection,played.map((m) => ({
-        stage: `Grupo ${publicGroupLetter(groupNumber.get(m.group_id))} · Partido ${m.match_number}`,
-        date: publicMatchDate(m.scheduled_at),
-        teams: `${nameOf(m.resolved_pair1_id || m.pair1_id)} vs. ${nameOf(m.resolved_pair2_id || m.pair2_id)}`,
-        score: publicScore(m.sets),
-        winner: `Ganó ${nameOf(m.winner_pair_id)}`,
-      })));
+      // Cada columna representa UNA fecha local de Argentina; los partidos
+      // de ese día se ordenan por horario, sin agrupar por la fecha UTC.
+      const byDay = new Map();
+      for (const match of played) {
+        const parts = tournamentMatchDay(match.scheduled_at);
+        const key = parts?.key || "sin-fecha";
+        if (!byDay.has(key)) byDay.set(key, {
+          key,
+          label: parts?.label || "Fecha por confirmar",
+          matches: [],
+        });
+        byDay.get(key).matches.push({ match, time: parts?.time || "Sin horario" });
+      }
+      const dates = [...byDay.values()].sort((a,b) =>
+        a.key === "sin-fecha" ? 1 : b.key === "sin-fecha" ? -1 : a.key.localeCompare(b.key)
+      );
+      const grid = make("div", "public-tournament-days public-tournament-days--" + Math.min(3, dates.length));
+      for (const day of dates) {
+        const column = make("section", "public-tournament-day");
+        column.append(make("h5", "public-tournament-day__title", day.label));
+        const ordered = day.matches.sort((a,b) =>
+          (Date.parse(a.match.scheduled_at) || 0) - (Date.parse(b.match.scheduled_at) || 0) ||
+          Number(groupNumber.get(a.match.group_id) || 0) - Number(groupNumber.get(b.match.group_id) || 0) ||
+          a.match.round_number - b.match.round_number ||
+          a.match.match_number - b.match.match_number
+        );
+        appendResults(column, ordered.map(({match,time}) => ({
+          stage: `Grupo ${publicGroupLetter(groupNumber.get(match.group_id))} · Partido ${match.match_number}`,
+          date: time,
+          teams: `${nameOf(match.resolved_pair1_id || match.pair1_id)} vs. ${nameOf(match.resolved_pair2_id || match.pair2_id)}`,
+          score: publicScore(match.sets),
+          winner: `Ganó ${nameOf(match.winner_pair_id)}`,
+        })));
+        grid.append(column);
+      }
+      matchesSection.append(grid);
     } else {
       matchesSection.append(make("p","public-tournament-data__empty",
         "Todavía no hay marcadores confirmados."));
