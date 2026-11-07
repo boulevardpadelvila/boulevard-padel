@@ -10,8 +10,8 @@ test("Parche 62: un único punto de carga y corrección por partido", () => {
   const results = read("js/admin-resultados.js"),
     fixture = read("js/admin-grupos.js");
   assert.match(fixture, /entry\.dataset\.matchId = match\.id;/);
-  assert.match(results, /syncFixtureResultActions\(data,pairMap,byResult\)/);
-  assert.match(results, /document\.querySelector\('\.torneos-fixture-list'\)/);
+  assert.match(results, /syncFixtureResultActions\(\s*data\s*,\s*pairMap\s*,\s*byResult\s*\)/);
+  assert.match(results, /document\.querySelector\(\s*["']\.torneos-fixture-list["']\s*\)/);
   assert.match(results, /\.torneos-fixture-entry\[data-match-id\]/);
   assert.match(results, /torneos-fixture-entry__button--result/);
   assert.match(results, /Corregir resultado/);
@@ -21,16 +21,16 @@ test("Parche 62: un único punto de carga y corrección por partido", () => {
     results,
     /const row = element\('div','', 'bp-results-match'\)/,
   );
-  assert.match(results, /tableForStandings\(standings,pairMap\)/);
+  assert.match(results, /tableForStandings\(\s*standings\s*,\s*pairMap\s*\)/);
 });
 test("Parche 62: reglas y guardado de sets sin cambios de backend", () => {
   const results = read("js/admin-resultados.js");
   assert.match(results, /bp_admin_save_group_match_result/);
-  assert.match(results, /motor\.evaluateSets\(\{sets\}, 'super_tb'\)/);
+  assert.match(results, /motor\.evaluateSets\(\s*\{\s*sets\s*\}\s*,\s*["']super_tb["']\s*\)/);
   assert.match(results, /Corrección de resultado desde Admin/);
   assert.match(results, /selectedData !== data/);
   assert.match(results, /fixture_published_at/);
-  assert.match(results, /registration_closed','in_progress/);
+  assert.match(results, /registration_closed["']\s*,\s*["']in_progress/);
 });
 test("Parche 62: verde y dorado responsive, hoja cargada al final", () => {
   const css = read("css/admin-partidos62.css"),
