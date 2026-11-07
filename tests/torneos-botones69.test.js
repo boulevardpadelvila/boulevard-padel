@@ -23,6 +23,6 @@ test("Los botones del fixture eliminatorio comparten medidas y eliminan el marge
   assert.match(block, /box-sizing:\s*border-box/);
   assert.match(block, /align-items:\s*center/);
   assert.match(block, /justify-content:\s*center/);
-  assert.match(css, /grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+  assert.match(css, /grid-template-columns:\s*repeat\(\s*2\s*,\s*minmax\(\s*0\s*,\s*1fr\s*\)\s*\)/);
   assert.match(html, /admin-eliminatorias68\.css/);
 });
