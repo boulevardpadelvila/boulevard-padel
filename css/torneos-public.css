@@ -781,3 +781,102 @@
     font-size: clamp(0.77rem, 3.3vw, 0.96rem);
   }
 }
+
+
+/* Parche 74 · Tablas de posiciones: alineación consistente y diseño del Admin.
+   El ancho de columnas deja de depender de los nombres de cada grupo.
+   La grilla utiliza 2 columnas solamente cuando cada tabla puede leerse. */
+.public-tournament-standings {
+  container-type: inline-size;
+}
+.public-tournament-standings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 550px), 1fr));
+  align-items: start;
+  gap: 14px;
+  min-width: 0;
+  margin-top: 12px;
+}
+.public-tournament-standings-grid .public-tournament-standings-group {
+  box-sizing: border-box;
+  min-width: 0;
+  margin: 0;
+  padding: 14px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: var(--color-surface);
+}
+.public-tournament-standings-grid .public-tournament-standings-group h5 {
+  margin: 0 0 8px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #c7b16e;
+  color: #315b3a;
+  font-size: 0.99rem;
+  font-weight: 800;
+}
+.public-tournament-standings-grid .public-tournament-table-scroll {
+  overflow-x: auto;
+  max-width: 100%;
+  margin-top: 8px;
+}
+.public-tournament-standings-grid .public-tournament-table {
+  width: 100%;
+  min-width: 525px;
+  table-layout: fixed;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+}
+.public-tournament-standings-grid .public-tournament-table caption {
+  text-align: left;
+  font-size: 0.76rem;
+  padding: 2px 0 10px;
+}
+.public-tournament-standings-grid .public-tournament-table th,
+.public-tournament-standings-grid .public-tournament-table td {
+  box-sizing: border-box;
+  padding: 9px 4px;
+  text-align: center;
+  vertical-align: middle;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--color-border);
+}
+.public-tournament-standings-grid .public-tournament-table thead th {
+  color: #315b3a;
+  font-weight: 800;
+  background: #eef1e9;
+  border-bottom: 2px solid #c7b16e;
+}
+.public-tournament-standings-grid .public-tournament-table th:first-child,
+.public-tournament-standings-grid .public-tournament-table td:first-child {
+  width: 7%;
+  font-weight: 800;
+}
+.public-tournament-standings-grid .public-tournament-table th:nth-child(2),
+.public-tournament-standings-grid .public-tournament-table td:nth-child(2) {
+  width: 35%;
+  text-align: left;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.public-tournament-standings-grid .public-tournament-table tbody tr:nth-child(even) td {
+  background: #f5f7f2;
+}
+.public-tournament-standings-grid .public-tournament-table tbody tr:first-child td:first-child {
+  color: #9e7b25;
+}
+.public-tournament-standings-grid .public-tournament-table th:last-child,
+.public-tournament-standings-grid .public-tournament-table td:last-child {
+  color: #315b3a;
+  font-weight: 800;
+  text-align: center;
+}
+/* Con tres grupos, el último se centra en la segunda fila en lugar de
+   dejar una tarjeta perdida a la izquierda cuando hay dos columnas. */
+@container (min-width: 1120px) {
+  .public-tournament-standings-grid > .public-tournament-standings-group:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+    justify-self: center;
+    width: min(100%, 620px);
+  }
+}

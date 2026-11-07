@@ -237,8 +237,9 @@
       matchesSection.append(make("p","public-tournament-data__empty",
         "Todavía no hay marcadores confirmados."));
     }
-    const standings = make("section","public-tournament-data");
+    const standings = make("section","public-tournament-data public-tournament-standings");
     standings.append(make("h4","","Tablas de posiciones por grupo"));
+    const standingsGrid = make("div","public-tournament-standings-grid");
     for (const group of groups) {
       const groupMatches = matches.filter((m) => m.group_id === group.id);
       const table = standingsForGroup(group,groupMatches);
@@ -251,8 +252,9 @@
       wrap.append(block);
       if (table.tied) wrap.append(make("p","public-tournament-data__note",
         "Hay posiciones empatadas por puntos, diferencia de sets y sets a favor; requieren definición de la organización."));
-      standings.append(wrap);
+      standingsGrid.append(wrap);
     }
+    standings.append(standingsGrid);
     if (!groups.length) standings.append(make("p","public-tournament-data__empty","Grupos pendientes de publicación."));
     content.append(matchesSection,standings);
 
