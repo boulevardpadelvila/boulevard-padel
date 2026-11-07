@@ -19,8 +19,8 @@ test("Público usa horarios publicados sin nombres de jornadas", () => {
 test("CSS grilla tres, dos y una columnas y panel público", () => {
   for (const f of ["css/admin-fechas60.css", "css/torneos-fechas60.css"]) {
     const s = fs.readFileSync(path.join(base, f), "utf8");
-    assert.match(s, /repeat\(3,minmax\(0,1fr\)\)/);
-    assert.match(s, /repeat\(2,minmax\(0,1fr\)\)/);
-    assert.match(s, /grid-template-columns:1fr/);
+    assert.match(s, /repeat\(\s*3\s*,\s*minmax\(\s*0\s*,\s*1fr\s*\)\s*\)/);
+    assert.match(s, /repeat\(\s*2\s*,\s*minmax\(\s*0\s*,\s*1fr\s*\)\s*\)/);
+    assert.match(s, /grid-template-columns\s*:\s*1fr/);
   }
 });
