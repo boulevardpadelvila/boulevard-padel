@@ -687,3 +687,97 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+
+/* Parche 73 · Separar "Seguimiento" de "Eliminatorias" conservando
+   los estilos de cada partido que ya estaban aprobados. */
+.public-tournament-knockout {
+  width: 100%;
+  min-width: 0;
+  margin-top: 10px;
+  border-top: 1px solid var(--color-border);
+}
+.public-tournament-knockout .public-tournament-more__summary:focus-visible {
+  outline: 2px solid var(--color-olive);
+  outline-offset: 3px;
+}
+
+/* Podio: dos tarjetas grandes lado a lado, también en teléfono.
+   Nunca se reestilizan las tarjetas de cuartos/semis/final. */
+.public-tournament-knockout .public-tournament-highlight {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin: 20px 0 4px;
+}
+.public-tournament-knockout .public-tournament-highlight__item {
+  min-width: 0;
+  min-height: 156px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  text-align: center;
+  gap: 10px;
+  padding: 20px 12px;
+  border-radius: 14px;
+  border-width: 1px;
+  border-style: solid;
+  overflow-wrap: anywhere;
+}
+.public-tournament-knockout .public-tournament-highlight__item--gold {
+  color: #9a6c0b;
+  border-color: #d6b85b;
+  background: linear-gradient(160deg, #fffdf4 0%, #f8edc7 100%);
+}
+.public-tournament-knockout .public-tournament-highlight__item--silver {
+  color: #61717b;
+  border-color: #adb8be;
+  background: linear-gradient(160deg, #ffffff 0%, #e9eef1 100%);
+}
+.public-tournament-knockout .public-tournament-highlight__trophy {
+  width: 46px;
+  height: 46px;
+  flex: 0 0 auto;
+}
+.public-tournament-knockout .public-tournament-highlight__trophy--gold {
+  color: #be921f;
+}
+.public-tournament-knockout .public-tournament-highlight__trophy--silver {
+  color: #86969e;
+}
+.public-tournament-knockout .public-tournament-highlight__label {
+  color: inherit;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+}
+.public-tournament-knockout .public-tournament-highlight__value {
+  display: block;
+  margin-top: 5px;
+  color: var(--color-text);
+  font-size: clamp(0.96rem, 1.8vw, 1.18rem);
+  line-height: 1.3;
+  font-weight: 800;
+}
+@media (max-width: 480px) {
+  .public-tournament-knockout .public-tournament-highlight {
+    gap: 8px;
+  }
+  .public-tournament-knockout .public-tournament-highlight__item {
+    min-height: 132px;
+    padding: 14px 7px;
+    gap: 7px;
+  }
+  .public-tournament-knockout .public-tournament-highlight__trophy {
+    width: 36px;
+    height: 36px;
+  }
+  .public-tournament-knockout .public-tournament-highlight__label {
+    font-size: 0.68rem;
+    letter-spacing: 0.035em;
+  }
+  .public-tournament-knockout .public-tournament-highlight__value {
+    font-size: clamp(0.77rem, 3.3vw, 0.96rem);
+  }
+}
