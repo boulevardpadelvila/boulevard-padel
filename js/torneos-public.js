@@ -19,6 +19,8 @@
   let publishedGroupsByTournament = new Map();
   /* BVPadel parche 41: fixture de grupos, solo mediante vista publica segura. */
   let publishedFixtureByTournament = new Map();
+  /* SQL 71: sólo datos sanitizados de torneos visibles y fases publicadas. */
+  let publicFollowupByTournament = new Map();
 
   function status(text) {
     feedback.textContent = text;
@@ -143,68 +145,182 @@
     wrapper.append(table);
     return wrapper;
   }
+  // Seguimiento real a partir del servidor, sin mostrar datos de contacto.
+  const tournamentTZ = "America/Argentina/Cordoba";
+  function publicPairName(pair, fallback = "A definir") {
+    return pair ? `${pair.player1_name} / ${pair.player2_name}` : fallback;
+  }
+  function publicMatchDate(iso) {
+    if (!iso || !Number.isFinite(Date.parse(iso))) return "Sin programar";
+    return new Intl.DateTimeFormat("es-AR", {
+      timeZone: tournamentTZ,
+      day: "2-digit", month: "2-digit", year: "numeric",
+      hour: "2-digit", minute: "2-digit", hourCycle: "h23",
+    }).format(new Date(iso));
+  }
+  function publicScore(sets) {
+    return Array.isArray(sets) && sets.length
+      ? sets.map((s) => Array.isArray(s) ? s.join("-") : "").filter(Boolean).join(" · ")
+      : "Pendiente";
+  }
+  function equalStanding(a, b) {
+    return a.points === b.points && a.difference === b.difference && a.setsFor === b.setsFor;
+  }
+  function standingsForGroup(group, groupMatches) {
+    const rows = (group.pairs || []).map((p) => ({
+      id: p.id, name: publicPairName(p), played: 0, won: 0, lost: 0,
+      setsFor: 0, setsAgainst: 0, difference: 0, points: 0,
+    }));
+    const byId = new Map(rows.map((row) => [row.id, row]));
+    let counted = 0;
+    for (const match of groupMatches) {
+      const a = byId.get(match.resolved_pair1_id || match.pair1_id);
+      const b = byId.get(match.resolved_pair2_id || match.pair2_id);
+      const winner = byId.get(match.winner_pair_id);
+      if (!a || !b || a.id === b.id || !winner ||
+          !Array.isArray(match.sets) || !Number.isInteger(match.sets_pair1) ||
+          !Number.isInteger(match.sets_pair2) || ![a.id, b.id].includes(winner.id)) continue;
+      counted++;
+      a.played++; b.played++;
+      a.setsFor += match.sets_pair1; a.setsAgainst += match.sets_pair2;
+      b.setsFor += match.sets_pair2; b.setsAgainst += match.sets_pair1;
+      winner.won++; winner.points += 3;
+      (winner.id === a.id ? b : a).lost++;
+    }
+    for (const row of rows) row.difference = row.setsFor - row.setsAgainst;
+    rows.sort((a,b) => b.points-a.points || b.difference-a.difference ||
+      b.setsFor-a.setsFor || a.name.localeCompare(b.name,"es-AR"));
+    let tied = false;
+    const tableRows = rows.map((row,i) => {
+      const same = i > 0 && equalStanding(row,rows[i-1]);
+      const nextSame = i < rows.length-1 && equalStanding(row,rows[i+1]);
+      tied ||= same || nextSame;
+      const position = same || nextSame ? "=" : String(i+1);
+      return [position,row.name,row.played,row.won,row.lost,row.setsFor,
+        row.setsAgainst,row.difference>0?`+${row.difference}`:row.difference,row.points];
+    });
+    return {
+      rows: tableRows,
+      complete: counted === groupMatches.length && groupMatches.length === (group.pairs.length === 3 ? 3 : 4),
+      counted, total: groupMatches.length, tied,
+    };
+  }
   function detailBlock(t) {
     const details = make("details", "public-tournament-more");
-    const summary = make(
-      "summary",
-      "public-tournament-more__summary",
-      "Ver resultados y posiciones",
-    );
+    const summary = make("summary", "public-tournament-more__summary",
+      "Seguimiento · Resultados, posiciones y eliminatorias");
     const content = make("div", "public-tournament-more__body");
-    const matches = make("section", "public-tournament-data");
-    matches.append(make("h4", "", "Resultados de partidos"));
-    matches.append(
-      make(
-        "p",
-        "public-tournament-data__empty",
-        "Los resultados aparecerán aquí cuando la organización los registre.",
-      ),
-    );
-    const standings = make("section", "public-tournament-data");
-    standings.append(
-      make(
-        "h4",
-        "",
-        t.format === "knockout" ? "Cuadro eliminatorio" : "Tabla de posiciones",
-      ),
-    );
-    if (t.format === "knockout") {
-      standings.append(
-        make(
-          "p",
-          "public-tournament-data__empty",
-          "Los cruces y ganadores estarán disponibles cuando se programe el cuadro.",
-        ),
-      );
-    } else {
-      const scroller = make("div", "public-tournament-table-scroll");
-      const table = make("table", "public-tournament-table");
-      const caption = make(
-        "caption",
-        "",
-        "Estructura prevista; sin posiciones oficiales todavía",
-      );
-      const thead = document.createElement("thead");
-      const head = document.createElement("tr");
-      for (const col of ["Pareja", "PJ", "PG", "PP", "Pts"])
-        head.append(make("th", "", col));
-      thead.append(head);
-      const tbody = document.createElement("tbody");
-      const tr = document.createElement("tr");
-      const td = make(
-        "td",
-        "public-tournament-table__pending",
-        "Tabla pendiente de resultados",
-      );
-      td.colSpan = 5;
-      tr.append(td);
-      tbody.append(tr);
-      table.append(caption, thead, tbody);
-      scroller.append(table);
-      standings.append(scroller);
+    const report = publicFollowupByTournament.get(t.id);
+    if (!report || (!report.groups?.length && !report.group_matches?.length)) {
+      content.append(make("p","public-tournament-data__note",
+        "El seguimiento deportivo estará disponible cuando la organización publique los grupos y el fixture."));
+      details.append(summary,content);
+      return details;
     }
-    content.append(matches, standings);
-    details.append(summary, content);
+    const groups = report.groups || [];
+    const matches = report.group_matches || [];
+    const pairs = new Map(groups.flatMap((g) => (g.pairs||[]).map((p) => [p.id,p])));
+    const nameOf = (id, fallback) => publicPairName(pairs.get(id), fallback || "A definir");
+    const groupNumber = new Map(groups.map((g) => [g.id,g.number]));
+    const matchesSection = make("section","public-tournament-data");
+    matchesSection.append(make("h4","","Resultados de la fase de grupos"));
+    const played = matches.filter((m) => m.winner_pair_id && Array.isArray(m.sets));
+    if (played.length) {
+      appendResults(matchesSection,played.map((m) => ({
+        stage: `Grupo ${publicGroupLetter(groupNumber.get(m.group_id))} · Partido ${m.match_number}`,
+        date: publicMatchDate(m.scheduled_at),
+        teams: `${nameOf(m.resolved_pair1_id || m.pair1_id)} vs. ${nameOf(m.resolved_pair2_id || m.pair2_id)}`,
+        score: publicScore(m.sets),
+        winner: `Ganó ${nameOf(m.winner_pair_id)}`,
+      })));
+    } else {
+      matchesSection.append(make("p","public-tournament-data__empty",
+        "Todavía no hay marcadores confirmados."));
+    }
+    const standings = make("section","public-tournament-data");
+    standings.append(make("h4","","Tablas de posiciones por grupo"));
+    for (const group of groups) {
+      const groupMatches = matches.filter((m) => m.group_id === group.id);
+      const table = standingsForGroup(group,groupMatches);
+      const wrap = make("div","public-tournament-standings-group");
+      wrap.append(make("h5","",`Grupo ${publicGroupLetter(group.number)}`));
+      const label = table.complete ? "Posiciones con todos los partidos cargados"
+        : `Tabla provisoria · ${table.counted} de ${table.total} resultados`;
+      const cols = ["Pos.","Pareja","PJ","PG","PP","SF","SC","Dif.","Pts"];
+      const block = buildTableBlock({caption:label,columns:cols,rows:table.rows});
+      wrap.append(block);
+      if (table.tied) wrap.append(make("p","public-tournament-data__note",
+        "Hay posiciones empatadas por puntos, diferencia de sets y sets a favor; requieren definición de la organización."));
+      standings.append(wrap);
+    }
+    if (!groups.length) standings.append(make("p","public-tournament-data__empty","Grupos pendientes de publicación."));
+    content.append(matchesSection,standings);
+
+    const bracket = report.knockout;
+    if (bracket && Array.isArray(bracket.matches) && bracket.matches.length) {
+      const knockout = make("section","public-tournament-data");
+      knockout.append(make("h4","","Fase eliminatoria"));
+      const byKey = new Map(bracket.matches.map((m) => [`${m.stage}:${m.slot}`,m]));
+      const winner = (stage,slot) => byKey.get(`${stage}:${slot}`)?.winner_pair_id || null;
+      const stages = [
+        ["quarterfinal","Cuartos de final"],
+        ["semifinal","Semifinales"],
+        ["final","Final"],
+      ];
+      for (const [stage,stageLabel] of stages) {
+        const games = bracket.matches.filter((m) => m.stage === stage)
+          .sort((a,b) => Number(a.slot)-Number(b.slot));
+        if (!games.length) continue;
+        const stageBox = make("div","public-tournament-ko-stage");
+        stageBox.append(make("h5","",stageLabel));
+        const entries = games.map((m) => {
+          let p1 = null, p2 = null, fallback1 = "A definir", fallback2 = "A definir";
+          if (stage === "quarterfinal") {
+            [p1,p2] = bracket.quarterfinals?.[m.slot-1] || [null,null];
+          } else if (stage === "semifinal" && m.slot === 1) {
+            p1 = bracket.direct_semifinal_pair_id; p2 = winner("quarterfinal",1);
+            fallback2 = "Ganador de Cuartos 1";
+          } else if (stage === "semifinal") {
+            p1 = winner("quarterfinal",2); p2 = winner("quarterfinal",3);
+            fallback1 = "Ganador de Cuartos 2"; fallback2 = "Ganador de Cuartos 3";
+          } else {
+            p1 = winner("semifinal",1); p2 = winner("semifinal",2);
+            fallback1 = "Ganador de Semifinal 1"; fallback2 = "Ganador de Semifinal 2";
+          }
+          return {
+            stage: `${stageLabel} · Partido ${m.slot}`,
+            date: publicMatchDate(m.scheduled_at),
+            teams: `${nameOf(m.resolved_pair1_id || p1,fallback1)} vs. ${nameOf(m.resolved_pair2_id || p2,fallback2)}`,
+            score: publicScore(m.sets),
+            winner: m.winner_pair_id ? `Ganó ${nameOf(m.winner_pair_id)}` : "Por disputarse",
+          };
+        });
+        appendResults(stageBox,entries);
+        knockout.append(stageBox);
+      }
+      const finalMatch = byKey.get("final:1");
+      if (finalMatch?.winner_pair_id && finalMatch?.resolved_pair1_id && finalMatch?.resolved_pair2_id) {
+        const champion = nameOf(finalMatch.winner_pair_id);
+        const secondId = finalMatch.winner_pair_id === finalMatch.resolved_pair1_id
+          ? finalMatch.resolved_pair2_id : finalMatch.resolved_pair1_id;
+        const podium = make("div","public-tournament-highlight");
+        for (const [label,value] of [["Campeones",champion],["Subcampeones",nameOf(secondId)]]) {
+          const item = make("div","public-tournament-highlight__item");
+          item.append(make("span","public-tournament-highlight__label",label),
+            make("strong","public-tournament-highlight__value",value));
+          podium.append(item);
+        }
+        knockout.prepend(podium);
+      }
+      content.append(knockout);
+    } else {
+      const knockout = make("section","public-tournament-data");
+      knockout.append(make("h4","","Fase eliminatoria"),
+        make("p","public-tournament-data__empty",
+          "Los cruces aparecerán aquí cuando la organización prepare el cuadro final."));
+      content.append(knockout);
+    }
+    details.append(summary,content);
     return details;
   }
 
@@ -343,6 +459,24 @@
     return matchesByTournament;
   }
 
+  // SQL 71: lectura pública de resultados y eliminatorias de torneos visibles.
+  async function fetchPublishedFollowup(visibleTournaments) {
+    const eligible = visibleTournaments.filter((t) => t.format === "groups_knockout");
+    const byId = new Map();
+    // Batches pequeñas: evitar un pedido simultáneo por cada torneo de un torneo largo.
+    for (let i = 0; i < eligible.length; i += 4) {
+      const batch = eligible.slice(i,i+4);
+      const values = await Promise.all(batch.map(async(t) => {
+        const {data,error} = await supabaseClient.rpc("bp_public_tournament_followup",
+          {p_tournament_id:t.id});
+        if (error) throw error;
+        return {id:t.id, data};
+      }));
+      for (const v of values) if (v.data?.tournament_id === v.id) byId.set(v.id,v.data);
+    }
+    return byId;
+  }
+
   function publishedFixtureBlock(t) {
     if (t.format !== "groups_knockout") return null;
     const matches = publishedFixtureByTournament.get(t.id);
@@ -423,6 +557,18 @@
           pair2,
         );
         article.append(players);
+        const followup = publicFollowupByTournament.get(t.id);
+        const currentGroup = (followup?.groups || []).find((g) => g.number === Number(match.group_number));
+        const official = (followup?.group_matches || []).find((m) =>
+          m.group_id === currentGroup?.id &&
+          m.round_number === match.round_number &&
+          m.match_number === match.match_number);
+        if (official?.winner_pair_id && Array.isArray(official.sets)) {
+          article.append(make("strong","public-tournament-fixture__score",publicScore(official.sets)));
+          const winningPair = currentGroup?.pairs?.find((p) => p.id === official.winner_pair_id);
+          if (winningPair) article.append(make("span","public-tournament-fixture__winner",
+            `Ganó ${publicPairName(winningPair)}`));
+        }
         if (match.schedule_status === "scheduled" && match.scheduled_at) {
           const time = new Intl.DateTimeFormat("es-AR", {
             timeZone: tz,
@@ -519,6 +665,19 @@
         card.append(button);
       }
     }
+    const followup = publicFollowupByTournament.get(t.id);
+    const final = followup?.knockout?.matches?.find((m) => m.stage === "final" && m.slot === 1);
+    if (final?.winner_pair_id && final?.resolved_pair1_id && final?.resolved_pair2_id) {
+      const pairMap = new Map((followup.groups || []).flatMap((g) => (g.pairs || []).map((p) => [p.id,p])));
+      const secondId = final.winner_pair_id === final.resolved_pair1_id
+        ? final.resolved_pair2_id : final.resolved_pair1_id;
+      const podium = make("p","public-tournament-card__winner");
+      podium.append(make("strong","","🏆 Campeones: "),
+        document.createTextNode(publicPairName(pairMap.get(final.winner_pair_id))),
+        make("span",""," · Subcampeones: "),
+        document.createTextNode(publicPairName(pairMap.get(secondId))));
+      card.append(podium);
+    }
     const groupsBlock = publishedGroupsBlock(t);
     if (groupsBlock) card.append(groupsBlock);
     const fixtureBlock = publishedFixtureBlock(t);
@@ -577,6 +736,7 @@
       tournamentsCache = data || [];
       publishedGroupsByTournament = new Map();
       publishedFixtureByTournament = new Map();
+      publicFollowupByTournament = new Map();
       const notices = [];
       try {
         publishedGroupsByTournament =
@@ -594,6 +754,13 @@
       } catch (fixtureError) {
         console.error("No se pudo cargar el fixture publicado", fixtureError);
         notices.push("No se pudieron consultar los fixtures publicados.");
+      }
+      try {
+        publicFollowupByTournament =
+          await fetchPublishedFollowup(tournamentsCache);
+      } catch (followupError) {
+        console.error("No se pudo cargar el seguimiento deportivo",followupError);
+        notices.push("No se pudieron consultar los resultados y posiciones.");
       }
       status(
         notices.length

@@ -601,3 +601,69 @@
     font-size: 0.73rem;
   }
 }
+
+
+/* SQL 71 · Seguimiento real de torneos. Se conserva la estética verde/dorada. */
+.public-tournament-standings-group + .public-tournament-standings-group,
+.public-tournament-ko-stage + .public-tournament-ko-stage {
+  border-top: 1px solid var(--color-border);
+  padding-top: 14px;
+  margin-top: 13px;
+}
+.public-tournament-standings-group h5,
+.public-tournament-ko-stage h5 {
+  margin: 0 0 10px;
+  font-size: 0.93rem;
+  color: var(--color-text);
+  font-weight: 800;
+}
+.public-tournament-table th {
+  color: var(--color-text);
+  font-weight: 800;
+}
+.public-tournament-table td:last-child,
+.public-tournament-table th:last-child {
+  text-align: right;
+  font-weight: 800;
+  color: #315b3a;
+}
+.public-tournament-result__score {
+  color: #315b3a;
+}
+.public-tournament-ko-stage .public-tournament-results {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+}
+.public-tournament-card__winner {
+  width: 100%;
+  line-height: 1.5;
+}
+.public-tournament-card__winner strong {
+  margin-left: 0;
+}
+.public-tournament-fixture__score {
+  display: block;
+  margin: 7px 0 0;
+  text-align: center;
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: #315b3a;
+}
+.public-tournament-fixture__winner {
+  display: block;
+  margin: 4px 0 0;
+  text-align: center;
+  font-size: 0.76rem;
+  color: #315b3a;
+}
+@media (max-width: 480px) {
+  .public-tournament-table {
+    font-size: 0.74rem;
+  }
+  .public-tournament-table th,
+  .public-tournament-table td {
+    padding: 8px 5px;
+  }
+  .public-tournament-result__meta {
+    gap: 5px;
+  }
+}
