@@ -669,22 +669,64 @@
 }
 
 
-/* Parche 72 · Compactar SOLO los resultados de grupos.
-   Contenedor adaptable: dos tarjetas por fila cuando hay ancho real,
-   una en el teléfono o dentro de tarjetas estrechas. */
+/* Parche 75 · Resultados de grupos organizados por fecha.
+   Tres columnas como máximo en escritorio; las fechas y los horarios
+   se toman en el huso horario argentino y nunca se inventan. */
 .public-tournament-group-results {
   container-type: inline-size;
 }
+.public-tournament-group-results .public-tournament-days {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: start;
+  gap: 12px;
+  min-width: 0;
+}
+.public-tournament-group-results .public-tournament-days--1 {
+  grid-template-columns: minmax(0, 1fr);
+}
+.public-tournament-group-results .public-tournament-days--2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.public-tournament-group-results .public-tournament-day {
+  min-width: 0;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 11px 9px;
+  background: var(--color-surface);
+}
+.public-tournament-group-results .public-tournament-day__title {
+  margin: 0 0 11px;
+  padding: 0 0 9px;
+  border-bottom: 2px solid #c7b16e;
+  color: #315b3a;
+  text-align: center;
+  font-size: 0.98rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.public-tournament-group-results .public-tournament-day .public-tournament-results {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 9px;
+}
 .public-tournament-group-results .public-tournament-result {
   min-width: 0;
-  padding: 10px 12px;
+  padding: 10px 9px;
 }
 .public-tournament-group-results .public-tournament-result__teams {
   overflow-wrap: anywhere;
 }
-@container (min-width: 700px) {
-  .public-tournament-group-results .public-tournament-results {
+.public-tournament-group-results .public-tournament-result__meta {
+  gap: 7px;
+}
+@container (max-width: 810px) {
+  .public-tournament-group-results .public-tournament-days:not(.public-tournament-days--1) {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@container (max-width: 530px) {
+  .public-tournament-group-results .public-tournament-days {
+    grid-template-columns: minmax(0, 1fr) !important;
   }
 }
 
