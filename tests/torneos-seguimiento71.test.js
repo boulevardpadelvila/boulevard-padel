@@ -216,7 +216,7 @@ test("Parche 72/75: resultados compactos por fecha, eliminatorias intactas y pod
   assert.match(css,/container-type:\s*inline-size/);
   assert.match(css,/public-tournament-days--2/);
   assert.match(css,/public-tournament-day__title/);
-  assert.match(css,/grid-template-columns:\\s*repeat\\(3, minmax\\(0, 1fr\\)\\)/);
+  assert.match(css,/grid-template-columns:\s*repeat\(3, minmax\(0, 1fr\)\)/);
   assert.match(css,/\.public-tournament-ko-stage \.public-tournament-results\s*\{\s*grid-template-columns:\s*repeat\(auto-fit, minmax\(min\(100%, 260px\), 1fr\)\)/);
   assert.match(js,/knockout\.append\(podium\)/);
   assert.doesNotMatch(js,/knockout\.prepend\(podium\)/);
