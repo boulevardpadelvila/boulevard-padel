@@ -165,6 +165,19 @@ test("La interfaz dibuja tabla real, resultados, campeón y subcampeón sin escr
   assert.equal(knockout.children[0].textContent,"Eliminatorias");
   assert.match(collect(group),/Resultados de la fase de grupos/);
   assert.match(collect(group),/Tablas de posiciones/);
+  // Nueva presentación: grupos dentro de una grilla, no tablas sueltas.
+  const seek=(el, cls)=>[
+    ...(el.className?.split(" ").includes(cls)?[el]:[]),
+    ...(el.children||[]).flatMap((child)=>seek(child,cls))
+  ];
+  const tableGrids=seek(group,"public-tournament-standings-grid");
+  assert.equal(tableGrids.length,1);
+  assert.equal(tableGrids[0].children.length,1); // Un grupo en el ejemplo
+  assert.match(tableGrids[0].children[0].className,/public-tournament-standings-group/);
+  const tables=seek(tableGrids[0],"public-tournament-table");
+  assert.equal(tables.length,1);
+  assert.equal(tables[0].children[0].tag,"caption");
+  assert.equal(tables[0].children[2].children.length,3); // Tres parejas
   assert.doesNotMatch(collect(group),/Cuartos de final/);
   assert.match(collect(knockout),/Cuartos de final/);
   assert.match(collect(knockout),/Semifinales/);
@@ -213,4 +226,23 @@ test("Parche 73: podio a dos columnas con oro y plata, y sin cambios en las tarj
   assert.match(css,/\.public-tournament-knockout \.public-tournament-highlight__trophy--silver/);
   assert.match(css,/@media \(max-width: 480px\)/);
   assert.match(css,/\.public-tournament-ko-stage \.public-tournament-results\s*\{\s*grid-template-columns:\s*repeat\(auto-fit, minmax\(min\(100%, 260px\), 1fr\)\)/);
+});
+
+test("Parche 74: tablas con estilo Admin, alineación consistente y autoajuste en 1/2 columnas",()=>{
+  assert.match(js,/const standings = make\("section","public-tournament-data public-tournament-standings"\)/);
+  assert.match(js,/const standingsGrid = make\("div","public-tournament-standings-grid"\)/);
+  assert.match(js,/standingsGrid\.append\(wrap\)/);
+  assert.match(js,/standings\.append\(standingsGrid\)/);
+  assert.match(css,/\.public-tournament-standings-grid\s*\{[^}]*display:\s*grid/);
+  assert.match(css,/grid-template-columns:\s*repeat\(auto-fit, minmax\(min\(100%, 550px\), 1fr\)\)/);
+  assert.match(css,/\.public-tournament-standings-grid \.public-tournament-table\s*\{[^}]*min-width:\s*525px;[^}]*table-layout:\s*fixed/s);
+  assert.match(css,/\.public-tournament-standings-grid \.public-tournament-table th:nth-child\(2\)/);
+  assert.match(css,/\.public-tournament-standings-grid \.public-tournament-table td:nth-child\(2\)/);
+  assert.match(css,/\.public-tournament-standings-grid \.public-tournament-table th,[\s\S]*?text-align:\s*center/);
+  assert.match(css,/@container \(min-width: 1120px\)/);
+  assert.match(css,/last-child:nth-child\(odd\)/);
+  assert.match(css,/overflow-x:\s*auto/);
+  // No hay alteraciones de las tarjetas ya aprobadas ni del podio.
+  assert.match(css,/\.public-tournament-ko-stage \.public-tournament-results\s*\{\s*grid-template-columns:\s*repeat\(auto-fit, minmax\(min\(100%, 260px\), 1fr\)\)/);
+  assert.match(js,/knockout\.append\(podium\)/);
 });
