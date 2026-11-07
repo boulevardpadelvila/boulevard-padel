@@ -71,7 +71,9 @@ function buildReport(){
     id:"m"+i,group_id:"g1",round_number:round,match_number:number,
     pair1_id:p1,pair2_id:p2,resolved_pair1_id:p1,resolved_pair2_id:p2,
     winner_pair_id:winner,sets,sets_pair1:2,sets_pair2:0,
-    match_status:"played",schedule_status:"scheduled",scheduled_at:"2027-03-05T21:00:00Z"
+    match_status:"played",schedule_status:"scheduled",scheduled_at:[
+      "2027-03-05T21:00:00Z", "2027-03-06T21:00:00Z", "2027-03-07T21:00:00Z"
+    ][i]
   }));
   return {
     tournament_id:"torneo-test",
@@ -170,6 +172,13 @@ test("La interfaz dibuja tabla real, resultados, campeón y subcampeón sin escr
     ...(el.className?.split(" ").includes(cls)?[el]:[]),
     ...(el.children||[]).flatMap((child)=>seek(child,cls))
   ];
+  const dayColumns=seek(group,"public-tournament-day");
+  assert.equal(dayColumns.length,3);
+  assert.deepEqual(dayColumns.map((col)=>col.children[0].textContent),
+    ["05/03/2027","06/03/2027","07/03/2027"]);
+  assert.ok(dayColumns.every((col)=>col.children[1].className==="public-tournament-results"));
+  assert.ok(dayColumns.every((col)=>col.children[1].children.length===1));
+  assert.ok(dayColumns.every((col)=>collect(col).includes("18:00")));
   const tableGrids=seek(group,"public-tournament-standings-grid");
   assert.equal(tableGrids.length,1);
   assert.equal(tableGrids[0].children.length,1); // Un grupo en el ejemplo
@@ -201,12 +210,13 @@ test("La interfaz dibuja tabla real, resultados, campeón y subcampeón sin escr
   assert.ok(!calls.some((c)=>/(?:insert|update|delete)/i.test(c)));
 });
 
-test("Parche 72: resultados de grupos compactos, eliminatorias intactas y podio al cierre",()=>{
+test("Parche 72/75: resultados compactos por fecha, eliminatorias intactas y podio al cierre",()=>{
   assert.match(js,/const matchesSection = make\("section","public-tournament-data public-tournament-group-results"\)/);
   assert.match(css,/\.public-tournament-group-results \{/);
   assert.match(css,/container-type:\s*inline-size/);
-  assert.match(css,/@container\s*\(min-width:\s*700px\)/);
-  assert.match(css,/grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)/);
+  assert.match(css,/public-tournament-days--2/);
+  assert.match(css,/public-tournament-day__title/);
+  assert.match(css,/grid-template-columns:\\s*repeat\\(3, minmax\\(0, 1fr\\)\\)/);
   assert.match(css,/\.public-tournament-ko-stage \.public-tournament-results\s*\{\s*grid-template-columns:\s*repeat\(auto-fit, minmax\(min\(100%, 260px\), 1fr\)\)/);
   assert.match(js,/knockout\.append\(podium\)/);
   assert.doesNotMatch(js,/knockout\.prepend\(podium\)/);
@@ -245,4 +255,31 @@ test("Parche 74: tablas con estilo Admin, alineación consistente y autoajuste e
   // No hay alteraciones de las tarjetas ya aprobadas ni del podio.
   assert.match(css,/\.public-tournament-ko-stage \.public-tournament-results\s*\{\s*grid-template-columns:\s*repeat\(auto-fit, minmax\(min\(100%, 260px\), 1fr\)\)/);
   assert.match(js,/knockout\.append\(podium\)/);
+});
+
+test("Parche 75: agrupar por fecha local de Argentina incluso al cruzar medianoche UTC",()=>{
+  const start=js.indexOf("  function tournamentMatchDay(iso) {");
+  const end=js.indexOf("  function publicScore(sets)", start);
+  assert.ok(start>0 && end>start);
+  const helper=js.slice(start,end);
+  const parseDay=new Function("Intl","Date",
+    'const tournamentTZ="America/Argentina/Cordoba"; '+helper+
+    'return tournamentMatchDay;')(Intl,Date);
+  assert.deepEqual(parseDay("2027-03-06T01:00:00Z"),{
+    key:"2027-03-05",label:"05/03/2027",time:"22:00"
+  });
+  assert.equal(parseDay(null),null);
+  assert.equal(parseDay("fecha-no-valida"),null);
+  assert.match(js,/byDay\.get\(key\)\.matches\.push/);
+  assert.match(js,/dates = \[\.\.\.byDay\.values\(\)\]\.sort/);
+  assert.match(js,/day\.matches\.sort/);
+  assert.match(js,/appendResults\(column/);
+  assert.match(css,/\.public-tournament-group-results \.public-tournament-days\s*\{\s*display:\s*grid;\s*grid-template-columns:\s*repeat\(3, minmax\(0, 1fr\)\)/);
+  assert.match(css,/@container \(max-width: 810px\)/);
+  assert.match(css,/@container \(max-width: 530px\)/);
+  assert.match(css,/public-tournament-days--1/);
+  assert.match(css,/public-tournament-days--2/);
+  // Las tablas de posiciones y las eliminatorias siguen presentes sin cambios.
+  assert.match(js,/const standingsGrid = make\("div","public-tournament-standings-grid"\)/);
+  assert.match(js,/function knockoutBlock\(t\)/);
 });
