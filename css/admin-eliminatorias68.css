@@ -286,3 +286,184 @@
   vertical-align: middle;
   line-height: 1.25;
 }
+
+
+/* Parche 81: armonizar modal de programación/reprogramación de eliminatorias
+   con los diálogos aprobados del Admin. Exclusivamente CSS: preserva
+   formulario, valores, horario, motivo y RPC de bloqueos/reservas.
+   Las acciones mantienen siempre exactamente el mismo ancho y alto. */
+#bp-ko68-schedule-dialog {
+  box-sizing: border-box;
+  width: min(540px, calc(100vw - 28px));
+  max-width: calc(100vw - 28px);
+  max-height: min(88dvh, 760px);
+  padding: 0;
+  overflow-y: auto;
+  border: 1px solid #c7ae70;
+  border-top: 4px solid #b79a4a;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 20px 70px rgba(12, 50, 32, .20);
+}
+#bp-ko68-schedule-dialog .admin-save-dialog__body {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 26px 28px 24px;
+  text-align: center;
+}
+#bp-ko68-schedule-dialog .admin-save-dialog__icon {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 13px;
+  background: #edf6eb;
+  color: #134631;
+  font-size: 24px;
+}
+#bp-ko68-schedule-dialog h2 {
+  margin: 0 0 8px;
+  color: #00432e;
+  font-size: clamp(23px, 5.2vw, 28px);
+  line-height: 1.12;
+}
+#bp-ko68-schedule-pair {
+  max-width: 100%;
+  margin: 0 0 17px;
+  color: #435f4b;
+  font: 600 14px/1.5 Inter, Arial, sans-serif;
+  overflow-wrap: anywhere;
+}
+#bp-ko68-schedule-dialog .bp-ko68-form-grid {
+  box-sizing: border-box;
+  width: 100%;
+  margin: 0 0 14px;
+  padding: 14px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 13px 12px;
+  border: 1px solid #d9dfcf;
+  border-radius: 12px;
+  background: #fafbf7;
+  text-align: left;
+}
+#bp-ko68-schedule-dialog .bp-ko68-form-grid > label:last-child {
+  grid-column: 1 / -1;
+}
+#bp-ko68-schedule-dialog label {
+  box-sizing: border-box;
+  display: grid;
+  min-width: 0;
+  gap: 7px;
+  color: #12452f;
+  font: 700 12px/1.45 Inter, Arial, sans-serif;
+  text-align: left;
+}
+#bp-ko68-schedule-dialog input,
+#bp-ko68-schedule-dialog select,
+#bp-ko68-schedule-dialog textarea {
+  box-sizing: border-box;
+  display: block;
+  width: 100%;
+  min-width: 0;
+  min-height: 46px;
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid #bacdbd;
+  border-radius: 9px;
+  background: #fff;
+  color: #214731;
+  font: 500 14px/1.4 Inter, Arial, sans-serif;
+}
+#bp-ko68-schedule-dialog textarea {
+  min-height: 76px;
+  resize: vertical;
+}
+#bp-ko68-schedule-dialog .bp-ko68-reason {
+  width: 100%;
+  margin: 0 0 12px;
+}
+#bp-ko68-schedule-dialog .bp-ko68-reason[hidden] {
+  display: none !important;
+}
+#bp-ko68-schedule-dialog .admin-save-dialog__hint {
+  max-width: 440px;
+  margin: 0 auto;
+  color: #5d6c5f !important;
+  font: 400 12px/1.55 Inter, Arial, sans-serif;
+  text-align: center;
+}
+#bp-ko68-schedule-dialog .bp-ko68-error {
+  margin: 10px 0 0;
+  text-align: center;
+}
+#bp-ko68-schedule-dialog .bp-ko68-error:empty {
+  display: none;
+}
+#bp-ko68-schedule-dialog .admin-save-dialog__actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: stretch;
+  gap: 10px;
+  width: 100%;
+  margin: 18px 0 0;
+}
+#bp-ko68-schedule-dialog .admin-save-dialog__actions > button {
+  box-sizing: border-box;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  width: 100% !important;
+  height: 48px;
+  min-height: 48px !important;
+  max-height: 48px;
+  min-width: 0;
+  margin: 0 !important;
+  padding: 8px 10px;
+  border-radius: 9px;
+  text-align: center;
+  font: 700 13px/1.2 Inter, Arial, sans-serif !important;
+}
+#bp-ko68-schedule-dialog .admin-save-dialog__actions > .secondary {
+  background: #e8eee2;
+  border: 1px solid #d3ddcd;
+  color: #233d29;
+}
+#bp-ko68-schedule-dialog .admin-save-dialog__actions > .primary {
+  background: #004f35;
+  border: 1px solid #004f35;
+  color: #fff;
+}
+#bp-ko68-schedule-dialog .admin-save-dialog__actions > .primary:hover:not(:disabled) {
+  background: #096543;
+}
+#bp-ko68-schedule-dialog .admin-save-dialog__actions > .secondary:hover:not(:disabled) {
+  background: #d9e5d4;
+}
+#bp-ko68-schedule-dialog :is(input, select, textarea, button):focus-visible {
+  outline: 3px solid #b99b48;
+  outline-offset: 2px;
+}
+@media (max-width: 480px) {
+  #bp-ko68-schedule-dialog .admin-save-dialog__body {
+    padding: 22px 16px 19px;
+  }
+  #bp-ko68-schedule-dialog .bp-ko68-form-grid {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 12px;
+    gap: 11px;
+  }
+  #bp-ko68-schedule-dialog .bp-ko68-form-grid > label:last-child {
+    grid-column: auto;
+  }
+  #bp-ko68-schedule-dialog .admin-save-dialog__actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+  #bp-ko68-schedule-dialog .admin-save-dialog__actions > button {
+    padding-inline: 5px;
+    font-size: 12px !important;
+  }
+}
+
