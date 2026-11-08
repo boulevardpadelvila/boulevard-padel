@@ -119,3 +119,9 @@
   color:#00432e;font:inherit;}
 .bp-league__round-label input:focus-visible {outline:3px solid #a48335;outline-offset:2px;}
 @media(max-width:650px){.bp-league__one-round{grid-column:1/-1;}}
+
+/* Mientras está seleccionada Liga, los módulos exclusivos de zonas y
+   eliminatorias se mantienen ocultos. No se altera su estado ni sus datos. */
+#admin-torneos-view.bp-league-active #bp-results-panel,
+#admin-torneos-view.bp-league-active #bp-ko-panel,
+#admin-torneos-view.bp-league-active #bp-ko68-panel {display:none!important;}
