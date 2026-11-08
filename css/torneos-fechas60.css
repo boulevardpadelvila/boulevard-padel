@@ -63,13 +63,15 @@
 /* Parche 76 · Programación: una columna por fecha, máximo tres en PC.
    Esta hoja carga DESPUÉS de torneos-public.css, por eso las reglas
    del calendario se definen aquí para evitar sobreescrituras accidentales. */
+.public-tournament-fixture {
+  container-type: inline-size;
+}
 .public-tournament-fixture__body {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
   margin-top: 12px;
   align-items: start;
-  container-type: inline-size;
 }
 .public-tournament-fixture__body--1 {
   grid-template-columns: minmax(0, 1fr);
@@ -113,5 +115,18 @@
 @container (max-width: 530px) {
   .public-tournament-fixture__body {
     grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@supports not (container-type: inline-size) {
+  @media (max-width: 1050px) {
+    .public-tournament-fixture__body:not(.public-tournament-fixture__body--1) {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (max-width: 650px) {
+    .public-tournament-fixture__body {
+      grid-template-columns: minmax(0, 1fr);
+    }
   }
 }
