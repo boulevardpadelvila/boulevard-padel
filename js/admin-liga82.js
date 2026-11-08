@@ -135,6 +135,23 @@
       " partidos. Los horarios se asignan individualmente.");
     rank();renderMatches();
   }
+  // Supabase suele limitar cada consulta a 1000 filas. Paginar el fixture
+  // evita perder partidos en Ligas de muchos participantes o ida/vuelta.
+  async function loadLeagueMatches(tournamentId){
+    const all=[];
+    const page=500;
+    for(let offset=0;;offset+=page){
+      const {data,error}=await supabaseClient.from("bp_league_matches")
+        .select("id,tournament_id,leg,round_number,match_number,pair1_id,pair2_id,schedule_status,scheduled_at,scheduled_ends_at,court_label,match_status,sets,sets_pair1,sets_pair2,winner_pair_id")
+        .eq("tournament_id",tournamentId)
+        .order("round_number").order("match_number")
+        .range(offset,offset+page-1);
+      if(error)throw error;
+      all.push(...(data||[]));
+      if(!data||data.length<page)break;
+    }
+    return {data:all,error:null};
+  }
   async function load(){
     const id=select.value,seq=++generation;
     current=null;active=null;
@@ -152,9 +169,7 @@
         supabaseClient.from("bp_tournament_pairs")
           .select("id,player1_name,player2_name,status")
           .eq("tournament_id",id),
-        supabaseClient.from("bp_league_matches")
-          .select("id,tournament_id,leg,round_number,match_number,pair1_id,pair2_id,schedule_status,scheduled_at,scheduled_ends_at,court_label,match_status,sets,sets_pair1,sets_pair2,winner_pair_id")
-          .eq("tournament_id",id).order("round_number").order("match_number"),
+        loadLeagueMatches(id),
         supabaseClient.from("bp_league_settings")
           .select("tournament_id,legs").eq("tournament_id",id).maybeSingle()
       ]);
