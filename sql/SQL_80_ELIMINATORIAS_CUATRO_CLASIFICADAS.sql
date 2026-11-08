@@ -306,6 +306,16 @@ BEGIN
 END $function$
 ;
 
+-- Proteger la nueva columna de semifinales igual que los cuadros antiguos.
+-- Reconstrucción exacta del MISMO trigger (no cambia otras protecciones).
+-- DDL transaccional: si alguna instrucción falla, todo revierte.
+DROP TRIGGER IF EXISTS bp_ko_freeze_started_bracket_trg
+  ON public.bp_tournament_knockout_brackets;
+CREATE TRIGGER bp_ko_freeze_started_bracket_trg
+  BEFORE UPDATE OF quarterfinals, direct_semifinal_pair_id, semifinals
+  ON public.bp_tournament_knockout_brackets
+  FOR EACH ROW EXECUTE FUNCTION public.bp_ko_freeze_started_bracket();
+
 CREATE OR REPLACE FUNCTION public.bp_admin_save_knockout_result(p_match_id uuid, p_sets jsonb, p_reason text DEFAULT NULL::text)
  RETURNS jsonb
  LANGUAGE plpgsql
