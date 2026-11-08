@@ -1,0 +1,74 @@
+/* Boulevard Pádel · Liga pública · Parche 82.
+   Mismos colores de las posiciones y fechas aprobadas. */
+.public-tournaments .bp-public-league .public-tournament-more__summary {
+  border-left-color:#a48335;
+}
+.public-tournaments .bp-public-league__round {
+  margin:14px 0;padding:13px;border:1px solid #b7a06f;
+  border-radius:12px;background:#fbfaf5;
+}
+.public-tournaments .bp-public-league__round h4 {
+  margin:0 0 12px;padding:10px 12px;border-radius:8px;
+  border-bottom:3px solid #a48335;background:#00432e;color:#fff;
+  font-size:.97rem;font-weight:800;
+}
+.public-tournaments .bp-public-league__matches {
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr));gap:11px;
+}
+.public-tournaments .bp-public-league__match {
+  box-sizing:border-box;display:grid;gap:7px;min-width:0;
+  padding:13px;border:1px solid #d4dccf;
+  border-left:4px solid #a48335;border-radius:10px;background:#fff;
+}
+.public-tournaments .bp-public-league__match strong {
+  color:#00432e;font-size:.88rem;line-height:1.4;overflow-wrap:anywhere;
+}
+.public-tournaments .bp-public-league__meta {
+  margin:0;color:#617265;font-size:.81rem;line-height:1.35;
+}
+.public-tournaments .bp-public-league__score {
+  margin:0;color:#00432e;font-weight:900;font-size:.91rem;
+  font-variant-numeric:tabular-nums;
+}
+.public-tournaments .bp-public-league__table-scroll {
+  width:100%;max-width:100%;overflow-x:auto;scrollbar-width:thin;
+  border:1px solid #b7a06f;border-radius:10px;
+}
+.public-tournaments .bp-public-league__table {
+  width:100%;min-width:800px;border-collapse:collapse;
+  table-layout:fixed;font-size:.78rem;font-variant-numeric:tabular-nums;
+}
+.public-tournaments .bp-public-league__table th {
+  padding:10px 3px;background:#00432e;color:#fff;font-weight:800;
+  text-align:center;border-bottom:2px solid #a48335;
+}
+.public-tournaments .bp-public-league__table th:nth-child(2) {
+  width:27%;text-align:left;
+}
+.public-tournaments .bp-public-league__table td {
+  padding:8px 3px;border-bottom:1px solid #d5dccf;
+  text-align:center;color:#233b2b;line-height:1.35;
+}
+.public-tournaments .bp-public-league__table td:nth-child(2){
+  text-align:left;font-weight:650;overflow-wrap:anywhere;
+}
+.public-tournaments .bp-public-league__table tbody tr:nth-child(even) td{
+  background:#f8f9f4;
+}
+.public-tournaments .bp-public-league__table th:last-child {
+  background:#a48335;
+}
+.public-tournaments .bp-public-league__table td:last-child {
+  color:#00432e;background:#f8f0db;font-weight:900;
+  border-left:2px solid #a48335;
+}
+.public-tournaments .bp-public-league__note {
+  color:#13653e;font-weight:700;font-size:.88rem;
+  line-height:1.5;margin:14px 0 0;
+}
+@media(max-width:650px){
+  .public-tournaments .bp-public-league__round {padding:9px;}
+  .public-tournaments .bp-public-league__matches {
+    grid-template-columns:minmax(0,1fr);
+  }
+}
