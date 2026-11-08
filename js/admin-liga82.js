@@ -14,8 +14,7 @@
   const legacySteps=sharedSection.querySelector(".torneos-stage");
   const legacyHint=sharedSection.querySelector(".torneos-hint");
   const msg=$("bp-league-message"),fixture=$("bp-league-fixture"),
-    table=$("bp-league-standings"),generate=$("bp-league-generate"),
-    legs=$("bp-league-legs");
+    table=$("bp-league-standings"),generate=$("bp-league-generate");
   let current=null,matchList=[],pairs=new Map(),generation=0,busy=false,active=null;
 
   const el=(tag,value,cls="")=>{
@@ -85,9 +84,11 @@
       if(!byRound.has(match.round_number))byRound.set(match.round_number,[]);
       byRound.get(match.round_number).push(match);
     }
-    for(const [round,values] of [...byRound].sort((a,b)=>a[0]-b[0])){
+    for(const [round,values] of [...byRound].sort((a,b)=>
+      a[0]===null?1:b[0]===null?-1:a[0]-b[0])){
       const section=el("section",null,"bp-league__round");
-      section.append(el("h4","Fecha "+round+" · "+values.length+" partidos"));
+      section.append(el("h4",(round===null?"Partidos sin Fecha":"Fecha "+round)+
+        " · "+values.length+" partidos"));
       const grid=el("div",null,"bp-league__matches");
       values.sort((a,b)=>a.match_number-b.match_number);
       for(const m of values){
@@ -102,37 +103,41 @@
           card.append(el("p",m.sets.map(set=>set.join("–")).join(" · "),
             "bp-league__score"));
         const buttons=el("div",null,"bp-league__buttons");
+        const roundAction=el("button",m.round_number==null?"Asignar Fecha":"Cambiar Fecha","torneos-outline");
+        roundAction.type="button";
+        roundAction.disabled=current?.status==="completed"||m.match_status==="played";
+        roundAction.addEventListener("click",()=>openRound(m));
         const plan=el("button",m.schedule_status==="scheduled"?"Reprogramar":"Programar","torneos-outline");
         plan.type="button";
-        plan.disabled=current?.status==="completed"||m.match_status==="played";
+        plan.disabled=current?.status==="completed"||m.match_status==="played"||m.round_number==null;
         plan.addEventListener("click",()=>openSchedule(m));
         const result=el("button",m.match_status==="played"?"Corregir resultado":"Cargar resultado","torneos-outline");
-        result.type="button";result.disabled=current?.status==="completed";
+        result.type="button";result.disabled=current?.status==="completed"||m.round_number==null;
         result.addEventListener("click",()=>openResult(m));
-        buttons.append(plan,result);card.append(buttons);grid.append(card);
+        buttons.append(roundAction,plan,result);card.append(buttons);grid.append(card);
       }
       section.append(grid);fixture.append(section);
     }
   }
   function render(){
     generate.hidden=Boolean(current?.settings);
-    legs.disabled=Boolean(current?.settings);
-    if(current?.settings)legs.value=String(current.settings.legs);
-    generate.disabled=busy||!current||
-      !["registration_closed","in_progress"].includes(current.status)||
-      current.approved<2||current.pending>0;
+    const eligible=current&&(
+      ["registration_closed","in_progress"].includes(current.status)||
+      (current.status==="registration_open"&&current.approved===current.max_pairs)
+    );
+    generate.disabled=busy||!eligible||current.approved<2||current.pending>0;
     if(!current?.settings){
       fixture.replaceChildren(el("p",
-        "Cerrá las inscripciones, aprobá las parejas y generá las fechas de la Liga.",
+        "Cerrá las inscripciones o completá el cupo y sorteá todos los partidos de la Liga.",
         "bp-league__note"));
       table.replaceChildren();
       status(current?.pending
         ?"Hay solicitudes pendientes: aprobá o rechazá las parejas antes de generar el fixture."
-        :"Elegí una o dos ruedas y generá el calendario. Las fechas y horarios se asignan después.");
+        :"Cuando cierres inscripciones o completes el cupo aprobado, sorteá los cruces. Después asigná cada partido a Fecha 1, 2, 3…");
       return;
     }
-    status("Fixture generado: "+matchList.length+
-      " partidos. Los horarios se asignan individualmente.");
+    status("Sorteo completo: "+matchList.length+
+      " partidos, una sola rueda. Asigná las Fechas y después los días y horarios.");
     rank();renderMatches();
   }
   // Supabase suele limitar cada consulta a 1000 filas. Paginar el fixture
@@ -158,7 +163,7 @@
     if(!id){updateVisible(false);return;}
     try{
       const tr=await supabaseClient.from("bp_tournaments")
-        .select("id,name,format,status,starts_on,is_published")
+        .select("id,name,format,status,starts_on,max_pairs,is_published")
         .eq("id",id).maybeSingle();
       if(seq!==generation||id!==select.value)return;
       if(tr.error)throw tr.error;
@@ -196,7 +201,7 @@
   function askGenerateFixture(count,tournamentName) {
     const dialog=$("bp-league-generate-dialog");
     $("bp-league-generate-description").textContent=
-      "¿Generar "+count+" partidos para «"+tournamentName+"»?";
+      "¿Sortear los "+count+" cruces de «"+tournamentName+"»? Una sola rueda; las Fechas se asignan luego.";
     return new Promise(resolve=>{
       const yes=$("bp-league-generate-confirm"),
         no=$("bp-league-generate-cancel");
@@ -218,17 +223,53 @@
   generate.addEventListener("click",async()=>{
     if(busy||!current||current.settings)return;
     const id=current.id;
-    const count=engine.buildSchedule([...pairs.keys()],Number(legs.value)).length;
+    const count=engine.buildSchedule([...pairs.keys()],1).length;
     if(!(await askGenerateFixture(count,current.name)))return;
     busy=true;generate.disabled=true;
     try{
       const {error}=await supabaseClient.rpc("bp_league_generate_fixture",{
-        p_tournament_id:id,p_legs:Number(legs.value)
+        p_tournament_id:id,p_legs:1
       });
       if(error)throw error;
       if(select.value===id)await load();
     }catch(error){console.error(error);status(error.message||"No se pudo generar el fixture.",true)}
     finally{busy=false;generate.disabled=false;}
+  });
+
+  // Fecha N es una jornada del campeonato, NO una fecha de calendario:
+  // sus partidos pueden jugarse en días distintos, incluidos días hábiles.
+  const roundDialog=$("bp-league-round-dialog"),
+    roundForm=$("bp-league-round-form"),
+    roundNumber=$("bp-league-round-number");
+  function openRound(match){
+    active=match;
+    $("bp-league-round-title").textContent=match.round_number==null
+      ?"Asignar Fecha":"Cambiar Fecha";
+    $("bp-league-round-rivals").textContent=name(match.pair1_id)+
+      " vs. "+name(match.pair2_id);
+    roundNumber.value=match.round_number??"";
+    $("bp-league-round-error").textContent="";
+    roundDialog.showModal();
+    roundNumber.focus();
+  }
+  $("bp-league-round-cancel").addEventListener("click",()=>roundDialog.close());
+  roundForm.addEventListener("submit",async ev=>{
+    ev.preventDefault();
+    if(busy||!active)return;
+    const match=active,round=Number(roundNumber.value);
+    const errorMessage=$("bp-league-round-error");
+    errorMessage.textContent="";
+    try{
+      engine.validateRoundAssignment(matchList,match.id,round);
+      busy=true;$("bp-league-round-save").disabled=true;
+      const {error}=await supabaseClient.rpc("bp_league_assign_round",{
+        p_match_id:match.id,p_round:round
+      });
+      if(error)throw error;
+      roundDialog.close();await load();
+    }catch(err){
+      errorMessage.textContent=err.message||"No se pudo asignar la Fecha.";
+    }finally{busy=false;$("bp-league-round-save").disabled=false;}
   });
 
   const sd=$("bp-league-schedule-dialog"),sf=$("bp-league-schedule-form");
