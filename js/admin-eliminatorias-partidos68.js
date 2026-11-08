@@ -61,6 +61,13 @@
         null,
         null,
       ];
+    if (match.stage === "semifinal" && Array.isArray(br.semifinals))
+      return [
+        br.semifinals[slot - 1][0],
+        br.semifinals[slot - 1][1],
+        null,
+        null,
+      ];
     if (match.stage === "semifinal")
       return slot === 1
         ? [
@@ -506,7 +513,7 @@
         supabaseClient
           .from("bp_tournament_knockout_brackets")
           .select(
-            "tournament_id,direct_semifinal_pair_id,quarterfinals,result_revision",
+            "tournament_id,direct_semifinal_pair_id,quarterfinals,semifinals,result_revision",
           )
           .eq("tournament_id", id)
           .maybeSingle(),
