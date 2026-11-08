@@ -178,12 +178,33 @@
   select.addEventListener("change",load);
   $("bp-league-refresh").addEventListener("click",()=>load());
 
+  function askGenerateFixture(count,tournamentName) {
+    const dialog=$("bp-league-generate-dialog");
+    $("bp-league-generate-description").textContent=
+      "¿Generar "+count+" partidos para «"+tournamentName+"»?";
+    return new Promise(resolve=>{
+      const yes=$("bp-league-generate-confirm"),
+        no=$("bp-league-generate-cancel");
+      let confirmed=false;
+      const onYes=()=>{confirmed=true;dialog.close();};
+      const onNo=()=>{dialog.close();};
+      const onClose=()=>{
+        yes.removeEventListener("click",onYes);
+        no.removeEventListener("click",onNo);
+        resolve(confirmed);
+      };
+      yes.addEventListener("click",onYes);
+      no.addEventListener("click",onNo);
+      dialog.addEventListener("close",onClose,{once:true});
+      dialog.showModal();
+    });
+  }
+
   generate.addEventListener("click",async()=>{
     if(busy||!current||current.settings)return;
     const id=current.id;
     const count=engine.buildSchedule([...pairs.keys()],Number(legs.value)).length;
-    if(!window.confirm("¿Generar "+count+" partidos para «"+current.name+
-      "»? Los cruces quedarán fijos y luego podrás programar fechas y horarios."))return;
+    if(!(await askGenerateFixture(count,current.name)))return;
     busy=true;generate.disabled=true;
     try{
       const {error}=await supabaseClient.rpc("bp_league_generate_fixture",{
