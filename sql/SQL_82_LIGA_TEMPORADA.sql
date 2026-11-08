@@ -324,9 +324,16 @@ BEGIN
  IF p_start IS NOT NULL AND (p_duration_minutes IS NULL OR p_duration_minutes NOT IN(90,120)) THEN
    RAISE EXCEPTION 'La duración debe ser 90 o 120 minutos.' USING ERRCODE='23514';
  END IF;
- SELECT id INTO v_court FROM public.courts WHERE active ORDER BY created_at LIMIT 1;
- IF v_court IS NULL THEN RAISE EXCEPTION 'No hay cancha activa.' USING ERRCODE='23514'; END IF;
- PERFORM pg_advisory_xact_lock(hashtextextended(v_court::text,72119));
+ IF p_start IS NOT NULL THEN
+   SELECT id INTO v_court FROM public.courts WHERE active ORDER BY created_at LIMIT 1;
+   IF v_court IS NULL THEN RAISE EXCEPTION 'No hay cancha activa.' USING ERRCODE='23514'; END IF;
+ ELSE
+   SELECT court_id INTO v_court FROM public.blockouts
+   WHERE tournament_league_match_id=p_match_id;
+ END IF;
+ IF v_court IS NOT NULL THEN
+   PERFORM pg_advisory_xact_lock(hashtextextended(v_court::text,72119));
+ END IF;
  SELECT id INTO v_block FROM public.blockouts
  WHERE tournament_league_match_id=p_match_id FOR UPDATE;
  IF p_start IS NOT NULL THEN
