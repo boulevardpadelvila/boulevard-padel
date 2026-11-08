@@ -223,6 +223,59 @@ BEGIN
 END;
 $league$;
 
+-- Fecha competitiva independiente del día calendario.
+-- Una Fecha puede abarcar sábado, domingo y días hábiles.
+-- Limitar a dos encuentros por pareja; FOR UPDATE al torneo serializa
+-- todas las asignaciones aun si dos admins programan a la vez.
+CREATE OR REPLACE FUNCTION public.bp_league_assign_round(
+ p_match_id uuid,p_round integer
+) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $league$
+DECLARE
+ v_m public.bp_league_matches%ROWTYPE;
+ v_t public.bp_tournaments%ROWTYPE;
+ v_p1_count integer;
+ v_p2_count integer;
+BEGIN
+ IF auth.uid() IS NULL OR NOT public.bp_tournament_is_admin() THEN
+   RAISE EXCEPTION 'Solo el administrador puede organizar Fechas.' USING ERRCODE='42501';
+ END IF;
+ SELECT * INTO v_m FROM public.bp_league_matches WHERE id=p_match_id;
+ IF NOT FOUND THEN RAISE EXCEPTION 'Partido inexistente.' USING ERRCODE='P0002'; END IF;
+ SELECT * INTO v_t FROM public.bp_tournaments
+ WHERE id=v_m.tournament_id FOR UPDATE;
+ SELECT * INTO v_m FROM public.bp_league_matches
+ WHERE id=p_match_id FOR UPDATE;
+ IF v_t.format<>'league' OR v_t.status='completed' THEN
+   RAISE EXCEPTION 'No se pueden editar Fechas de una competencia finalizada.' USING ERRCODE='23514';
+ END IF;
+ IF v_m.match_status='played' THEN
+   RAISE EXCEPTION 'Un partido disputado no puede cambiar de Fecha.' USING ERRCODE='23514';
+ END IF;
+ IF p_round IS NULL THEN
+   IF v_m.schedule_status='scheduled' THEN
+     RAISE EXCEPTION 'Primero postergá el partido antes de quitar su Fecha.' USING ERRCODE='23514';
+   END IF;
+ ELSE
+   IF p_round<1 OR p_round>999 THEN
+     RAISE EXCEPTION 'Indicá una Fecha entre 1 y 999.' USING ERRCODE='23514';
+   END IF;
+   SELECT
+     count(*) FILTER (WHERE pair1_id=v_m.pair1_id OR pair2_id=v_m.pair1_id),
+     count(*) FILTER (WHERE pair1_id=v_m.pair2_id OR pair2_id=v_m.pair2_id)
+   INTO v_p1_count,v_p2_count
+   FROM public.bp_league_matches
+   WHERE tournament_id=v_m.tournament_id
+     AND round_number=p_round AND id<>p_match_id;
+   IF v_p1_count>=2 OR v_p2_count>=2 THEN
+     RAISE EXCEPTION 'Una pareja no puede jugar más de dos partidos en la misma Fecha.' USING ERRCODE='23514';
+   END IF;
+ END IF;
+ UPDATE public.bp_league_matches
+ SET round_number=p_round,updated_at=now() WHERE id=p_match_id;
+ RETURN jsonb_build_object('match_id',p_match_id,'round_number',p_round);
+END;
+$league$;
+
 CREATE OR REPLACE FUNCTION public.bp_league_save_result(
  p_match_id uuid,p_sets jsonb
 ) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $league$
@@ -247,6 +300,9 @@ BEGIN
  SELECT * INTO v_t FROM public.bp_tournaments WHERE id=v_m.tournament_id;
  IF v_t.format<>'league' OR v_t.status NOT IN ('in_progress','registration_closed') THEN
    RAISE EXCEPTION 'La Liga no admite resultados en este estado.' USING ERRCODE='23514';
+ END IF;
+ IF v_m.round_number IS NULL THEN
+   RAISE EXCEPTION 'Asigná primero la Fecha del partido.' USING ERRCODE='23514';
  END IF;
  IF p_sets IS NULL OR jsonb_typeof(p_sets)<>'array' THEN
    RAISE EXCEPTION 'Ingresá dos sets y, si corresponde, súper tie-break.' USING ERRCODE='23514';
@@ -312,6 +368,9 @@ BEGIN
  SELECT * INTO v_t FROM public.bp_tournaments WHERE id=v_m.tournament_id;
  IF v_t.status='completed' OR v_m.match_status='played' THEN
    RAISE EXCEPTION 'No se puede reprogramar un partido finalizado.' USING ERRCODE='23514';
+ END IF;
+ IF p_start IS NOT NULL AND v_m.round_number IS NULL THEN
+   RAISE EXCEPTION 'Asigná primero una Fecha al partido.' USING ERRCODE='23514';
  END IF;
  IF p_start IS NOT NULL AND (p_duration_minutes IS NULL OR p_duration_minutes NOT IN(90,120)) THEN
    RAISE EXCEPTION 'La duración debe ser 90 o 120 minutos.' USING ERRCODE='23514';
@@ -413,11 +472,14 @@ REVOKE ALL ON FUNCTION public.bp_league_schedule_match(uuid,timestamptz,integer,
  FROM PUBLIC,anon,authenticated;
 REVOKE ALL ON FUNCTION public.bp_league_save_result(uuid,jsonb)
  FROM PUBLIC,anon,authenticated;
+REVOKE ALL ON FUNCTION public.bp_league_assign_round(uuid,integer)
+ FROM PUBLIC,anon,authenticated;
 REVOKE ALL ON FUNCTION public.bp_public_league_followup(uuid)
  FROM PUBLIC,anon,authenticated;
 GRANT EXECUTE ON FUNCTION public.bp_league_generate_fixture(uuid,integer) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.bp_league_schedule_match(uuid,timestamptz,integer,text) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.bp_league_save_result(uuid,jsonb) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.bp_league_assign_round(uuid,integer) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.bp_public_league_followup(uuid) TO anon,authenticated;
 
 -- Mantener protegidos los bloqueos y la eliminación definitiva de Ligas.
