@@ -1,0 +1,352 @@
+/* Boulevard Pádel · Parche 78 · Identidad pública de Torneos
+   Paleta derivada de las tablas de posiciones aprobadas en el Admin.
+   Exclusivamente presentación: no cambia contenido, estados ni funcionamiento.
+   Cargar DESPUÉS de torneos-public.css y torneos-fechas60.css. */
+
+/* Sistema visual propio, acotado a Torneos públicos. */
+.public-tournaments {
+  --bp78-green: #00432e;
+  --bp78-green-deep: #003623;
+  --bp78-gold: #a48335;
+  --bp78-gold-line: #b7a06f;
+  --bp78-gold-soft: #f8f0db;
+  --bp78-cream: #fbfaf5;
+  --bp78-ivory: #f6f7f2;
+  --bp78-line: #d8d9c9;
+  --bp78-ink: #213c2d;
+  background: linear-gradient(180deg, #f4f5ef 0%, #f8f8f5 75%, #f1f4ed 100%);
+}
+.public-tournaments .section-heading__eyebrow {
+  color: var(--bp78-gold);
+  font-weight: 800;
+}
+.public-tournaments #public-tournaments-title {
+  color: var(--bp78-green);
+  letter-spacing: -0.025em;
+  text-wrap: balance;
+}
+.public-tournaments .public-tournaments__intro {
+  color: #516555;
+  line-height: 1.6;
+}
+
+/* Navegación Vigentes / Finalizados. */
+.public-tournaments .public-tournaments__tabs {
+  border-bottom: 2px solid var(--bp78-gold-line);
+  gap: 6px;
+}
+.public-tournaments .public-tournaments__tab {
+  border: 1px solid transparent;
+  border-bottom: 0;
+  border-radius: 12px 12px 0 0;
+  color: var(--bp78-green);
+  transition: background-color 180ms ease, color 180ms ease;
+}
+.public-tournaments .public-tournaments__tab:hover:not(.is-active) {
+  background: #e8ede4;
+}
+.public-tournaments .public-tournaments__tab.is-active {
+  border-color: var(--bp78-gold-line);
+  background: var(--bp78-green);
+  color: #fff;
+  box-shadow: inset 0 3px 0 var(--bp78-gold);
+}
+.public-tournaments .public-tournaments__count {
+  background: var(--bp78-gold-soft);
+  color: var(--bp78-green);
+  font-weight: 800;
+}
+.public-tournaments .public-tournaments__tab.is-active .public-tournaments__count {
+  background: #fff3cd;
+}
+.public-tournaments .public-tournaments__tab:focus-visible {
+  outline: 3px solid var(--bp78-gold);
+  outline-offset: 3px;
+}
+
+/* Cabecera de cada competencia: hereda el verde/dorado del Admin. */
+.public-tournaments .public-tournament-card {
+  border: 1px solid #cdbb87;
+  border-top: 4px solid var(--bp78-green);
+  background: #fff;
+  box-shadow: 0 8px 28px rgba(0, 51, 31, 0.055);
+  gap: 10px;
+}
+.public-tournaments .public-tournament-card > h3 {
+  color: var(--bp78-green);
+  font-weight: 800;
+  font-size: clamp(1.35rem, 2.4vw, 1.75rem);
+  line-height: 1.2;
+}
+.public-tournaments .public-tournament-card__state {
+  border: 1px solid #c5d9c9;
+  background: #e9f2e8;
+  color: var(--bp78-green);
+}
+.public-tournaments .public-tournament-card__format {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 10px;
+  border: 1px solid var(--bp78-gold-line);
+  border-radius: 999px;
+  background: var(--bp78-gold-soft);
+  color: #705112;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+.public-tournaments .public-tournament-card .public-tournament-card__category {
+  color: var(--bp78-green);
+}
+.public-tournaments .public-tournament-card .public-tournament-card__dates {
+  color: #536858;
+  font-variant-numeric: tabular-nums;
+}
+.public-tournaments .public-tournament-card .public-tournament-card__registration {
+  color: var(--bp78-green);
+  font-weight: 800;
+}
+.public-tournaments .public-tournament-card > .button:focus-visible {
+  outline: 3px solid var(--bp78-gold);
+  outline-offset: 3px;
+}
+
+/* Misma presentación clara para los cuatro desplegables.
+   La flecha nativa de <summary> se conserva para accesibilidad. */
+.public-tournaments .public-tournament-groups,
+.public-tournaments .public-tournament-fixture,
+.public-tournaments .public-tournament-more {
+  width: 100%;
+  border-top: 1px solid var(--bp78-line);
+  margin-top: 9px;
+}
+.public-tournaments .public-tournament-groups__summary,
+.public-tournaments .public-tournament-fixture__summary,
+.public-tournaments .public-tournament-more__summary {
+  color: var(--bp78-green);
+  background: var(--bp78-cream);
+  border: 1px solid #dfd6ba;
+  border-left: 5px solid var(--bp78-gold);
+  border-radius: 9px;
+  padding: 12px 14px;
+  line-height: 1.4;
+  font-size: 0.93rem;
+  font-weight: 800;
+  transition: background-color 180ms ease, color 180ms ease;
+}
+.public-tournaments .public-tournament-groups__summary:hover,
+.public-tournaments .public-tournament-fixture__summary:hover,
+.public-tournaments .public-tournament-more__summary:hover {
+  background: #f1ead7;
+}
+.public-tournaments .public-tournament-groups[open] > .public-tournament-groups__summary,
+.public-tournaments .public-tournament-fixture[open] > .public-tournament-fixture__summary,
+.public-tournaments .public-tournament-more[open] > .public-tournament-more__summary {
+  background: var(--bp78-green);
+  color: #fff;
+  border-color: var(--bp78-green);
+  border-left-color: var(--bp78-gold);
+}
+.public-tournaments .public-tournament-groups__summary:focus-visible,
+.public-tournaments .public-tournament-fixture__summary:focus-visible,
+.public-tournaments .public-tournament-more__summary:focus-visible {
+  outline: 3px solid var(--bp78-gold);
+  outline-offset: 3px;
+}
+
+/* Parejas y grupos publicados. */
+.public-tournaments .public-tournament-groups__grid {
+  gap: 12px;
+}
+.public-tournaments .public-tournament-group {
+  background: #fff;
+  border: 1px solid var(--bp78-gold-line);
+  border-radius: 12px;
+  box-shadow: 0 3px 12px rgba(0, 67, 46, 0.045);
+}
+.public-tournaments .public-tournament-group__title {
+  color: var(--bp78-green);
+  font-size: 1.02rem;
+  font-weight: 800;
+}
+.public-tournaments .public-tournament-group__count {
+  color: #677861;
+}
+.public-tournaments .public-tournament-group__pair {
+  background: var(--bp78-cream);
+  border-color: #e6e3d6;
+  border-left: 3px solid var(--bp78-gold-line);
+}
+.public-tournaments .public-tournament-group__player {
+  color: var(--bp78-ink);
+}
+
+/* Programación: cada fecha con banda verde y partidos limpios.
+   No se añade marcador: Programación y Seguimiento siguen independientes. */
+.public-tournaments .public-tournament-fixture__calendar-block {
+  border: 1px solid var(--bp78-gold-line);
+  background: var(--bp78-cream);
+  border-radius: 12px;
+}
+.public-tournaments .public-tournament-fixture__calendar-heading {
+  background: var(--bp78-green);
+  color: #fff;
+  border-bottom: 3px solid var(--bp78-gold);
+  border-radius: 8px 8px 3px 3px;
+  padding: 10px 6px;
+  margin: 0 0 12px;
+  font-size: 0.95rem;
+  text-transform: none;
+  letter-spacing: 0.02em;
+}
+.public-tournaments .public-tournament-fixture__calendar-grid .public-tournament-fixture__match {
+  border: 1px solid #d9ded2;
+  border-left: 3px solid var(--bp78-gold-line);
+  background: #fff;
+  box-shadow: 0 2px 7px rgba(0, 51, 31, 0.035);
+}
+.public-tournaments .public-tournament-fixture__match-group {
+  color: var(--bp78-green);
+  font-weight: 800;
+}
+.public-tournaments .public-tournament-fixture__date-meta {
+  color: #87631b;
+  font-weight: 800;
+}
+.public-tournaments .public-tournament-fixture__vs {
+  color: var(--bp78-gold);
+  font-weight: 900;
+}
+.public-tournaments .public-tournament-fixture__pair {
+  color: var(--bp78-ink);
+}
+
+/* Resultados de grupos: las mismas fechas y tonos,
+   manteniendo la organización en 3 columnas aprobada. */
+.public-tournaments .public-tournament-group-results {
+  border-color: #cdd5c8;
+  background: var(--bp78-ivory);
+}
+.public-tournaments .public-tournament-group-results > h4 {
+  color: var(--bp78-green);
+  font-size: 0.98rem;
+}
+.public-tournaments .public-tournament-group-results .public-tournament-day {
+  background: var(--bp78-cream);
+  border-color: var(--bp78-gold-line);
+  border-radius: 12px;
+}
+.public-tournaments .public-tournament-group-results .public-tournament-day__title {
+  background: var(--bp78-green);
+  color: #fff;
+  border-bottom: 3px solid var(--bp78-gold);
+  border-radius: 8px 8px 3px 3px;
+  margin: 0 0 12px;
+  padding: 10px 6px;
+  font-size: 0.95rem;
+}
+.public-tournaments .public-tournament-group-results .public-tournament-result {
+  border: 1px solid #d9ded2;
+  border-left: 3px solid var(--bp78-gold-line);
+  background: #fff;
+  box-shadow: 0 2px 7px rgba(0, 51, 31, 0.035);
+}
+.public-tournaments .public-tournament-result__teams {
+  color: var(--bp78-ink);
+}
+.public-tournaments .public-tournament-result__score {
+  color: var(--bp78-green);
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+}
+.public-tournaments .public-tournament-result__winner {
+  color: #13653e;
+  font-weight: 800;
+}
+.public-tournaments .public-tournament-result__meta {
+  color: #687568;
+}
+
+/* Cuartos, semifinales y final: no se modifica su orden, grilla ni marcadores.
+   Solo se adopta la identidad visual verde/dorado. */
+.public-tournaments .public-tournament-knockout .public-tournament-data {
+  background: var(--bp78-ivory);
+  border: 1px solid #cdd5c8;
+}
+.public-tournaments .public-tournament-knockout .public-tournament-data > h4 {
+  color: var(--bp78-green);
+  font-size: 1rem;
+}
+.public-tournaments .public-tournament-knockout .public-tournament-ko-stage {
+  border-top: 0;
+  margin: 14px 0 0;
+  padding: 0;
+  min-width: 0;
+}
+.public-tournaments .public-tournament-knockout .public-tournament-ko-stage > h5 {
+  color: #fff;
+  background: var(--bp78-green);
+  border-bottom: 3px solid var(--bp78-gold);
+  border-radius: 9px;
+  padding: 10px 14px;
+  margin: 0 0 12px;
+  font-size: 0.98rem;
+}
+.public-tournaments .public-tournament-knockout .public-tournament-result {
+  border: 1px solid #d7dccf;
+  border-left: 4px solid var(--bp78-gold);
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0, 51, 31, 0.04);
+}
+.public-tournaments .public-tournament-knockout .public-tournament-result__score {
+  color: var(--bp78-green);
+}
+.public-tournaments .public-tournament-knockout .public-tournament-highlight {
+  border-top: 1px solid var(--bp78-gold-line);
+  padding-top: 18px;
+}
+/* Intencionalmente no cambiamos el oro/plata de las tarjetas del podio
+   ni los estilos de tablas de posiciones del Parche 77. */
+
+/* Inscripción pública: enmarcada en la misma identidad, sin tocar campos
+   ni validaciones. Se limita al propio diálogo de inscripción. */
+.public-tournament-dialog {
+  border: 2px solid #b7a06f;
+  background: #fff;
+}
+.public-tournament-dialog h2 {
+  color: #00432e;
+}
+.public-tournament-dialog .public-tournament-form {
+  background: linear-gradient(180deg, #fff 0%, #fbfaf5 100%);
+}
+.public-tournament-dialog .public-tournament-form input:focus-visible,
+.public-tournament-dialog .public-tournament-actions .button:focus-visible {
+  outline: 3px solid #a48335;
+  outline-offset: 2px;
+}
+
+/* Teléfono: ajustamos espacios, nunca achicamos partidos o cuadros. */
+@media (max-width: 650px) {
+  .public-tournaments .public-tournament-card {
+    padding: 15px;
+  }
+  .public-tournaments .public-tournament-groups__summary,
+  .public-tournaments .public-tournament-fixture__summary,
+  .public-tournaments .public-tournament-more__summary {
+    padding: 13px 11px;
+    font-size: 0.86rem;
+  }
+  .public-tournaments .public-tournament-fixture__calendar-heading,
+  .public-tournaments .public-tournament-group-results .public-tournament-day__title {
+    font-size: 0.89rem;
+    padding: 9px 4px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .public-tournaments .public-tournaments__tab,
+  .public-tournaments .public-tournament-groups__summary,
+  .public-tournaments .public-tournament-fixture__summary,
+  .public-tournaments .public-tournament-more__summary {
+    transition: none;
+  }
+}
