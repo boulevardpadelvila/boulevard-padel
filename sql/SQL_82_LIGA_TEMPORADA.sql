@@ -409,6 +409,12 @@ BEGIN
 END;
 $league$;
 
+-- Los triggers no deben quedar expuestos como funciones invocables.
+REVOKE ALL ON FUNCTION public.bp_league_lock_roster()
+ FROM PUBLIC,anon,authenticated;
+REVOKE ALL ON FUNCTION public.bp_league_finish_guard()
+ FROM PUBLIC,anon,authenticated;
+
 REVOKE ALL ON FUNCTION public.bp_league_generate_fixture(uuid,integer)
  FROM PUBLIC,anon,authenticated;
 REVOKE ALL ON FUNCTION public.bp_league_schedule_match(uuid,timestamptz,integer,text)
