@@ -1,7 +1,9 @@
 -- Boulevard Pádel · SQL 82 · Modalidad Liga (borrador, NO INSTALADA)
 -- Fecha: 07/11/2026. Necesita autorización SQL explícita previa a aplicación.
 -- Definitiva: SÍ guardar como migración GitHub; NO ejecutar en SQL Editor ahora.
--- Una o dos ruedas, fecha estimada de inicio sin fecha final.
+-- Una sola rueda, inicio estimado sin finalización obligatoria.
+-- Sorteo genera todos los rivales sin asignar Fechas; máximo dos partidos
+-- por pareja en cada Fecha competitiva, sin exigir fin de semana.
 -- Puntuación provisional: victoria 2; derrota 2-1: 1; derrota 2-0: 0.
 -- Tercer set exclusivamente súper tie-break a 10 y diferencia de dos.
 -- Ninguna instrucción actualiza resultados históricos de grupos o eliminatorias.
@@ -13,7 +15,7 @@ ALTER TABLE public.bp_tournaments ADD CONSTRAINT bp_tournaments_end_date_except_
 
 CREATE TABLE IF NOT EXISTS public.bp_league_settings (
  tournament_id uuid PRIMARY KEY REFERENCES public.bp_tournaments(id) ON DELETE RESTRICT,
- legs smallint NOT NULL DEFAULT 1 CHECK (legs IN (1,2)),
+ legs smallint NOT NULL DEFAULT 1 CHECK (legs=1),
  generated_at timestamptz NOT NULL DEFAULT now()
 );
 ALTER TABLE public.bp_league_settings ENABLE ROW LEVEL SECURITY;
@@ -26,7 +28,7 @@ CREATE TABLE IF NOT EXISTS public.bp_league_matches (
  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
  tournament_id uuid NOT NULL REFERENCES public.bp_tournaments(id) ON DELETE RESTRICT,
  leg smallint NOT NULL CHECK (leg IN (1,2)),
- round_number integer NOT NULL CHECK (round_number >= 1),
+ round_number integer CHECK (round_number IS NULL OR round_number BETWEEN 1 AND 999),
  match_number integer NOT NULL CHECK (match_number >= 1),
  pair1_id uuid NOT NULL,
  pair2_id uuid NOT NULL,
@@ -48,7 +50,7 @@ CREATE TABLE IF NOT EXISTS public.bp_league_matches (
   REFERENCES public.bp_tournament_pairs(id,tournament_id) ON DELETE RESTRICT,
  CONSTRAINT bp_league_pair2_fk FOREIGN KEY(pair2_id,tournament_id)
   REFERENCES public.bp_tournament_pairs(id,tournament_id) ON DELETE RESTRICT,
- CONSTRAINT bp_league_round_slot_unique UNIQUE(tournament_id,round_number,match_number),
+ CONSTRAINT bp_league_match_order_unique UNIQUE(tournament_id,match_number),
  CONSTRAINT bp_league_schedule_consistency CHECK (
   (schedule_status='scheduled' AND scheduled_at IS NOT NULL
      AND scheduled_ends_at IS NOT NULL AND scheduled_ends_at>scheduled_at)
@@ -58,7 +60,7 @@ CREATE TABLE IF NOT EXISTS public.bp_league_matches (
  CONSTRAINT bp_league_result_consistency CHECK (
   (match_status='pending' AND sets IS NULL AND sets_pair1 IS NULL AND
     sets_pair2 IS NULL AND winner_pair_id IS NULL)
-  OR (match_status='played' AND sets IS NOT NULL AND
+  OR (match_status='played' AND round_number IS NOT NULL AND sets IS NOT NULL AND
     sets_pair1 IS NOT NULL AND sets_pair2 IS NOT NULL
     AND winner_pair_id IN (pair1_id,pair2_id))
  )
@@ -160,24 +162,24 @@ BEGIN
  IF auth.uid() IS NULL OR NOT public.bp_tournament_is_admin() THEN
    RAISE EXCEPTION 'Solo un administrador activo puede generar una Liga.' USING ERRCODE='42501';
  END IF;
- IF p_legs NOT IN (1,2) OR p_legs IS NULL THEN
-   RAISE EXCEPTION 'Elegí una o dos ruedas.' USING ERRCODE='22023';
+ IF p_legs IS DISTINCT FROM 1 THEN
+   RAISE EXCEPTION 'La modalidad Liga se juega por ahora a una sola rueda.' USING ERRCODE='22023';
  END IF;
  SELECT * INTO v_t FROM public.bp_tournaments
  WHERE id=p_tournament_id FOR UPDATE;
  IF NOT FOUND OR v_t.format<>'league' THEN
    RAISE EXCEPTION 'La competencia no es una Liga.' USING ERRCODE='23514';
  END IF;
- IF v_t.status NOT IN ('registration_closed','in_progress') THEN
-   RAISE EXCEPTION 'Cerrá primero las inscripciones de la Liga.' USING ERRCODE='23514';
- END IF;
+
  IF EXISTS(SELECT 1 FROM public.bp_league_settings WHERE tournament_id=p_tournament_id)
     OR EXISTS(SELECT 1 FROM public.bp_league_matches WHERE tournament_id=p_tournament_id) THEN
    RAISE EXCEPTION 'El fixture ya existe. No se regenera para conservar resultados y programación.' USING ERRCODE='23514';
  END IF;
- SELECT array_agg(id ORDER BY created_at,id),count(*)
- INTO v_ids,v_count FROM public.bp_tournament_pairs
- WHERE tournament_id=p_tournament_id AND status='approved';
+ SELECT array_agg(id ORDER BY draw_key),count(*)
+ INTO v_ids,v_count FROM (
+   SELECT id,random() AS draw_key FROM public.bp_tournament_pairs
+   WHERE tournament_id=p_tournament_id AND status='approved'
+ ) AS draw;
  IF EXISTS(SELECT 1 FROM public.bp_tournament_pairs
      WHERE tournament_id=p_tournament_id AND status='pending') THEN
    RAISE EXCEPTION 'Resolvé todas las solicitudes pendientes antes de generar la Liga.' USING ERRCODE='23514';
@@ -185,49 +187,39 @@ BEGIN
  IF v_count<2 OR v_count>64 THEN
    RAISE EXCEPTION 'Una Liga admite entre 2 y 64 parejas aprobadas.' USING ERRCODE='23514';
  END IF;
+ IF NOT (v_t.status IN ('registration_closed','in_progress')
+    OR (v_t.status='registration_open' AND v_t.max_pairs=v_count)) THEN
+   RAISE EXCEPTION 'Cerrá las inscripciones o completá el cupo aprobado para sortear.' USING ERRCODE='23514';
+ END IF;
+ IF v_t.status='registration_open' AND v_t.max_pairs=v_count THEN
+   UPDATE public.bp_tournaments SET status='registration_closed',updated_at=now()
+   WHERE id=p_tournament_id;
+ END IF;
  IF v_count%2=1 THEN v_ids:=array_append(v_ids,NULL::uuid); END IF;
  v_size:=array_length(v_ids,1);
  INSERT INTO public.bp_league_settings(tournament_id,legs)
  VALUES (p_tournament_id,p_legs);
- FOR v_leg IN 1..p_legs LOOP
-   -- La rotación reinicia cada rueda para reproducir rivales de ida y vuelta.
-   IF v_leg=2 THEN
-     SELECT array_agg(id ORDER BY created_at,id) INTO v_ids FROM public.bp_tournament_pairs
-     WHERE tournament_id=p_tournament_id AND status='approved';
-     IF v_count%2=1 THEN v_ids:=array_append(v_ids,NULL::uuid); END IF;
-   END IF;
-   FOR v_round IN 1..(v_size-1) LOOP
-     v_slot:=0;
-     FOR v_i IN 1..(v_size/2) LOOP
-       v_pair1:=v_ids[v_i];
-       v_pair2:=v_ids[v_size-v_i+1];
-       IF v_pair1 IS NOT NULL AND v_pair2 IS NOT NULL THEN
-         v_slot:=v_slot+1;
-         IF v_leg=2 THEN
-           INSERT INTO public.bp_league_matches(
-             tournament_id,leg,round_number,match_number,pair1_id,pair2_id
-           ) VALUES (
-             p_tournament_id,v_leg,(v_size-1)+v_round,v_slot,
-             CASE WHEN v_round%2=0 THEN v_pair1 ELSE v_pair2 END,
-             CASE WHEN v_round%2=0 THEN v_pair2 ELSE v_pair1 END
-           );
-         ELSE
-           INSERT INTO public.bp_league_matches(
-             tournament_id,leg,round_number,match_number,pair1_id,pair2_id
-           ) VALUES (
-             p_tournament_id,v_leg,v_round,v_slot,
-             CASE WHEN v_round%2=0 THEN v_pair2 ELSE v_pair1 END,
-             CASE WHEN v_round%2=0 THEN v_pair1 ELSE v_pair2 END
-           );
-         END IF;
-         v_inserted:=v_inserted+1;
-       END IF;
-     END LOOP;
-     v_ids:=ARRAY[v_ids[1]] || ARRAY[v_ids[v_size]] || v_ids[2:v_size-1];
+ -- El sorteo crea TODOS los cruces de una rueda, pero ninguna Fecha.
+ -- Los agrupa Martín posteriormente, con días y horas independientes.
+ FOR v_round IN 1..(v_size-1) LOOP
+   FOR v_i IN 1..(v_size/2) LOOP
+     v_pair1:=v_ids[v_i];
+     v_pair2:=v_ids[v_size-v_i+1];
+     IF v_pair1 IS NOT NULL AND v_pair2 IS NOT NULL THEN
+       v_inserted:=v_inserted+1;
+       INSERT INTO public.bp_league_matches(
+         tournament_id,leg,round_number,match_number,pair1_id,pair2_id
+       ) VALUES (
+         p_tournament_id,1,NULL,v_inserted,
+         CASE WHEN v_round%2=0 THEN v_pair2 ELSE v_pair1 END,
+         CASE WHEN v_round%2=0 THEN v_pair1 ELSE v_pair2 END
+       );
+     END IF;
    END LOOP;
+   v_ids:=ARRAY[v_ids[1]] || ARRAY[v_ids[v_size]] || v_ids[2:v_size-1];
  END LOOP;
- RETURN jsonb_build_object('tournament_id',p_tournament_id,'legs',p_legs,
-   'pairs',v_count,'matches',v_inserted,'rounds',(v_size-1)*p_legs);
+ RETURN jsonb_build_object('tournament_id',p_tournament_id,'legs',1,
+   'pairs',v_count,'matches',v_inserted,'rounds_assigned',0);
 END;
 $league$;
 
