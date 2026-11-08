@@ -1,6 +1,6 @@
 /* Boulevard Pádel · Liga — motor deportivo puro (sin Supabase).
    Reglamento provisional hasta revisión de Martín:
-   - Una rueda por defecto, todos contra todos; opción ida/vuelta.
+   - Una única rueda, todos contra todos; las Fechas las organiza Martín.
    - 2 puntos al ganador, 1 al perdedor que ganó un set, 0 al perdedor 2-0.
    - Dos sets normales; con 1-1, súper tie-break a 10 (mín. 2 diferencia).
    - Tabla: puntos, diferencia de sets, sets a favor; después diferencia
@@ -19,32 +19,52 @@
   if(!classic||typeof classic.evaluateSets!=="function")
     throw Error("Falta el motor deportivo de Boulevard Pádel.");
 
+  // El sorteo arma todos los cruces de UNA sola rueda. La jornada
+  // deportiva no se asigna automáticamente; Martín elige Fecha 1, 2...
   function buildSchedule(pairIds,legs=1){
-    if(!Array.isArray(pairIds)||pairIds.length<2||pairIds.length>256||
-        ![1,2].includes(legs)||new Set(pairIds).size!==pairIds.length||
-        pairIds.some(x=>typeof x!=="string"||!x.trim()))
-      throw Error("Para crear una Liga elegí de 2 a 256 parejas distintas y una o dos ruedas.");
-    const roster=pairIds.slice();
-    if(roster.length%2)roster.push(null);
-    const n=roster.length,perLeg=n-1;
-    const first=[];
-    let current=roster.slice();
-    for(let round=1;round<=perLeg;round++){
-      const matches=[];
+    if(!Array.isArray(pairIds)||pairIds.length<2||pairIds.length>64||
+      legs!==1||new Set(pairIds).size!==pairIds.length||
+      pairIds.some(x=>typeof x!=="string"||!x.trim()))
+      throw Error("Para sortear la Liga elegí de 2 a 64 parejas y una sola rueda.");
+    const list=pairIds.slice();
+    if(list.length%2)list.push(null);
+    const n=list.length;
+    let current=list.slice();
+    const schedule=[];
+    for(let round=1;round<n;round++){
       for(let index=0;index<n/2;index++){
         const a=current[index],z=current[n-1-index];
-        if(a&&z)matches.push({pair1Id:round%2===0?z:a,
-          pair2Id:round%2===0?a:z,roundNumber:round,
-          leg:1,matchNumber:matches.length+1});
+        if(a&&z){
+          schedule.push({
+            pair1Id:round%2===0?z:a,
+            pair2Id:round%2===0?a:z,
+            roundNumber:null,
+            leg:1,
+            matchNumber:schedule.length+1
+          });
+        }
       }
-      first.push(matches);
       current=[current[0],current[n-1],...current.slice(1,n-1)];
     }
-    const second=legs===2?first.map(round=>round.map(m=>({
-      ...m,leg:2,roundNumber:m.roundNumber+perLeg,
-      pair1Id:m.pair2Id,pair2Id:m.pair1Id
-    }))):[];
-    return [...first,...second].flat();
+    return schedule;
+  }
+
+  // Validación inmediata UX. Supabase repite la misma regla al guardar,
+  // con bloqueo concurrente a nivel de torneo para evitar dos admins.
+  function validateRoundAssignment(matches,matchId,roundNumber){
+    if(!Array.isArray(matches))throw Error("Partidos inválidos.");
+    if(!Number.isInteger(roundNumber)||roundNumber<1||roundNumber>999)
+      throw Error("La Fecha debe ser un número entre 1 y 999.");
+    const target=matches.find(m=>m.id===matchId);
+    if(!target)throw Error("No se encontró el partido.");
+    const a=target.pair1_id||target.pair1Id,b=target.pair2_id||target.pair2Id;
+    if(!a||!b||a===b)throw Error("Parejas inválidas para programar.");
+    const others=matches.filter(m=>m.id!==matchId&&m.round_number===roundNumber);
+    const count=id=>others.filter(m=>(m.pair1_id||m.pair1Id)===id||
+        (m.pair2_id||m.pair2Id)===id).length;
+    if(count(a)>=2||count(b)>=2)
+      throw Error("Una pareja no puede jugar más de dos partidos en la misma Fecha.");
+    return true;
   }
 
   function analyzeScore(sets){
@@ -104,5 +124,5 @@
       !(result[0].tied)&&result[0].won>=0?result[0].pairId:null;
     return {rows:result,played,total:matches.length,complete,champion};
   }
-  return Object.freeze({buildSchedule,analyzeScore,standings});
+  return Object.freeze({buildSchedule,validateRoundAssignment,analyzeScore,standings});
 });
