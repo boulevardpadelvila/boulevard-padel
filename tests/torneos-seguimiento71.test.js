@@ -46,13 +46,22 @@ class Element {
   constructor(tag="div") {
     this.tag=tag; this.children=[];this.textContent="";this.className="";
     this.dataset={};this.attributes={};this.style={};
-    this.classList={toggle(){},add:(className)=>{this.className += " "+className;}};
+    this.classList={
+      toggle:(name,enabled)=>{
+        const names=new Set(this.className.split(/\s+/).filter(Boolean));
+        const active=enabled===undefined?!names.has(name):enabled;
+        if(active)names.add(name);else names.delete(name);
+        this.className=[...names].join(" ");
+      },
+      add:(name)=>{this.className += " "+name;}
+    };
   }
   append(...nodes){this.children.push(...nodes);}
   prepend(...nodes){this.children.unshift(...nodes);}
   replaceChildren(...nodes){this.children=[...nodes];}
   addEventListener(event,callback){this.handlers ||= {};this.handlers[event]=callback;}
   setAttribute(k,v){this.attributes[k]=v;}
+  removeAttribute(k){delete this.attributes[k];}
   focus(){}
   showModal(){}
   close(){}
@@ -357,4 +366,138 @@ test("Parche 77: tablas públicas replican el diseño Admin y admiten hasta 3 gr
   // No se cambia ningún cálculo de puntaje ni el cuadro eliminatorio.
   assert.match(js,/winner\.won\+\+; winner\.points \+= 3/);
   assert.match(js,/knockout\.append\(podium\)/);
+});
+
+test("Parche 79: nombres por torneo, contenido exclusivo y memoria de ambas categorías", async()=>{
+  const byId=new Map();
+  const get=(id)=>{
+    if(!byId.has(id))byId.set(id,new Element());
+    return byId.get(id);
+  };
+  const currentTab=new Element("button"); currentTab.id="public-tournaments-current-tab"; currentTab.dataset.tournamentTab="current";
+  const finishedTab=new Element("button"); finishedTab.id="public-tournaments-finished-tab"; finishedTab.dataset.tournamentTab="finished";
+  const doc={
+    getElementById:get,
+    createElement(tag){return new Element(tag);},
+    createElementNS(_ns,tag){return new Element(tag);},
+    createTextNode(value){const e=new Element("#text");e.textContent=String(value);return e;},
+    querySelectorAll(q){return q==="[data-tournament-tab]"?[currentTab,finishedTab]:[];}
+  };
+  const tournaments=[
+    {id:"v1",name:"Torneo Apertura",status:"registration_closed",starts_on:"2027-03-01",ends_on:"2027-03-04"},
+    {id:"v2",name:"Copa Boulevard con nombre bastante largo",status:"in_progress",starts_on:"2027-03-05",ends_on:"2027-03-10"},
+    {id:"v3",name:"Torneo Primavera",status:"registration_open",starts_on:"2027-03-11",ends_on:"2027-03-14"},
+    {id:"f1",name:"Copa Norte Seguros",status:"completed",starts_on:"2027-02-01",ends_on:"2027-02-05"},
+    {id:"f2",name:"Torneo Aniversario",status:"completed",starts_on:"2027-02-09",ends_on:"2027-02-12"}
+  ].map(t=>({...t,format:"groups_knockout",bp_tournament_categories:{name:"Cat "+t.id}}));
+  const groups=tournaments.map(t=>({
+    tournament_id:t.id,group_number:1,
+    player1_name:"Jugador de "+t.id,player2_name:"Pareja de "+t.id
+  }));
+  const fixtures=tournaments.map(t=>({
+    tournament_id:t.id,group_number:1,round_number:1,match_number:1,
+    pair1_player1_name:"Jugador de "+t.id,pair1_player2_name:"Pareja de "+t.id,
+    pair2_player1_name:"Rival de "+t.id,pair2_player2_name:"Compañero de "+t.id,
+    schedule_status:"scheduled",scheduled_at:"2027-03-05T21:00:00Z"
+  }));
+  const rpcCalls=[];
+  const supabaseClient={
+    from(table){
+      return {
+        select(){return this;},eq(){return this;},order(){return this;},
+        in(){return this;},
+        limit(){return Promise.resolve({data:tournaments,error:null});},
+        range(){return Promise.resolve({
+          data:table==="bp_public_tournament_groups"?groups:fixtures,error:null
+        });}
+      };
+    },
+    rpc(name,args){
+      assert.equal(name,"bp_public_tournament_followup");
+      rpcCalls.push(args.p_tournament_id);
+      return Promise.resolve({
+        data:{tournament_id:args.p_tournament_id,groups:[],group_matches:[],knockout:null},
+        error:null
+      });
+    }
+  };
+  vm.runInNewContext(js,{
+    document:doc,window:{},supabaseClient,Intl,Date,Map,Number,
+    console:{error(){},log(){}},setTimeout,clearTimeout
+  });
+  await new Promise(resolve=>setTimeout(resolve,25));
+
+  const nav=get("public-tournament-selector");
+  const panel=get("public-tournaments-list");
+  assert.equal(get("public-current-count").textContent,"3");
+  assert.equal(get("public-finished-count").textContent,"2");
+  assert.equal(nav.children.length,3);
+  assert.deepEqual(nav.children.map(x=>collect(x)),
+    ["Torneo Apertura","Copa Boulevard con nombre bastante largo","Torneo Primavera"]);
+  assert.equal(nav.hidden,false);
+  assert.equal(nav.children[0].attributes["aria-selected"],"true");
+  assert.equal(nav.children[0].attributes["aria-controls"],"public-tournaments-list");
+  assert.equal(nav.children[1].title,tournaments[1].name);
+  assert.equal(nav.children[1].attributes["aria-label"],tournaments[1].name);
+  function onlyThis(id,otherIds){
+    const content=collect(panel);
+    assert.match(content,new RegExp("Jugador de "+id));
+    assert.match(content,new RegExp("Cat "+id));
+    for(const other of otherIds){
+      assert.doesNotMatch(content,new RegExp("Jugador de "+other));
+      assert.doesNotMatch(content,new RegExp("Cat "+other));
+    }
+  }
+  onlyThis("v1",["v2","v3","f1","f2"]);
+  nav.children[1].handlers.click();
+  onlyThis("v2",["v1","v3","f1","f2"]);
+  assert.equal(nav.children[1].attributes["aria-selected"],"true");
+  assert.equal(nav.children[0].attributes["aria-selected"],"false");
+  assert.equal(nav.children[1].tabIndex,0);
+  assert.equal(nav.children[0].tabIndex,-1);
+  assert.equal(panel.attributes["aria-labelledby"],"public-tournament-select-v2");
+
+  finishedTab.handlers.click();
+  assert.equal(nav.children.length,2);
+  assert.deepEqual(nav.children.map(collect),["Copa Norte Seguros","Torneo Aniversario"]);
+  onlyThis("f1",["v1","v2","v3","f2"]);
+  nav.children[1].handlers.click();
+  onlyThis("f2",["v1","v2","v3","f1"]);
+
+  currentTab.handlers.click();
+  assert.equal(nav.children.length,3);
+  onlyThis("v2",["v1","v3","f1","f2"]);
+  let prevented=false;
+  nav.children[1].handlers.keydown({
+    key:"ArrowRight", preventDefault(){prevented=true;}
+  });
+  assert.equal(prevented,true);
+  onlyThis("v3",["v1","v2","f1","f2"]);
+
+  finishedTab.handlers.click();
+  onlyThis("f2",["v1","v2","v3","f1"]);
+  assert.equal(rpcCalls.length,5);
+});
+
+test("Parche 79: tamaños uniformes, navegación desplazable y atributos accesibles",()=>{
+  const layout=read("css/torneos-solapas79.css");
+  const html=read("index.html");
+  assert.match(html,/id="public-tournament-selector"/);
+  assert.match(html,/aria-label="Seleccioná un torneo"/);
+  assert.match(html,/href="css\/torneos-solapas79.css"/);
+  assert.ok(html.indexOf('href="css/torneos-solapas79.css"')>
+    html.indexOf('href="css/torneos-tema78.css"'));
+  assert.match(layout,/grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)/);
+  assert.match(layout,/\.public-tournaments__tabs > \.public-tournaments__tab\s*\{[^}]*height:\s*56px/s);
+  assert.match(layout,/\.public-tournament-selector__tab\s*\{[^}]*width:\s*234px;[^}]*min-width:\s*234px;[^}]*max-width:\s*234px;[^}]*height:\s*72px;[^}]*min-height:\s*72px;[^}]*max-height:\s*72px/s);
+  assert.match(layout,/overflow-x:\s*auto/);
+  assert.match(layout,/\.public-tournament-selector\[hidden\]\s*\{\s*display:\s*none/);
+  assert.match(layout,/@media \(max-width: 640px\)/);
+  assert.match(layout,/width:\s*188px;\s*min-width:\s*188px;\s*max-width:\s*188px/);
+  assert.match(js,/const selectedTournamentByTab = \{ current: null, finished: null \}/);
+  assert.match(js,/selectedTournamentByTab\[currentTab\] = tournament.id/);
+  assert.match(js,/button.setAttribute\("aria-selected", String\(active\)\)/);
+  assert.match(js,/case "ArrowRight"/);
+  assert.match(js,/case "ArrowLeft"/);
+  assert.match(js,/list.replaceChildren\(cardFor\(tournament\)\)/);
 });
