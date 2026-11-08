@@ -1,7 +1,7 @@
 -- Boulevard Pádel · SQL 80 · Cuatro clasificadas y semifinales directas
--- PREPARADA EN DESARROLLO, NO APLICADA. Requiere autorización por separado.
--- DEFINITIVA: SÍ conservar en GitHub/SQL Editor una vez aprobada y aplicada.
--- NO ejecutarla manualmente dos veces.
+-- APLICADA EN SUPABASE 08/11/2026 por migración bp_knockout_four_semifinals_80.
+-- DEFINITIVA: SÍ conservar como respaldo en GitHub; SQL Editor manual opcional.
+-- IMPORTANTE: NO VOLVER A EJECUTARLA; la instalación ya fue confirmada.
 -- Cambios acotados al cuadro eliminatorio: NO elimina torneos, reservas,
 -- resultados, bloqueos, categorías, jugadores ni inscripciones.
 -- Conserva sin migrar ni regenerar los cuadros históricos de 7 clasificados.
