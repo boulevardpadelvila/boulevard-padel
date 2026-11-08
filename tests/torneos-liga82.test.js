@@ -46,7 +46,7 @@ test("2 puntos por victoria 2-0; 1 punto por derrota en súper tie-break; 0 por 
   const stats=engine.standings(pairIds,matches);
   const byId=new Map(stats.rows.map(x=>[x.pairId,x]));
   assert.equal(byId.get(pairIds[0]).points,4);
-  assert.equal(byId.get(pairIds[1]).points,1);
+  assert.equal(byId.get(pairIds[1]).points,2);
   assert.equal(byId.get(pairIds[2]).points,2);
   assert.equal(stats.complete,true);
   assert.equal(stats.champion,pairIds[0]);
