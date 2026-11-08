@@ -374,6 +374,8 @@
           let p1 = null, p2 = null, fallback1 = "A definir", fallback2 = "A definir";
           if (stage === "quarterfinal") {
             [p1,p2] = bracket.quarterfinals?.[m.slot-1] || [null,null];
+          } else if (stage === "semifinal" && Array.isArray(bracket.semifinals)) {
+            [p1,p2] = bracket.semifinals[m.slot-1] || [null,null];
           } else if (stage === "semifinal" && m.slot === 1) {
             p1 = bracket.direct_semifinal_pair_id; p2 = winner("quarterfinal",1);
             fallback2 = "Ganador de Cuartos 1";
