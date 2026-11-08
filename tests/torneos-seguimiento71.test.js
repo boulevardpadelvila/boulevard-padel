@@ -10,6 +10,7 @@ const read = (p) => fs.readFileSync(path.join(root,p),"utf8");
 const sql = read("sql/SQL_71_SEGUIMIENTO_PUBLICO_TORNEOS.sql");
 const js = read("js/torneos-public.js");
 const css = read("css/torneos-public.css");
+const fixtureCss = read("css/torneos-fechas60.css");
 
 test("SQL 71: solo lectura y solo torneos publicados", () => {
   assert.match(sql,/CREATE OR REPLACE FUNCTION public\.bp_public_tournament_followup/);
@@ -45,7 +46,7 @@ class Element {
   constructor(tag="div") {
     this.tag=tag; this.children=[];this.textContent="";this.className="";
     this.dataset={};this.attributes={};this.style={};
-    this.classList={toggle(){}};
+    this.classList={toggle(){},add:(className)=>{this.className += " "+className;}};
   }
   append(...nodes){this.children.push(...nodes);}
   prepend(...nodes){this.children.unshift(...nodes);}
@@ -113,10 +114,21 @@ test("La interfaz dibuja tabla real, resultados, campeón y subcampeón sin escr
     bp_tournament_categories:{name:"Suma 14"}
   };
   const groups=[{tournament_id:"torneo-test",group_number:1,player1_name:"Jugador a",player2_name:"Compañero a"}];
-  const fixtures=[{tournament_id:"torneo-test",group_number:1,round_number:1,match_number:1,
+  const makeFixture=(round_number,scheduled_at,schedule_status="scheduled")=>({
+    tournament_id:"torneo-test",group_number:1,round_number,match_number:1,
     pair1_player1_name:"Jugador a",pair1_player2_name:"Compañero a",
     pair2_player1_name:"Jugador b",pair2_player2_name:"Compañero b",
-    schedule_status:"scheduled",scheduled_at:"2027-03-05T21:00:00Z"}];
+    schedule_status,scheduled_at
+  });
+  // Cinco partidos: dos de la misma fecha LOCAL (horas desordenadas),
+  // 6 y 7 de marzo, y uno postergado sin programación.
+  const fixtures=[
+    makeFixture(1,"2027-03-06T01:00:00Z"), // 05/03 22:00 ARG
+    makeFixture(2,"2027-03-05T21:00:00Z"), // 05/03 18:00 ARG
+    makeFixture(3,"2027-03-06T21:00:00Z"), // 06/03 18:00 ARG
+    makeFixture(4,"2027-03-07T21:00:00Z"), // 07/03 18:00 ARG
+    makeFixture(5,null,"postponed")
+  ];
   const calls=[];
   const db={
     from(table){
@@ -172,6 +184,22 @@ test("La interfaz dibuja tabla real, resultados, campeón y subcampeón sin escr
     ...(el.className?.split(" ").includes(cls)?[el]:[]),
     ...(el.children||[]).flatMap((child)=>seek(child,cls))
   ];
+  const program= openers.find((el)=>el.className==="public-tournament-fixture");
+  assert.ok(program);
+  assert.match(collect(program),/Programación de partidos · 5 partidos/);
+  const scheduledDays=seek(program,"public-tournament-fixture__calendar-block");
+  assert.equal(scheduledDays.length,4);
+  assert.deepEqual(scheduledDays.map((day)=>day.children[0].textContent),
+    ["05/03/2027","06/03/2027","07/03/2027","Sin programar"]);
+  const firstDay=seek(scheduledDays[0],"public-tournament-fixture__match");
+  assert.equal(firstDay.length,2);
+  assert.match(collect(firstDay[0]),/Hora: 18:00/);
+  assert.match(collect(firstDay[1]),/Hora: 22:00/);
+  assert.match(collect(scheduledDays[3]),/Postergado · A reprogramar/);
+  assert.equal(seek(program,"public-tournament-fixture__score").length,0);
+  assert.equal(seek(program,"public-tournament-fixture__winner").length,0);
+  assert.doesNotMatch(collect(program),/Ganó |6-4|7-5|6-3/);
+  assert.match(collect(group),/Ganó/); // Los marcadores sí siguen en Seguimiento.
   const dayColumns=seek(group,"public-tournament-day");
   assert.equal(dayColumns.length,3);
   assert.deepEqual(dayColumns.map((col)=>col.children[0].textContent),
@@ -282,4 +310,26 @@ test("Parche 75: agrupar por fecha local de Argentina incluso al cruzar medianoc
   // Las tablas de posiciones y las eliminatorias siguen presentes sin cambios.
   assert.match(js,/const standingsGrid = make\("div","public-tournament-standings-grid"\)/);
   assert.match(js,/function knockoutBlock\(t\)/);
+});
+
+test("Parche 76: programación de partidos por fecha en 3 columnas, sin resultados",()=>{
+  const begin=js.indexOf("  function publishedFixtureBlock(t) {");
+  const end=js.indexOf("  function cardFor(t) {",begin);
+  assert.ok(begin>0 && end>begin);
+  const program=js.slice(begin,end);
+  assert.match(program,/Programación de partidos/);
+  assert.match(program,/tournamentMatchDay\(match.scheduled_at\)/);
+  assert.match(program,/\.matches\.push\(\{ match, time:/);
+  assert.match(program,/day\.matches\.sort/);
+  assert.match(program,/public-tournament-fixture__calendar-block/);
+  assert.match(program,/public-tournament-fixture__date-meta/);
+  assert.doesNotMatch(program,/publicScore|winner_pair_id|public-tournament-fixture__score|public-tournament-fixture__winner/);
+  assert.match(fixtureCss,/\.public-tournament-fixture\s*\{\s*container-type:\s*inline-size/);
+  assert.match(fixtureCss,/\.public-tournament-fixture__body\s*\{[^}]*grid-template-columns:\s*repeat\(3, minmax\(0, 1fr\)\)/s);
+  assert.match(fixtureCss,/@container \(max-width: 810px\)/);
+  assert.match(fixtureCss,/@container \(max-width: 530px\)/);
+  assert.match(fixtureCss,/\.public-tournament-fixture__calendar-grid\s*\{\s*grid-template-columns:\s*minmax\(0, 1fr\)/);
+  assert.match(js,/const standingsGrid = make\("div","public-tournament-standings-grid"\)/);
+  assert.match(js,/function knockoutBlock\(t\)/);
+  assert.match(js,/knockout\.append\(podium\)/);
 });
