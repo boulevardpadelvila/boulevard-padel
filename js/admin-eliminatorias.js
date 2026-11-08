@@ -296,7 +296,7 @@
     content.append(el("h3","Semifinales · 2 partidos"));
     if (!validFour(semifinals,list))
       semifinals = motor.planFourKnockout(list).semifinals;
-    const grid = el("div",null,"bp-ko-grid");
+    const grid = el("div",null,"bp-ko-grid bp-ko-grid--four");
     for (let i=0;i<semifinals.length;i++) {
       const card=el("article",null,"bp-ko-match");
       card.append(el("strong","Semifinal "+(i+1)));
