@@ -109,3 +109,51 @@ test("SQL80 valida cuatro sin alterar la protección histórica de siete y sin b
   assert.doesNotMatch(sql,/TRUNCATE\s+public\./i);
   assert.ok(!sql.includes("DROP TRIGGER"));
 });
+
+test("El cálculo real del Admin clasifica 2+2 por A3 y puntos del grupo de 3",()=>{
+  const admin=read("js/admin-eliminatorias.js");
+  const start=admin.indexOf("  function standings(members, matches, allResults) {");
+  const end=admin.indexOf("  function valid(qs, bye, list) {",start);
+  assert.ok(start>0&&end>start);
+  const funcs=admin.slice(start,end); // incluye qualifiersFour y la rutina legacy
+  const calculate=new Function("motor",
+    'const letter=(n)=>String.fromCharCode(64+Number(n));'+
+    funcs+'; return qualifiersFour;')(motor);
+  const groups=[{id:"ga",group_number:1},{id:"gb",group_number:2}];
+  const assignments=[
+    ...["a","b","c","d"].map(pair_id=>({group_id:"ga",pair_id})),
+    ...["e","f","g"].map(pair_id=>({group_id:"gb",pair_id}))
+  ];
+  const match=(id,group_id,round_number,match_number,pair1_id,pair2_id)=>({
+    id,group_id,round_number,match_number,pair1_id,pair2_id,match_status:"played"
+  });
+  const matches=[
+    match("mA1","ga",1,1,"a","b"),
+    match("mA2","ga",1,2,"c","d"),
+    match("mA3","ga",2,1,null,null),
+    match("mA4","ga",2,2,null,null),
+    match("mB1","gb",1,1,"e","f"),
+    match("mB2","gb",2,1,"e","g"),
+    match("mB3","gb",3,1,"f","g")
+  ];
+  const result=(match_id,group_id,p1,p2,sets)=>({
+    match_id,group_id,resolved_pair1_id:p1,resolved_pair2_id:p2,
+    sets,score_format:"legacy"
+  });
+  const results=[
+    result("mA1","ga","a","b",win1.sets),
+    result("mA2","ga","c","d",win1.sets),
+    result("mA3","ga","a","c",win2.sets),
+    result("mA4","ga","b","d",win2.sets),
+    result("mB1","gb","e","f",win1.sets),
+    result("mB2","gb","e","g",win1.sets),
+    result("mB3","gb","f","g",win1.sets)
+  ];
+  const list=calculate({groups,assignments,matches,results});
+  assert.deepEqual(list.map(x=>[x.pairId,x.groupNumber,x.rank]),
+    [["c",1,1],["a",1,2],["e",2,1],["f",2,2]]);
+  assert.deepEqual(motor.planFourKnockout(list).semifinals,
+    [["c","f"],["e","a"]]);
+  assert.throws(()=>calculate({groups,assignments,matches,
+    results:results.slice(0,6)}),/completá|complet/i);
+});
