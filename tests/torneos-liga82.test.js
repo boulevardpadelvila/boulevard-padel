@@ -15,26 +15,26 @@ test("Una rueda: todas las parejas se enfrentan una sola vez",()=>{
     assert.equal(schedule.length,n*(n-1)/2);
     const pairs=new Set(schedule.map(m=>[m.pair1Id,m.pair2Id].sort().join("|")));
     assert.equal(pairs.size,schedule.length);
-    assert.equal(Math.max(...schedule.map(m=>m.roundNumber)),n%2?n:n-1);
-    const byDay=new Map();
-    for(const m of schedule){
-      if(!byDay.has(m.roundNumber))byDay.set(m.roundNumber,new Set());
-      const used=byDay.get(m.roundNumber);
-      assert.ok(!used.has(m.pair1Id) && !used.has(m.pair2Id));
-      used.add(m.pair1Id);used.add(m.pair2Id);
-    }
+    assert.ok(schedule.every(m=>m.roundNumber===null&&m.leg===1));
+    assert.deepEqual(schedule.map(m=>m.matchNumber),Array.from({length:schedule.length},(_,i)=>i+1));
   }
 });
-test("Ida y vuelta: invierte las parejas sin repetir rivales dentro de cada rueda",()=>{
-  const matches=engine.buildSchedule(ids(5),2);
-  assert.equal(matches.length,20);
-  assert.equal(new Set(matches.map(m=>m.roundNumber)).size,10);
-  const forward=matches.filter(m=>m.leg===1);
-  const backward=matches.filter(m=>m.leg===2);
-  for(let i=0;i<forward.length;i++){
-    assert.equal(forward[i].pair1Id,backward[i].pair2Id);
-    assert.equal(forward[i].pair2Id,backward[i].pair1Id);
-  }
+test("Por ahora solo una rueda: no se admite ida y vuelta",()=>{
+  assert.throws(()=>engine.buildSchedule(ids(5),2),/sola rueda/);
+});
+test("Fecha N la decide Martín; máximo dos partidos por pareja",()=>{
+  const matches=[
+    {id:"a",pair1_id:"A",pair2_id:"B",round_number:1},
+    {id:"b",pair1_id:"A",pair2_id:"C",round_number:1},
+    {id:"c",pair1_id:"A",pair2_id:"D",round_number:null},
+    {id:"d",pair1_id:"E",pair2_id:"F",round_number:1}
+  ];
+  assert.equal(engine.validateRoundAssignment(matches,"c",2),true);
+  assert.throws(()=>engine.validateRoundAssignment(matches,"c",1),/dos partidos/);
+  assert.equal(engine.validateRoundAssignment(matches,"b",1),true); // no cuenta dos veces el actual
+  assert.throws(()=>engine.validateRoundAssignment(matches,"c",0),/Fecha/);
+  assert.throws(()=>engine.validateRoundAssignment(matches,"c",1000),/Fecha/);
+  assert.throws(()=>engine.validateRoundAssignment(matches,"x",3),/no se encontró/);
 });
 test("2 puntos por victoria 2-0; 1 punto por derrota en súper tie-break; 0 por 2-0",()=>{
   const pairIds=ids(3);
@@ -78,7 +78,7 @@ test("Liga incompleta no declara campeones, tampoco empate total al terminar",()
   assert.equal(a.champion,null);
   assert.ok(a.rows.every(p=>p.tied));
 });
-test("No acepta parejas duplicadas o más de dos ruedas",()=>{
+test("No acepta parejas duplicadas ni varias ruedas",()=>{
   assert.throws(()=>engine.buildSchedule(["a","a"]));
   assert.throws(()=>engine.buildSchedule(["a"],1));
   assert.throws(()=>engine.buildSchedule(["a","b"],3));
