@@ -51,7 +51,7 @@ CREATE TABLE IF NOT EXISTS public.bp_league_matches (
  CONSTRAINT bp_league_round_slot_unique UNIQUE(tournament_id,round_number,match_number),
  CONSTRAINT bp_league_schedule_consistency CHECK (
   (schedule_status='scheduled' AND scheduled_at IS NOT NULL
-     AND scheduled_ends_at>scheduled_at)
+     AND scheduled_ends_at IS NOT NULL AND scheduled_ends_at>scheduled_at)
   OR (schedule_status<>'scheduled' AND scheduled_at IS NULL
      AND scheduled_ends_at IS NULL)
  ),
@@ -178,6 +178,10 @@ BEGIN
  SELECT array_agg(id ORDER BY created_at,id),count(*)
  INTO v_ids,v_count FROM public.bp_tournament_pairs
  WHERE tournament_id=p_tournament_id AND status='approved';
+ IF EXISTS(SELECT 1 FROM public.bp_tournament_pairs
+     WHERE tournament_id=p_tournament_id AND status='pending') THEN
+   RAISE EXCEPTION 'Resolvé todas las solicitudes pendientes antes de generar la Liga.' USING ERRCODE='23514';
+ END IF;
  IF v_count<2 OR v_count>64 THEN
    RAISE EXCEPTION 'Una Liga admite entre 2 y 64 parejas aprobadas.' USING ERRCODE='23514';
  END IF;
