@@ -109,7 +109,7 @@ Deno.serve(async (req) => {
     });
     const { data: competition, error: competitionError } = await db
       .from("bp_tournaments")
-      .select("id,status,is_published,max_pairs,ends_on,registration_closes_at")
+      .select("id,format,status,is_published,max_pairs,ends_on,registration_closes_at")
       .eq("id", tournamentId)
       .maybeSingle();
     if (competitionError) throw competitionError;
@@ -132,7 +132,7 @@ Deno.serve(async (req) => {
       !competition ||
       !competition.is_published ||
       competition.status !== "registration_open" ||
-      competition.ends_on < argentinaToday ||
+      (competition.format !== "league" && competition.ends_on < argentinaToday) ||
       (closingTimestamp !== null &&
         (!Number.isFinite(closingTimestamp) || Date.now() >= closingTimestamp))
     )
