@@ -15,6 +15,8 @@
   let loading = false;
   let tournamentsCache = [];
   let currentTab = "current";
+  // Cada categoría recuerda el torneo elegido cuando se alternan las pestañas.
+  const selectedTournamentByTab = { current: null, finished: null };
   /* BVPadel parche 28: grupos publicados en el sitio publico. */
   let publishedGroupsByTournament = new Map();
   /* BVPadel parche 41: fixture de grupos, solo mediante vista publica segura. */
@@ -712,28 +714,78 @@
     if (eliminatorias) card.append(eliminatorias);
     return card;
   }
+  // Parche 79: dos niveles de pestañas, sin repetir tarjetas de torneos.
+  // Cada solapa tiene el nombre completo del torneo; el CSS fija dimensiones
+  // iguales y desplazamiento horizontal para los nombres en móvil.
   function render() {
-    const currentReal = tournamentsCache.filter((t) => !isFinished(t));
-    const finishedReal = tournamentsCache.filter(isFinished);
-    const current = currentReal;
-    const finished = finishedReal;
+    const current = tournamentsCache.filter((t) => !isFinished(t));
+    const finished = tournamentsCache.filter(isFinished);
     $("public-current-count").textContent = String(current.length);
     $("public-finished-count").textContent = String(finished.length);
+
     const selected = currentTab === "finished" ? finished : current;
+    const selector = $("public-tournament-selector");
+    selector.replaceChildren();
     list.replaceChildren();
+
     if (!selected.length) {
-      list.append(
-        make(
-          "p",
-          "public-tournaments__empty",
-          currentTab === "finished"
-            ? "Todavía no hay competencias finalizadas publicadas."
-            : "Por ahora no hay competencias vigentes ni próximas.",
-        ),
-      );
+      selector.hidden = true;
+      list.removeAttribute("aria-labelledby");
+      list.append(make(
+        "p",
+        "public-tournaments__empty",
+        currentTab === "finished"
+          ? "Todavía no hay competencias finalizadas publicadas."
+          : "Por ahora no hay competencias vigentes ni próximas.",
+      ));
       return;
     }
-    selected.forEach((t) => list.append(cardFor(t)));
+    selector.hidden = false;
+
+    // La selección depende del ID real, nunca del índice ni del nombre.
+    const chosen = selected.find((t) => t.id === selectedTournamentByTab[currentTab]) || selected[0];
+    const tabs = [];
+    function selectTournament(tournament) {
+      selectedTournamentByTab[currentTab] = tournament.id;
+      for (const { button, tournament: item } of tabs) {
+        const active = item.id === tournament.id;
+        button.classList.toggle("is-active", active);
+        button.setAttribute("aria-selected", String(active));
+        button.tabIndex = active ? 0 : -1;
+      }
+      list.setAttribute("aria-labelledby", `public-tournament-select-${tournament.id}`);
+      // Todas las secciones pertenecen al mismo ID del torneo seleccionado.
+      list.replaceChildren(cardFor(tournament));
+    }
+
+    for (const tournament of selected) {
+      const button = make("button", "public-tournament-selector__tab");
+      button.type = "button";
+      button.id = `public-tournament-select-${tournament.id}`;
+      button.title = tournament.name;
+      button.setAttribute("role", "tab");
+      button.setAttribute("aria-controls", "public-tournaments-list");
+      button.setAttribute("aria-label", tournament.name);
+      button.append(make("span", "public-tournament-selector__name", tournament.name));
+      tabs.push({ button, tournament });
+      selector.append(button);
+      button.addEventListener("click", () => selectTournament(tournament));
+      button.addEventListener("keydown", (event) => {
+        const position = tabs.findIndex((item) => item.tournament.id === tournament.id);
+        let next;
+        switch (event.key) {
+          case "ArrowRight": next = (position + 1) % tabs.length; break;
+          case "ArrowLeft": next = (position - 1 + tabs.length) % tabs.length; break;
+          case "Home": next = 0; break;
+          case "End": next = tabs.length - 1; break;
+          default: return;
+        }
+        event.preventDefault();
+        tabs[next].button.focus();
+        selectTournament(tabs[next].tournament);
+      });
+    }
+    selectTournament(chosen);
   }
   for (const tab of document.querySelectorAll("[data-tournament-tab]")) {
     tab.addEventListener("click", () => {

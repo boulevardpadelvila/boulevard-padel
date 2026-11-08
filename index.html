@@ -25,6 +25,7 @@
     <link rel="stylesheet" href="css/torneos-public.css" />
     <link rel="stylesheet" href="css/torneos-fechas60.css" />
     <link rel="stylesheet" href="css/torneos-tema78.css" />
+    <link rel="stylesheet" href="css/torneos-solapas79.css" />
     <link rel="stylesheet" href="css/indumentaria.css" />
     <link
       rel="icon"
@@ -330,8 +331,18 @@
             aria-labelledby="public-tournaments-current-tab"
           >
             <div
+              id="public-tournament-selector"
+              class="public-tournament-selector"
+              role="tablist"
+              aria-label="Seleccioná un torneo"
+              aria-orientation="horizontal"
+              hidden
+            ></div>
+            <div
               id="public-tournaments-list"
               class="public-tournaments__list"
+              role="tabpanel"
+              tabindex="0"
             ></div>
           </div>
           <p

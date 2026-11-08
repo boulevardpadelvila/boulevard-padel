@@ -1,0 +1,145 @@
+/* Boulevard Pádel · Parche 79
+   Jerarquía: Vigentes / Finalizados → nombre del torneo.
+   TODOS los botones de cada nivel comparten medidas exactas.
+   No modifica las tarjetas, las tablas ni los partidos. */
+
+/* Nivel 1: dos pestañas siempre iguales, con o sin cifras distintas. */
+.public-tournaments .public-tournaments__tabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: stretch;
+  gap: 10px;
+}
+.public-tournaments .public-tournaments__tabs > .public-tournaments__tab {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  height: 56px;
+  min-height: 56px;
+  max-height: 56px;
+  margin-bottom: 0;
+  padding: 7px 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  text-align: center;
+}
+.public-tournaments .public-tournaments__tabs .public-tournaments__count {
+  flex: 0 0 auto;
+  margin: 0;
+}
+
+/* Nivel 2: los N torneos son botones IGUALES, cualquiera sea el nombre. */
+.public-tournaments .public-tournament-selector {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  gap: 10px;
+  max-width: 100%;
+  min-width: 0;
+  padding: 2px 2px 14px;
+  margin: 0 0 12px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: #b7a06f transparent;
+  overscroll-behavior-x: contain;
+  scroll-padding-inline: 2px;
+  scroll-snap-type: x proximity;
+}
+.public-tournaments .public-tournament-selector[hidden] {
+  display: none;
+}
+.public-tournaments .public-tournament-selector__tab {
+  appearance: none;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 234px;
+  width: 234px;
+  min-width: 234px;
+  max-width: 234px;
+  height: 72px;
+  min-height: 72px;
+  max-height: 72px;
+  padding: 9px 13px;
+  border: 1px solid #c9b889;
+  border-bottom: 4px solid #a48335;
+  border-radius: 11px;
+  background: #fbfaf5;
+  color: #00432e;
+  font: inherit;
+  font-size: 0.89rem;
+  font-weight: 800;
+  line-height: 1.25;
+  text-align: center;
+  cursor: pointer;
+  scroll-snap-align: start;
+  transition: background-color 180ms ease, color 180ms ease;
+}
+.public-tournaments .public-tournament-selector__tab:hover:not(.is-active) {
+  background: #f3ecda;
+  border-color: #a48335;
+}
+.public-tournaments .public-tournament-selector__tab.is-active {
+  background: #00432e;
+  border-color: #00432e;
+  border-bottom-color: #c9a75a;
+  color: #fff;
+  box-shadow: 0 4px 10px rgba(0, 67, 46, 0.12);
+}
+.public-tournaments .public-tournament-selector__tab:focus-visible {
+  outline: 3px solid #a48335;
+  outline-offset: 3px;
+}
+.public-tournaments .public-tournament-selector__name {
+  min-width: 0;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  overflow-wrap: anywhere;
+}
+.public-tournaments .public-tournaments__list:focus-visible {
+  outline: 2px solid #a48335;
+  outline-offset: 3px;
+}
+/* En teléfonos siguen siendo todos iguales, pero con dimensiones adaptadas.
+   Las solapas adicionales se recorren deslizando horizontalmente. */
+@media (max-width: 640px) {
+  .public-tournaments .public-tournaments__tabs {
+    gap: 6px;
+  }
+  .public-tournaments .public-tournaments__tabs > .public-tournaments__tab {
+    height: 54px;
+    min-height: 54px;
+    max-height: 54px;
+    padding: 7px 5px;
+    font-size: 0.85rem;
+    gap: 4px;
+  }
+  .public-tournaments .public-tournament-selector {
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .public-tournaments .public-tournament-selector__tab {
+    flex-basis: 188px;
+    width: 188px;
+    min-width: 188px;
+    max-width: 188px;
+    height: 72px;
+    min-height: 72px;
+    max-height: 72px;
+    padding: 8px 10px;
+    font-size: 0.82rem;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .public-tournaments .public-tournament-selector__tab {
+    transition: none;
+  }
+}
