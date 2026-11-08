@@ -133,3 +133,44 @@ test("Confirmación para generar fixture usa diálogo del Admin, no confirmació
   assert.doesNotMatch(admin,/window\.confirm/);
   assert.match(css,/\.bp-league__dialog \.admin-save-dialog__actions/);
 });
+
+
+test("Modalidades visibles: Fase de grupos + eliminatorias y Liga, sin eliminación directa",()=>{
+  const select=html.match(/<select id="torneo-format">([\s\S]*?)<\/select>/);
+  assert.ok(select,"El selector de modalidad sigue visible");
+  assert.match(select[1],/value="groups_knockout"/);
+  assert.match(select[1],/value="league">Liga<\/option>/);
+  assert.doesNotMatch(select[1],/value="knockout"/);
+  assert.doesNotMatch(select[1],/Todos contra todos<\/option>/);
+});
+test("Sorteo: una rueda, sin Fechas asignadas, al cerrar inscripciones o completar cupo",()=>{
+  assert.doesNotMatch(html,/id="bp-league-legs"/);
+  assert.match(html,/id="bp-league-generate"[^>]*>[\s\S]*?Sortear partidos/);
+  assert.match(admin,/engine\.buildSchedule\(\[\.\.\.pairs\.keys\(\)\],1\)/);
+  assert.match(admin,/p_tournament_id:id,p_legs:1/);
+  assert.match(admin,/current\.status==="registration_open"&&current\.approved===current\.max_pairs/);
+  assert.match(sql,/p_legs IS DISTINCT FROM 1/);
+  assert.match(sql,/legs smallint NOT NULL DEFAULT 1 CHECK \(legs=1\)/);
+  assert.match(sql,/SELECT array_agg\(id ORDER BY draw_key\)/);
+  assert.match(sql,/SELECT id,random\(\) AS draw_key/);
+  assert.match(sql,/OR \(v_t\.status='registration_open' AND v_t\.max_pairs=v_count\)/);
+  assert.match(sql,/SET status='registration_closed',updated_at=now\(\)/);
+  assert.match(sql,/p_tournament_id,1,NULL,v_inserted/);
+  assert.match(sql,/round_number integer CHECK \(round_number IS NULL/);
+  assert.match(sql,/CONSTRAINT bp_league_match_order_unique/);
+});
+test("Asignación de Fecha: máximo dos por pareja, independiente del día y hora",()=>{
+  assert.match(html,/id="bp-league-round-dialog"/);
+  assert.match(html,/id="bp-league-round-number"/);
+  assert.match(admin,/function openRound\(match\)/);
+  assert.match(admin,/engine\.validateRoundAssignment\(matchList,match\.id,round\)/);
+  assert.match(admin,/supabaseClient\.rpc\("bp_league_assign_round"/);
+  assert.match(admin,/round===null\?"Partidos sin Fecha"/);
+  assert.match(sql,/FUNCTION public\.bp_league_assign_round\(/);
+  assert.match(sql,/v_p1_count>=2 OR v_p2_count>=2/);
+  assert.match(sql,/pg_advisory_xact_lock|FOR UPDATE/);
+  assert.match(sql,/v_m\.round_number IS NULL/);
+  assert.match(sql,/GRANT EXECUTE ON FUNCTION public\.bp_league_assign_round\(uuid,integer\) TO authenticated/);
+  assert.doesNotMatch(sql,/EXTRACT\(DOW FROM|date_part\('dow'/i);
+  assert.match(publicRender,/Partidos sin Fecha/);
+});
