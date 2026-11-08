@@ -140,7 +140,7 @@
     if (pairIds.some((id) => !id) || new Set(pairIds).size !== 4) return null;
     return { a1, a2, a3, a4, pairIds };
   }
-  function standingsForFour(members, matches, byResult) {
+  function standingsForFour(members, matches, byResult, semifinalMode = false) {
     const found = findGroupFourMatches(matches);
     if (
       !found ||
@@ -171,7 +171,21 @@
         };
       }
     }
-    return motor.calculateGroupStandings(found.pairIds, results);
+    const positions = motor.calculateGroupStandings(found.pairIds, results);
+    if (semifinalMode && positions.complete) {
+      // El puesto oficial en el grupo de 4 viene de los cruces A3 y A4.
+      // No forzar un desempate estadístico de dos parejas con 3 puntos.
+      const order = motor.decisiveFourPlacings(found.pairIds, results);
+      const byId = new Map(positions.table.map((row)=>[row.pairId,row]));
+      positions.table = order.map((id)=>byId.get(id));
+      positions.qualifyingPlaces = 2;
+      positions.qualifiedPairIds = order.slice(0,2);
+      positions.boundaryTie = false;
+      positions.fullTies = [];
+      positions.seedingReady = true;
+      positions.qualificationReady = true;
+    }
+    return positions;
   }
   function prettySets(sets, format) {
     return Array.isArray(sets)
@@ -501,7 +515,7 @@
         }
       } else if (members.length === 4 && matches.length) {
         try {
-          const standings = standingsForFour(members, matches, byResult);
+          const standings = standingsForFour(members, matches, byResult, data.groups.length===2);
           if (standings) {
             block.append(tableForStandings(standings, pairMap));
             if (!standings.complete)
@@ -510,6 +524,14 @@
                   "p",
                   `Tabla provisoria · ${standings.playedMatches}/${standings.totalMatches} partidos cargados.`,
                   "bp-results-hint",
+                ),
+              );
+            else if (data.groups.length===2)
+              block.append(
+                element(
+                  "p",
+                  "Grupo completo. Clasifican las dos parejas del cruce de ganadores A3.",
+                  "bp-results-hint bp-results-success",
                 ),
               );
             else if (standings.boundaryTie)
