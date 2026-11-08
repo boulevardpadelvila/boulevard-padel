@@ -288,12 +288,27 @@
       const groupMatches = matches.filter((m) => m.group_id === group.id);
       const table = standingsForGroup(group,groupMatches);
       const wrap = make("div","public-tournament-standings-group");
-      wrap.append(make("h5","",`Grupo ${publicGroupLetter(group.number)}`));
-      const label = table.complete ? "Posiciones con todos los partidos cargados"
-        : `Tabla provisoria · ${table.counted} de ${table.total} resultados`;
+      const pairCount = (group.pairs || []).length;
+      wrap.append(make("h5","",`Grupo ${publicGroupLetter(group.number)} · ${pairCount} ${pairCount === 1 ? "pareja" : "parejas"}`));
       const cols = ["Pos.","Pareja","PJ","PG","PP","SF","SC","Dif.","Pts"];
-      const block = buildTableBlock({caption:label,columns:cols,rows:table.rows});
-      wrap.append(block);
+      // Solo el texto de presentación cambia, nunca los valores, resultados o puntajes.
+      const displayRows = table.rows.map((row) => [
+        row[0], row[1].replace(" / ", " y "), ...row.slice(2)
+      ]);
+      wrap.append(buildTableBlock({columns:cols,rows:displayRows}));
+      let message;
+      if (!table.complete) {
+        message = `Tabla provisoria · ${table.counted} de ${table.total} partidos cargados.`;
+      } else if (table.tied) {
+        message = "Grupo completo. Las posiciones empatadas requieren definición.";
+      } else if (pairCount === 3) {
+        message = "Grupo completo. Clasifican las dos primeras parejas.";
+      } else if (pairCount === 4) {
+        message = "Grupo completo. Clasifican las tres primeras parejas.";
+      } else {
+        message = "Grupo completo.";
+      }
+      wrap.append(make("p","public-tournament-standings-status",message));
       if (table.tied) wrap.append(make("p","public-tournament-data__note",
         "Hay posiciones empatadas por puntos, diferencia de sets y sets a favor; requieren definición de la organización."));
       standingsGrid.append(wrap);

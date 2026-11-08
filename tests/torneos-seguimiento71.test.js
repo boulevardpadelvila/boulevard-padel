@@ -213,8 +213,12 @@ test("La interfaz dibuja tabla real, resultados, campeón y subcampeón sin escr
   assert.match(tableGrids[0].children[0].className,/public-tournament-standings-group/);
   const tables=seek(tableGrids[0],"public-tournament-table");
   assert.equal(tables.length,1);
-  assert.equal(tables[0].children[0].tag,"caption");
-  assert.equal(tables[0].children[2].children.length,3); // Tres parejas
+  assert.equal(tables[0].children[0].tag,"thead");
+  assert.equal(tables[0].children[1].children.length,3); // Tres parejas
+  assert.match(collect(tableGrids[0]),/Grupo A · 3 parejas/);
+  assert.match(collect(tableGrids[0]),/Grupo completo. Clasifican las dos primeras parejas./);
+  assert.match(collect(tables[0]),/Jugador a y Compañero a/);
+  assert.equal(tables[0].children[0].children[0].children.length,9); // Nueve columnas
   assert.doesNotMatch(collect(group),/Cuartos de final/);
   assert.match(collect(knockout),/Cuartos de final/);
   assert.match(collect(knockout),/Semifinales/);
@@ -331,5 +335,26 @@ test("Parche 76: programación de partidos por fecha en 3 columnas, sin resultad
   assert.match(fixtureCss,/\.public-tournament-fixture__calendar-grid\s*\{\s*grid-template-columns:\s*minmax\(0, 1fr\)/);
   assert.match(js,/const standingsGrid = make\("div","public-tournament-standings-grid"\)/);
   assert.match(js,/function knockoutBlock\(t\)/);
+  assert.match(js,/knockout\.append\(podium\)/);
+});
+
+test("Parche 77: tablas públicas replican el diseño Admin y admiten hasta 3 grupos",()=>{
+  assert.match(js,/Grupo \$\{publicGroupLetter\(group.number\)\} · \$\{pairCount\}/);
+  assert.match(js,/displayRows = table\.rows\.map/);
+  assert.match(js,/Clasifican las dos primeras parejas/);
+  assert.match(js,/Clasifican las tres primeras parejas/);
+  assert.match(js,/Las posiciones empatadas requieren definición/);
+  assert.match(js,/if \(!table\.complete\)/);
+  assert.match(css,/\.public-tournaments > \.container\s*\{\s*width:\s*min\(calc\(100% - 32px\), 1580px\)/);
+  assert.match(css,/\.public-tournaments__list\s*\{\s*grid-template-columns:\s*minmax\(0, 1fr\)/);
+  assert.match(css,/\.public-tournament-standings-grid\s*\{\s*grid-template-columns:\s*repeat\(auto-fit, minmax\(min\(100%, 450px\), 1fr\)\)/);
+  assert.match(css,/\.public-tournament-standings-grid \.public-tournament-table thead th\s*\{\s*background:\s*#00432e;\s*color:\s*#fff/);
+  assert.match(css,/\.public-tournament-standings-grid \.public-tournament-table thead th:last-child\s*\{\s*background:\s*#a48335/);
+  assert.match(css,/\.public-tournament-standings-grid \.public-tournament-table tbody td:last-child\s*\{\s*background:\s*#f8f0db/);
+  assert.match(css,/\.public-tournament-standings-status/);
+  assert.match(css,/\.public-tournament-standings-grid \.public-tournament-table\s*\{[^}]*min-width:\s*425px/);
+  assert.match(css,/overflow-x:\s*auto/);
+  // No se cambia ningún cálculo de puntaje ni el cuadro eliminatorio.
+  assert.match(js,/winner\.won\+\+; winner\.points \+= 3/);
   assert.match(js,/knockout\.append\(podium\)/);
 });
