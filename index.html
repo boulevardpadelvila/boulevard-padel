@@ -330,8 +330,18 @@
             aria-labelledby="public-tournaments-current-tab"
           >
             <div
+              id="public-tournament-selector"
+              class="public-tournament-selector"
+              role="tablist"
+              aria-label="Seleccioná un torneo"
+              aria-orientation="horizontal"
+              hidden
+            ></div>
+            <div
               id="public-tournaments-list"
               class="public-tournaments__list"
+              role="tabpanel"
+              tabindex="0"
             ></div>
           </div>
           <p
