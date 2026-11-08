@@ -852,6 +852,24 @@
       confirm: "Finalizar torneo",
       action: async () => {
         await adminSession();
+        if (t.format === "league") {
+          const [matchRes,pairRes] = await Promise.all([
+            supabaseClient.from("bp_league_matches")
+              .select("pair1_id,pair2_id,match_status,sets")
+              .eq("tournament_id",t.id),
+            supabaseClient.from("bp_tournament_pairs")
+              .select("id").eq("tournament_id",t.id).eq("status","approved")
+          ]);
+          if(matchRes.error||pairRes.error)
+            throw new Error("No se pudo verificar la tabla final de Liga.");
+          const stats=window.BPLeagueEngine.standings(
+            (pairRes.data||[]).map(p=>p.id),matchRes.data||[]
+          );
+          if(!stats.complete)
+            throw new Error("Completá todos los resultados antes de finalizar la Liga.");
+          if(!stats.champion)
+            throw new Error("Hay empate en el primer puesto. Martín debe resolverlo antes de finalizar.");
+        }
         const { data, error } = await supabaseClient
           .from("bp_tournaments")
           .update({
