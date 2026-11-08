@@ -94,7 +94,7 @@ test("Público muestra las semifinales directas sin alterar cuadro previo ni pod
 });
 test("SQL80 valida cuatro sin alterar la protección histórica de siete y sin borrar datos",()=>{
   const sql=read("sql/SQL_80_ELIMINATORIAS_CUATRO_CLASIFICADAS.sql");
-  assert.match(sql,/NO APLICADA/);
+  assert.match(sql,/APLICADA EN SUPABASE 08\/11\/2026/);
   assert.match(sql,/v_four := v_groups = 2/);
   assert.match(sql,/v_group\.size=3/);
   assert.match(sql,/m\.round_number=2 AND m\.match_number=1/);
