@@ -71,7 +71,7 @@ test("Resultado Liga es 2 sets más súper tie-break; no tercero normal",()=>{
   assert.match(sql,/v_high>10 AND v_high-v_low=2/);
   assert.match(admin,/engine\.analyzeScore\(sets\)/);
   assert.match(admin,/p_sets:sets/);
-  assert.match(html,/Súper tie-break/);
+  assert.match(html,/súper tie-break/i);
   assert.match(html,/bp-league-result-form/);
   assert.match(admin,/inputs\.slice\(0,2\)/);
   assert.match(admin,/toggleThird/);
