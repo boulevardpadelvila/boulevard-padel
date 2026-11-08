@@ -26,9 +26,10 @@
       if(!dates.has(match.round_number))dates.set(match.round_number,[]);
       dates.get(match.round_number).push(match);
     }
-    for(const [round,items] of [...dates].sort((a,b)=>a[0]-b[0])){
+    for(const [round,items] of [...dates].sort((a,b)=>
+      a[0]===null?1:b[0]===null?-1:a[0]-b[0])){
       const section=make("section","bp-public-league__round");
-      section.append(make("h4","","Fecha "+round));
+      section.append(make("h4","",round===null?"Partidos sin Fecha":"Fecha "+round));
       const cards=make("div","bp-public-league__matches");
       for(const m of items.sort((a,b)=>a.match_number-b.match_number)){
         const article=make("article","bp-public-league__match");
