@@ -1103,8 +1103,7 @@
                       <option value="groups_knockout" selected>
                         Fase de grupos + eliminatorias
                       </option>
-                      <option value="knockout">Eliminación directa</option>
-                      <option value="league">Todos contra todos</option>
+                      <option value="league">Liga</option>
                     </select>
                   </div>
                   <div class="torneos-category-tools torneos-field--full">
@@ -1335,14 +1334,9 @@
                     una derrota 2–1 suma 1 y una derrota 2–0 suma 0.
                     Si hay tercer set, se juega súper tie-break a 10, con 2 de diferencia.</p>
                   <div class="bp-league__toolbar">
-                    <label for="bp-league-legs">Ruedas
-                      <select id="bp-league-legs">
-                        <option value="1" selected>Una rueda</option>
-                        <option value="2">Ida y vuelta</option>
-                      </select>
-                    </label>
+                    <p class="bp-league__one-round">Sorteo · Todos contra todos, una sola rueda</p>
                     <button type="button" id="bp-league-generate" class="torneos-outline">
-                      Generar fechas
+                      Sortear partidos
                     </button>
                     <button type="button" id="bp-league-refresh" class="torneos-outline">
                       Actualizar
@@ -1361,13 +1355,33 @@
               <span class="admin-save-dialog__icon" aria-hidden="true">🗓</span>
               <h2 id="bp-league-generate-title">Generar fechas de Liga</h2>
               <p id="bp-league-generate-description"></p>
-              <p class="admin-save-dialog__hint">Los enfrentamientos se fijan una sola vez.
-                Podrás organizar y reprogramar los horarios después.</p>
+              <p class="admin-save-dialog__hint">Se sortearán todos los cruces de una rueda, sin asignar Fechas ni horarios.
+                Martín organizará los partidos de cada Fecha (máximo 2 por pareja) y luego los programará.</p>
               <div class="admin-save-dialog__actions">
                 <button id="bp-league-generate-cancel" type="button" class="secondary">Volver</button>
                 <button id="bp-league-generate-confirm" type="button" class="primary">Generar fechas</button>
               </div>
             </div>
+          </dialog>
+          <dialog id="bp-league-round-dialog" class="admin-save-dialog bp-league__dialog"
+            aria-labelledby="bp-league-round-title">
+            <form id="bp-league-round-form" class="admin-save-dialog__body">
+              <h2 id="bp-league-round-title">Asignar Fecha</h2>
+              <p id="bp-league-round-rivals"></p>
+              <label class="bp-league__round-label" for="bp-league-round-number">
+                Número de Fecha
+                <input id="bp-league-round-number" type="number" min="1" max="999" step="1"
+                  placeholder="Ej.: 1 para Fecha 1" required />
+              </label>
+              <p class="admin-save-dialog__hint">Cada pareja puede tener como máximo 2 partidos
+                en la misma Fecha. Los días y horarios se programan después,
+                incluso entre semana.</p>
+              <p id="bp-league-round-error" class="torneo-dialog__error" role="alert"></p>
+              <div class="admin-save-dialog__actions">
+                <button id="bp-league-round-cancel" type="button" class="secondary">Volver</button>
+                <button id="bp-league-round-save" type="submit" class="primary">Guardar Fecha</button>
+              </div>
+            </form>
           </dialog>
           <dialog id="bp-league-schedule-dialog" class="admin-save-dialog bp-league__dialog"
             aria-labelledby="bp-league-schedule-title">
