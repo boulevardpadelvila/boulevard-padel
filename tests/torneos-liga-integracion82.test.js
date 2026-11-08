@@ -101,3 +101,33 @@ test("Todos los botones de Liga son simétricos en escritorio y móvil",()=>{
   assert.match(cssPublic,/#a48335/);
   assert.match(cssPublic,/@media\(max-width:650px\)/);
 });
+
+test("Liga en producción necesitará desplegar su Edge Function de inscripción",()=>{
+  const edge=read("supabase/functions/register-tournament-pair/index.ts");
+  assert.match(edge, /select\("id,format,status,is_published,max_pairs,ends_on,registration_closes_at"\)/);
+  assert.match(edge,/competition\.format !== "league" && competition\.ends_on < argentinaToday/);
+  assert.match(edge,/competition\.status !== "registration_open"/);
+  assert.match(edge,/competition\.max_pairs/);
+  assert.match(edge,/turnstile/);
+  assert.doesNotMatch(edge,/return json\(200.*contact_phone/s);
+});
+test("Liga protege el plantel y no permite finalizar con fechas pendientes",()=>{
+  assert.match(sql,/bp_league_roster_locked/);
+  assert.match(sql,/bp_league_lock_roster/);
+  assert.match(sql,/bp_league_finish_ready/);
+  assert.match(sql,/bp_league_finish_guard/);
+  assert.match(sql,/v_t\.status NOT IN \('registration_closed','in_progress'\)/);
+  assert.match(sql,/status='pending'/);
+  assert.match(sql,/ends_on IS NOT NULL/);
+  assert.match(sql,/scheduled_ends_at IS NOT NULL AND scheduled_ends_at>scheduled_at/);
+  assert.match(create,/if \(t\.format === "league"\)/);
+  assert.match(create,/stats\.champion/);
+});
+test("Confirmación para generar fixture usa diálogo del Admin, no confirmación de Chrome",()=>{
+  assert.match(html,/id="bp-league-generate-dialog"/);
+  assert.match(html,/id="bp-league-generate-cancel"/);
+  assert.match(html,/id="bp-league-generate-confirm"/);
+  assert.match(admin,/askGenerateFixture\(count,current\.name\)/);
+  assert.doesNotMatch(admin,/window\.confirm/);
+  assert.match(css,/\.bp-league__dialog \.admin-save-dialog__actions/);
+});
