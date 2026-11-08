@@ -117,6 +117,29 @@ CREATE TRIGGER bp_league_roster_locked
  BEFORE INSERT OR UPDATE OR DELETE ON public.bp_tournament_pairs
  FOR EACH ROW EXECUTE FUNCTION public.bp_league_lock_roster();
 
+-- No declarar finalizada una Liga sin fixture y todos los partidos cargados.
+-- La decisión de desempate permanece explícitamente a cargo del Admin.
+CREATE OR REPLACE FUNCTION public.bp_league_finish_guard()
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $league$
+BEGIN
+ IF NEW.format='league' AND NEW.status='completed'
+    AND OLD.status IS DISTINCT FROM 'completed' THEN
+   IF NOT EXISTS(
+     SELECT 1 FROM public.bp_league_matches WHERE tournament_id=NEW.id
+   ) OR EXISTS(
+     SELECT 1 FROM public.bp_league_matches WHERE tournament_id=NEW.id
+       AND match_status<>'played'
+   ) THEN
+     RAISE EXCEPTION 'Completá todos los partidos de la Liga antes de finalizarla.' USING ERRCODE='23514';
+   END IF;
+ END IF;
+ RETURN NEW;
+END;
+$league$;
+CREATE TRIGGER bp_league_finish_ready
+ BEFORE UPDATE OF status ON public.bp_tournaments
+ FOR EACH ROW EXECUTE FUNCTION public.bp_league_finish_guard();
+
 CREATE OR REPLACE FUNCTION public.bp_league_generate_fixture(
  p_tournament_id uuid, p_legs integer DEFAULT 1
 ) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $league$
