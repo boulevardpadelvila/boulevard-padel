@@ -33,7 +33,8 @@ test("Liga utiliza inscripciones ya existentes pero no exige fecha final",()=>{
   assert.match(create,/endWrap\.hidden = league/);
   assert.match(create,/t\.format === "league" \? "" : t\.ends_on/);
   assert.match(sql,/ALTER TABLE public\.bp_tournaments ALTER COLUMN ends_on DROP NOT NULL/);
-  assert.match(sql,/v_t\.status NOT IN \('registration_closed','in_progress'\)/);
+  assert.match(sql,/v_t\.status IN \('registration_closed','in_progress'\)/);
+  assert.match(sql,/v_t\.status='registration_open' AND v_t\.max_pairs=v_count/);
   assert.match(sql,/status='approved'/);
 });
 test("SQL 82 NO está ejecutada: RLS, permisos seguros y RPC sin teléfono público",()=>{
@@ -44,8 +45,9 @@ test("SQL 82 NO está ejecutada: RLS, permisos seguros y RPC sin teléfono públ
   assert.match(sql,/bp_league_generate_fixture/);
   assert.match(sql,/bp_league_schedule_match/);
   assert.match(sql,/bp_league_save_result/);
+  assert.match(sql,/bp_league_assign_round/);
   assert.match(sql,/bp_public_league_followup/);
-  for(const procedure of ["bp_league_generate_fixture","bp_league_schedule_match","bp_league_save_result"]){
+  for(const procedure of ["bp_league_generate_fixture","bp_league_schedule_match","bp_league_save_result","bp_league_assign_round"]){
     assert.match(sql,new RegExp("REVOKE ALL ON FUNCTION public\\."+procedure));
     assert.match(sql,new RegExp("GRANT EXECUTE ON FUNCTION public\\."+procedure));
   }
@@ -92,7 +94,7 @@ test("Vista pública Liga: fixture, tabla, campeón y RPC con información filtr
   assert.doesNotMatch(publicRender,/contact_phone|teléfono|telefono/);
 });
 test("Todos los botones de Liga son simétricos en escritorio y móvil",()=>{
-  assert.match(css,/\.bp-league__buttons\s*\{[^}]*grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+  assert.match(css,/\.bp-league__buttons\s*\{[^}]*grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/);
   assert.match(css,/\.bp-league__buttons button\s*\{[^}]*width:100%;height:47px;min-height:47px;max-height:47px/s);
   assert.match(css,/\.bp-league__dialog \.admin-save-dialog__actions\s*\{[^}]*grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
   assert.match(css,/\.bp-league__dialog \.admin-save-dialog__actions > button\s*\{[^}]*height:48px;min-height:48px!important;max-height:48px/s);
@@ -116,7 +118,7 @@ test("Liga protege el plantel y no permite finalizar con fechas pendientes",()=>
   assert.match(sql,/bp_league_lock_roster/);
   assert.match(sql,/bp_league_finish_ready/);
   assert.match(sql,/bp_league_finish_guard/);
-  assert.match(sql,/v_t\.status NOT IN \('registration_closed','in_progress'\)/);
+  assert.match(sql,/v_t\.status IN \('registration_closed','in_progress'\)/);
   assert.match(sql,/status='pending'/);
   assert.match(sql,/ends_on IS NOT NULL/);
   assert.match(sql,/scheduled_ends_at IS NOT NULL AND scheduled_ends_at>scheduled_at/);
