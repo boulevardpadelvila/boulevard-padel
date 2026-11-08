@@ -50,7 +50,7 @@
 .bp-league__match strong {color:#00432e;line-height:1.4;overflow-wrap:anywhere;}
 .bp-league__match-meta {font-size:.81rem;color:#607363;line-height:1.4;margin:0;}
 .bp-league__score {color:#00432e;font-weight:800;margin:0;}
-.bp-league__buttons {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+.bp-league__buttons {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
   gap:8px;margin-top:auto;}
 .bp-league__buttons button {box-sizing:border-box;display:inline-flex;
   justify-content:center;align-items:center;text-align:center;
@@ -94,6 +94,7 @@
   .bp-league__toolbar {grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
   .bp-league__toolbar label {grid-column:1/-1;}
   .bp-league__matches {grid-template-columns:minmax(0,1fr);}
+  .bp-league__buttons {grid-template-columns:minmax(0,1fr);}
   .bp-league__dialog .admin-save-dialog__body {padding:18px 13px 16px;}
   .bp-league__form {grid-template-columns:minmax(0,1fr);}
   .bp-league__set {grid-template-columns:minmax(0,1.15fr) repeat(2,minmax(0,1fr));gap:5px;padding:7px;}
@@ -102,3 +103,19 @@
 @media(prefers-reduced-motion:reduce) {
  .bp-league__match,.bp-league__dialog {transition:none;}
 }
+
+
+/* Sorteo de una rueda: leyenda sencilla en lugar de configuración técnica. */
+.bp-league__one-round {
+  box-sizing:border-box;display:flex;align-items:center;min-height:46px;
+  margin:0;padding:8px 12px;border:1px solid #b7a06f;border-radius:8px;
+  background:#f8f0db;color:#00432e;font-size:.83rem;font-weight:800;
+  line-height:1.3;
+}
+.bp-league__round-label {display:grid;gap:8px;margin:12px 0;text-align:left;
+  color:#00432e;font-size:.87rem;font-weight:800;}
+.bp-league__round-label input {box-sizing:border-box;width:100%;height:46px;
+  padding:8px 12px;border:1px solid #bacdbd;border-radius:8px;background:white;
+  color:#00432e;font:inherit;}
+.bp-league__round-label input:focus-visible {outline:3px solid #a48335;outline-offset:2px;}
+@media(max-width:650px){.bp-league__one-round{grid-column:1/-1;}}
