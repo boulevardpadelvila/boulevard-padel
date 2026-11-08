@@ -303,3 +303,13 @@
     font-size: 12px !important;
   }
 }
+
+/* SQL 80: dos tarjetas de semifinales iguales y equilibradas en PC. */
+.admin-torneos .bp-ko-grid--four {
+  grid-template-columns: repeat(2,minmax(0,1fr));
+}
+@media (max-width:650px) {
+  .admin-torneos .bp-ko-grid--four {
+    grid-template-columns: minmax(0,1fr);
+  }
+}

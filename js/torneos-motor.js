@@ -328,6 +328,69 @@
     };
   }
 
+  // Parche 80: el grupo de 4 se ordena por sus cruces decisivos, no por
+  // puntos ni desempates estadísticos: ganador A3, perdedor A3, ganador A4,
+  // perdedor A4. En el formato nuevo de dos grupos clasifican solo los dos
+  // participantes de A3. No modifica el orden histórico de otras modalidades.
+  function decisiveFourPlacings(pairIds, results) {
+    if (!Array.isArray(pairIds) || pairIds.length !== 4) {
+      throw new Error("Se requieren cuatro parejas en el grupo.");
+    }
+    const fixture = buildGroupFixture(pairIds);
+    const resolved = resolveGroupFixture(fixture, results);
+    for (const m of resolved) {
+      if (!m.pair1 || !m.pair2 || !results[m.code]) {
+        throw new Error("Completá los cuatro cruces del grupo.");
+      }
+    }
+    const outcome = (code) => {
+      const match = resolved.find((m) => m.code === code);
+      const result = results[code];
+      const winner = evaluateSets(result, result.format || "legacy").winnerSide;
+      return winner === 1
+        ? [match.pair1, match.pair2]
+        : [match.pair2, match.pair1];
+    };
+    const winFinal = outcome("A3");
+    const loseFinal = outcome("A4");
+    const positions = [...winFinal, ...loseFinal];
+    if (new Set(positions).size !== 4 || positions.some((id) => !pairIds.includes(id))) {
+      throw new Error("Los cruces del grupo de cuatro no determinan puestos únicos.");
+    }
+    return positions;
+  }
+
+  // Sin pases libres. En dos grupos clasifican los dos primeros de cada
+  // grupo. Cruces cruzados: 1º A vs. 2º B; 1º B vs. 2º A.
+  // Martín podrá intercambiarlos antes de confirmar desde el Admin.
+  function planFourKnockout(qualified) {
+    if (!Array.isArray(qualified) || qualified.length !== 4 ||
+        new Set(qualified.map((q) => q.pairId)).size !== 4) {
+      throw new Error("Se requieren cuatro parejas clasificadas distintas.");
+    }
+    const groups = [...new Set(qualified.map((q) => q.groupNumber))].sort((a,b) => a-b);
+    if (groups.length !== 2) throw new Error("Se requieren exactamente dos grupos.");
+    const from = (group, rank) => qualified.filter(
+      (q) => q.groupNumber === group && q.rank === rank
+    );
+    const a1 = from(groups[0],1), a2 = from(groups[0],2),
+      b1 = from(groups[1],1), b2 = from(groups[1],2);
+    if ([a1,a2,b1,b2].some((v) => v.length !== 1))
+      throw new Error("Faltan puestos primero o segundo en los grupos.");
+    return {
+      directSemifinalPairId: null,
+      quarterfinals: [],
+      semifinals: [
+        [a1[0].pairId, b2[0].pairId],
+        [b1[0].pairId, a2[0].pairId],
+      ],
+      final: [
+        { from: "SF1", outcome: "winner" },
+        { from: "SF2", outcome: "winner" },
+      ]
+    };
+  }
+
   // Parche 66: siete clasificados (dos zonas de 3 + una de 4).
   // El pase directo se recomienda exclusivamente a un PRIMERO de grupo.
   // Ante empate absoluto entre primeros, la decisión queda en manos del Admin.
@@ -450,6 +513,8 @@
     scoringModeForStage,
     validRegularSet,
     validSuperTieBreak,
+    decisiveFourPlacings,
+    planFourKnockout,
     recommendSevenBye,
     planSevenKnockout,
   });

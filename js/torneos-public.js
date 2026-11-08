@@ -183,7 +183,7 @@
   function equalStanding(a, b) {
     return a.points === b.points && a.difference === b.difference && a.setsFor === b.setsFor;
   }
-  function standingsForGroup(group, groupMatches) {
+  function standingsForGroup(group, groupMatches, twoGroupMode = false) {
     const rows = (group.pairs || []).map((p) => ({
       id: p.id, name: publicPairName(p), played: 0, won: 0, lost: 0,
       setsFor: 0, setsAgainst: 0, difference: 0, points: 0,
@@ -207,10 +207,31 @@
     for (const row of rows) row.difference = row.setsFor - row.setsAgainst;
     rows.sort((a,b) => b.points-a.points || b.difference-a.difference ||
       b.setsFor-a.setsFor || a.name.localeCompare(b.name,"es-AR"));
+    const full = counted === groupMatches.length &&
+      groupMatches.length === (group.pairs.length===3 ? 3 : 4);
+    let decided = false;
+    // En torneos de dos grupos, A3 (ganadores vs. ganadores) define
+    // al primero y segundo del grupo de cuatro; A4 define tercero y cuarto.
+    if (twoGroupMode && group.pairs.length===4 && full) {
+      const placeFrom = (number) => {
+        const m=groupMatches.find((x)=>x.round_number===2 && x.match_number===number);
+        if (!m || !m.winner_pair_id || !m.resolved_pair1_id || !m.resolved_pair2_id) return null;
+        const loser=m.winner_pair_id===m.resolved_pair1_id
+          ? m.resolved_pair2_id:m.resolved_pair1_id;
+        return [m.winner_pair_id,loser];
+      };
+      const pairFinal=placeFrom(1), consolation=placeFrom(2);
+      const ids=pairFinal && consolation ? [...pairFinal,...consolation]:[];
+      if (ids.length===4 && new Set(ids).size===4 && ids.every((id)=>byId.has(id))) {
+        const rank=new Map(ids.map((id,index)=>[id,index]));
+        rows.sort((a,b)=>rank.get(a.id)-rank.get(b.id));
+        decided=true;
+      }
+    }
     let tied = false;
     const tableRows = rows.map((row,i) => {
-      const same = i > 0 && equalStanding(row,rows[i-1]);
-      const nextSame = i < rows.length-1 && equalStanding(row,rows[i+1]);
+      const same = !decided && i > 0 && equalStanding(row,rows[i-1]);
+      const nextSame = !decided && i < rows.length-1 && equalStanding(row,rows[i+1]);
       tied ||= same || nextSame;
       const position = same || nextSame ? "=" : String(i+1);
       return [position,row.name,row.played,row.won,row.lost,row.setsFor,
@@ -218,8 +239,8 @@
     });
     return {
       rows: tableRows,
-      complete: counted === groupMatches.length && groupMatches.length === (group.pairs.length === 3 ? 3 : 4),
-      counted, total: groupMatches.length, tied,
+      complete: full,
+      counted, total: groupMatches.length, tied, decided,
     };
   }
   function detailBlock(t) {
@@ -288,7 +309,7 @@
     const standingsGrid = make("div","public-tournament-standings-grid");
     for (const group of groups) {
       const groupMatches = matches.filter((m) => m.group_id === group.id);
-      const table = standingsForGroup(group,groupMatches);
+      const table = standingsForGroup(group,groupMatches,groups.length===2);
       const wrap = make("div","public-tournament-standings-group");
       const pairCount = (group.pairs || []).length;
       wrap.append(make("h5","",`Grupo ${publicGroupLetter(group.number)} · ${pairCount} ${pairCount === 1 ? "pareja" : "parejas"}`));
@@ -305,6 +326,8 @@
         message = "Grupo completo. Las posiciones empatadas requieren definición.";
       } else if (pairCount === 3) {
         message = "Grupo completo. Clasifican las dos primeras parejas.";
+      } else if (pairCount === 4 && groups.length === 2) {
+        message = "Grupo completo. Clasifican las dos parejas del cruce de ganadores.";
       } else if (pairCount === 4) {
         message = "Grupo completo. Clasifican las tres primeras parejas.";
       } else {
@@ -374,6 +397,8 @@
           let p1 = null, p2 = null, fallback1 = "A definir", fallback2 = "A definir";
           if (stage === "quarterfinal") {
             [p1,p2] = bracket.quarterfinals?.[m.slot-1] || [null,null];
+          } else if (stage === "semifinal" && Array.isArray(bracket.semifinals)) {
+            [p1,p2] = bracket.semifinals[m.slot-1] || [null,null];
           } else if (stage === "semifinal" && m.slot === 1) {
             p1 = bracket.direct_semifinal_pair_id; p2 = winner("quarterfinal",1);
             fallback2 = "Ganador de Cuartos 1";

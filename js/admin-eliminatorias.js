@@ -21,6 +21,7 @@
     model = null,
     direct = "",
     quarters = [],
+    semifinals = [],
     busy = false;
   const letter = (n) => String.fromCharCode(64 + Number(n));
   const name = (id) => {
@@ -49,8 +50,8 @@
     '<span class="admin-save-dialog__icon" aria-hidden="true">🏆</span>' +
     '<h2 id="bp-ko-confirm-title">Confirmar eliminatorias</h2>' +
     '<p id="bp-ko-confirm-description">Revisá el pase directo y los tres cruces antes de guardar el cuadro.</p>' +
-    '<div class="bp-ko-confirm-summary"><strong>Pase directo a semifinales</strong><p id="bp-ko-confirm-bye"></p>' +
-    '<strong>Cuartos de final</strong><ol id="bp-ko-confirm-matches"></ol></div>' +
+    '<div class="bp-ko-confirm-summary"><strong id="bp-ko-confirm-bye-label">Pase directo a semifinales</strong><p id="bp-ko-confirm-bye"></p>' +
+    '<strong id="bp-ko-confirm-round-label">Cuartos de final</strong><ol id="bp-ko-confirm-matches"></ol></div>' +
     '<p class="admin-save-dialog__hint">Se guardará el cuadro deportivo. No se programarán partidos ni se bloquearán horarios de cancha.</p>' +
     '<div class="admin-save-dialog__actions">' +
     '<button type="button" class="secondary" id="bp-ko-confirm-back">Volver</button>' +
@@ -65,14 +66,22 @@
   koConfirmAccept.addEventListener("click", () =>
     koConfirmDialog.close("confirmed"),
   );
-  function askKnockoutConfirmation(bye, matchups) {
+  function askKnockoutConfirmation(bye, matchups, four = false) {
     if (koConfirmDialog.open) return Promise.resolve(false);
-    $("bp-ko-confirm-bye").textContent = name(bye);
+    $("bp-ko-confirm-description").textContent = four
+      ? "Confirmá las dos semifinales antes de guardar el cuadro."
+      : "Revisá el pase directo y los tres cruces antes de guardar el cuadro.";
+    $("bp-ko-confirm-bye-label").textContent = four
+      ? "Formato" : "Pase directo a semifinales";
+    $("bp-ko-confirm-bye").textContent = four
+      ? "Cuatro parejas clasificadas, sin pases directos." : name(bye);
+    $("bp-ko-confirm-round-label").textContent = four
+      ? "Semifinales" : "Cuartos de final";
     const list = $("bp-ko-confirm-matches");
     list.replaceChildren();
     matchups.forEach(([a, b], i) => {
       list.append(
-        el("li", "Cuartos " + (i + 1) + ": " + name(a) + " vs. " + name(b)),
+        el("li", (four ? "Semifinal " : "Cuartos ") + (i + 1) + ": " + name(a) + " vs. " + name(b)),
       );
     });
     koConfirmDialog.returnValue = "";
@@ -165,7 +174,10 @@
           );
       });
     } else throw Error("Cada grupo debe contener tres o cuatro parejas.");
-    return motor.calculateGroupStandings(ids, mapped);
+    const summary = motor.calculateGroupStandings(ids, mapped);
+    if (members.length === 4 && summary.complete)
+      summary.decisiveFour = motor.decisiveFourPlacings(ids, mapped);
+    return summary;
   }
   function qualifiers(data) {
     const sizes = data.groups
@@ -212,6 +224,47 @@
       throw Error("No se pudieron determinar siete clasificados únicos.");
     return out;
   }
+  // Parche 80: en dos grupos de 3/4 parejas clasifican dos por grupo.
+  // En los de 4 el orden oficial proviene de Ganadores vs Ganadores (A3):
+  // vencedor 1º; derrotado 2º. A4 define los puestos 3º y 4º.
+  function qualifiersFour(data) {
+    if (data.groups.length !== 2)
+      throw Error("Se requieren exactamente dos grupos para las semifinales directas.");
+    const counts = data.groups.map((g) =>
+      data.assignments.filter((a) => a.group_id === g.id).length
+    );
+    if (counts.some((n) => n !== 3 && n !== 4))
+      throw Error("Cada grupo debe tener tres o cuatro parejas.");
+    const required = counts.reduce((total,n) => total+(n===3?3:4),0);
+    if (data.matches.length !== required || data.results.length !== required ||
+        data.matches.some((m) => m.match_status !== "played"))
+      throw Error("Primero completá todos los resultados de ambos grupos.");
+    const out = [];
+    for (const group of data.groups.slice().sort((a,b) => a.group_number-b.group_number)) {
+      const members = data.assignments
+        .filter((a) => a.group_id === group.id).map((a) => a.pair_id);
+      const t = standings(members,data.matches.filter((m)=>m.group_id===group.id),data.results);
+      if (!t.complete || (members.length === 3 && !t.seedingReady))
+        throw Error("El grupo "+letter(group.group_number)+" tiene resultados o desempates pendientes.");
+      const selected = members.length === 4
+        ? t.decisiveFour.slice(0,2).map((pairId)=>t.table.find((row)=>row.pairId===pairId))
+        : t.table.slice(0,2);
+      selected.forEach((row,i) => out.push({
+        pairId:row.pairId,groupNumber:group.group_number,
+        rank:i+1,points:row.points,setDifference:row.setDifference,setsFor:row.setsFor
+      }));
+    }
+    if (out.length !== 4 || new Set(out.map((x)=>x.pairId)).size !== 4)
+      throw Error("No se pudieron determinar cuatro clasificadas únicas.");
+    return out;
+  }
+  function validFour(rows,list) {
+    return Array.isArray(rows) && rows.length === 2 &&
+      rows.every((m)=>Array.isArray(m) && m.length===2) &&
+      rows.flat().length===4 && new Set(rows.flat()).size===4 &&
+      rows.flat().every((id)=>list.some((q)=>q.pairId===id));
+  }
+
   function valid(qs, bye, list) {
     if (
       !Array.isArray(qs) ||
@@ -227,15 +280,104 @@
       ids.every((id) => eligible.has(id))
     );
   }
-  function version(results) {
+  function version(results, expected = 10) {
     const ms = results.map((r) => Date.parse(r.updated_at));
-    if (ms.length !== 10 || ms.some((x) => !Number.isFinite(x)))
+    if (ms.length !== expected || ms.some((x) => !Number.isFinite(x)))
       throw Error("No se pudo verificar la versión de los resultados.");
     return new Date(Math.max(...ms)).toISOString();
+  }
+  // Semifinales directas: Martín puede intercambiar parejas antes de
+  // confirmar. Sin selección de bye y sin resultados automáticos.
+  function renderFour() {
+    const list = model.qualified;
+    content.append(el("p",
+      "Cuatro parejas clasificadas. Dos semifinales y una final, sin cuartos ni pases libres.",
+      "bp-ko-description"));
+    content.append(el("h3","Semifinales · 2 partidos"));
+    if (!validFour(semifinals,list))
+      semifinals = motor.planFourKnockout(list).semifinals;
+    const grid = el("div",null,"bp-ko-grid bp-ko-grid--four");
+    for (let i=0;i<semifinals.length;i++) {
+      const card=el("article",null,"bp-ko-match");
+      card.append(el("strong","Semifinal "+(i+1)));
+      const rivals=el("div",null,"bp-ko-match-rivals");
+      for (let side=0;side<2;side++) {
+        if (side===1) rivals.append(el("span","VS","bp-ko-versus"));
+        const dropdown=document.createElement("select");
+        dropdown.setAttribute("aria-label","Semifinal "+(i+1)+" pareja "+(side+1));
+        for (const q of list) dropdown.add(
+          new Option(name(q.pairId)+" · Grupo "+letter(q.groupNumber)+" · "+q.rank+"º",q.pairId)
+        );
+        dropdown.value=semifinals[i][side];
+        dropdown.addEventListener("change",()=>{
+          const previous=semifinals[i][side], next=dropdown.value;
+          if (previous===next) return;
+          semifinals.forEach((row,ri)=>row.forEach((id,ci)=>{
+            if ((ri!==i||ci!==side)&&id===next) semifinals[ri][ci]=previous;
+          }));
+          semifinals[i][side]=next;
+          render();
+        });
+        rivals.append(dropdown);
+      }
+      card.append(rivals);
+      grid.append(card);
+    }
+    content.append(grid);
+    const path=el("div",null,"bp-ko-path");
+    path.append(el("strong","Final"),el("p",
+      "Ganador de Semifinal 1 vs. ganador de Semifinal 2"));
+    content.append(path);
+    const saved=model.saved;
+    const revisionMatches=saved && new Date(saved.result_revision).toISOString()===model.revision;
+    const unchanged=revisionMatches && saved.semifinals &&
+      JSON.stringify(saved.semifinals)===JSON.stringify(semifinals);
+    if (saved && !revisionMatches)
+      content.append(el("p","Cambió algún resultado de grupos. Revisá el cuadro antes de guardarlo.",
+        "bp-ko-hint bp-ko-hint--warning"));
+    const actions=el("div",null,"bp-ko-actions");
+    const save=el("button",
+      unchanged?"Cuadro confirmado ✓":saved?"Guardar cambios":"Confirmar semifinales",
+      "bp-ko-save");
+    save.type="button";
+    save.disabled=busy||unchanged;
+    save.addEventListener("click",async()=>{
+      if (busy||!model||!validFour(semifinals,model.qualified)) return;
+      const snapshot=model,tournament=model.id,
+        pairs=semifinals.map((row)=>row.slice()),revision=model.revision;
+      if (!(await askKnockoutConfirmation(null,pairs,true))) return;
+      if (busy||model!==snapshot||tournament!==select.value||
+          JSON.stringify(semifinals)!==JSON.stringify(pairs)||
+          model.revision!==revision) return;
+      busy=true;save.disabled=true;notify("Guardando semifinales…");
+      try {
+        const {error}=await supabaseClient.from("bp_tournament_knockout_brackets").upsert({
+          tournament_id:tournament,
+          direct_semifinal_pair_id:null,
+          quarterfinals:[],
+          semifinals:pairs,
+          choice_mode:"manual",
+          result_revision:revision
+        },{onConflict:"tournament_id"});
+        if (error) throw error;
+        if (tournament===select.value) {
+          await load();
+          notify("Semifinales confirmadas. No se reservaron horarios.","success");
+        }
+      } catch(e) {
+        console.error("Error al confirmar semifinales",e);
+        notify("No se pudo guardar: "+(e.message||"revisá los resultados."),"error");
+      } finally {busy=false;save.disabled=false;}
+    });
+    actions.append(save);
+    actions.append(el("small",
+      "Podés intercambiar las cuatro parejas antes de guardar. El horario se programa después."));
+    content.append(actions);
   }
   function render() {
     content.replaceChildren();
     if (!model) return;
+    if (model.mode === "four") return renderFour();
     const list = model.qualified,
       rec = model.rec;
     content.append(
@@ -442,6 +584,7 @@
     model = null;
     direct = "";
     quarters = [];
+    semifinals = [];
     content.replaceChildren();
     if (!id) {
       notify("");
@@ -486,7 +629,7 @@
         supabaseClient
           .from("bp_tournament_knockout_brackets")
           .select(
-            "tournament_id,direct_semifinal_pair_id,quarterfinals,choice_mode,result_revision",
+            "tournament_id,direct_semifinal_pair_id,quarterfinals,semifinals,choice_mode,result_revision",
           )
           .eq("tournament_id", id)
           .maybeSingle(),
@@ -515,11 +658,13 @@
         matches: mr.data || [],
         results: rr.data || [],
       };
-      const qualified = qualifiers(data),
-        rec = motor.recommendSevenBye(qualified),
-        rev = version(data.results);
+      const mode = data.groups.length === 2 ? "four" : "seven";
+      const qualified = mode === "four" ? qualifiersFour(data) : qualifiers(data),
+        rec = mode === "four" ? null : motor.recommendSevenBye(qualified),
+        rev = version(data.results,data.matches.length);
       model = {
         id,
+        mode,
         qualified,
         rec,
         revision: rev,
@@ -527,6 +672,16 @@
         saved: br.data || null,
       };
       const saved = model.saved;
+      if (mode === "four") {
+        semifinals = saved?.semifinals && validFour(saved.semifinals,qualified)
+          ? saved.semifinals.map((row)=>row.slice())
+          : motor.planFourKnockout(qualified).semifinals;
+        notify(saved && new Date(saved.result_revision).toISOString()===rev
+          ? "Semifinales guardadas. Podés revisar los cruces de Martín."
+          : "Cuatro parejas clasificadas. Martín puede confirmar o modificar las semifinales.");
+        render();
+        return;
+      }
       direct =
         saved &&
         qualified.some((q) => q.pairId === saved.direct_semifinal_pair_id)
