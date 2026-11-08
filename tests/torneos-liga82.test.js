@@ -34,7 +34,7 @@ test("Fecha N la decide Martín; máximo dos partidos por pareja",()=>{
   assert.equal(engine.validateRoundAssignment(matches,"b",1),true); // no cuenta dos veces el actual
   assert.throws(()=>engine.validateRoundAssignment(matches,"c",0),/Fecha/);
   assert.throws(()=>engine.validateRoundAssignment(matches,"c",1000),/Fecha/);
-  assert.throws(()=>engine.validateRoundAssignment(matches,"x",3),/no se encontró/);
+  assert.throws(()=>engine.validateRoundAssignment(matches,"x",3),/No se encontró/);
 });
 test("2 puntos por victoria 2-0; 1 punto por derrota en súper tie-break; 0 por 2-0",()=>{
   const pairIds=ids(3);
