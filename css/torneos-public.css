@@ -922,3 +922,121 @@
     width: min(100%, 620px);
   }
 }
+
+
+/* Parche 77: Tablas de posiciones públicas con el diseño visual del Admin.
+   Ampliamos únicamente Torneos para mantener legibles tres tarjetas;
+   cada torneo tiene su propia fila y no afecta el resto del sitio. */
+.public-tournaments > .container {
+  width: min(calc(100% - 32px), 1580px);
+}
+.public-tournaments__list {
+  grid-template-columns: minmax(0, 1fr);
+}
+.public-tournament-standings-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 450px), 1fr));
+  gap: 14px;
+}
+.public-tournament-standings-grid .public-tournament-standings-group,
+.public-tournament-standings-grid .public-tournament-standings-group + .public-tournament-standings-group {
+  padding: 14px;
+  margin: 0;
+  border: 1px solid #b7a06f;
+  border-radius: 12px;
+  background: #fff;
+}
+.public-tournament-standings-grid .public-tournament-standings-group h5 {
+  margin: 0 0 10px;
+  padding: 0;
+  border: 0;
+  color: #00432e;
+  font-size: 1.03rem;
+  font-weight: 800;
+}
+.public-tournament-standings-grid .public-tournament-table-scroll {
+  overflow-x: auto;
+  scrollbar-width: thin;
+  margin-top: 0;
+}
+.public-tournament-standings-grid .public-tournament-table {
+  width: 100%;
+  min-width: 425px;
+  table-layout: fixed;
+  font-size: 0.75rem;
+  color: #1c2b20;
+  border: 1px solid #c0b18f;
+  font-variant-numeric: tabular-nums;
+}
+.public-tournament-standings-grid .public-tournament-table th,
+.public-tournament-standings-grid .public-tournament-table td {
+  border-bottom: 1px solid #c8d3c8;
+  padding: 8px 3px;
+  line-height: 1.32;
+  text-align: center;
+}
+.public-tournament-standings-grid .public-tournament-table thead th {
+  background: #00432e;
+  color: #fff;
+  border-bottom: 1px solid #b89b55;
+  font-weight: 800;
+}
+.public-tournament-standings-grid .public-tournament-table th:first-child,
+.public-tournament-standings-grid .public-tournament-table td:first-child {
+  width: 9%;
+  font-weight: 800;
+}
+.public-tournament-standings-grid .public-tournament-table th:nth-child(2),
+.public-tournament-standings-grid .public-tournament-table td:nth-child(2) {
+  width: 34%;
+  min-width: 130px;
+  text-align: left;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+.public-tournament-standings-grid .public-tournament-table td:nth-child(2) {
+  font-weight: 600;
+}
+.public-tournament-standings-grid .public-tournament-table tbody tr:nth-child(even) td {
+  background: #f8f7f1;
+}
+.public-tournament-standings-grid .public-tournament-table tbody tr:first-child td:first-child {
+  color: #00432e;
+}
+.public-tournament-standings-grid .public-tournament-table thead th:last-child {
+  background: #a48335;
+  color: #fff;
+}
+.public-tournament-standings-grid .public-tournament-table tbody td:last-child {
+  background: #f8f0db;
+  color: #00432e;
+  font-weight: 800;
+}
+.public-tournament-standings-grid .public-tournament-table th:last-child,
+.public-tournament-standings-grid .public-tournament-table td:last-child {
+  border-left: 2px solid #b89b55;
+  text-align: center;
+}
+.public-tournament-standings-status {
+  margin: 11px 0 0;
+  color: #00683c !important;
+  font-size: 0.81rem !important;
+  font-weight: 800;
+  line-height: 1.45;
+}
+/* Si las tarjetas son pocas, ocupan el ancho disponible sin columnas vacías.
+   Las reglas antiguas que centraban el grupo impar no se aplican en esta visual. */
+@container (min-width: 1120px) {
+  .public-tournament-standings-grid > .public-tournament-standings-group:last-child:nth-child(odd) {
+    grid-column: auto;
+    justify-self: stretch;
+    width: auto;
+  }
+}
+@media (max-width: 600px) {
+  .public-tournaments > .container {
+    width: min(calc(100% - 28px), 1580px);
+  }
+  .public-tournament-standings-grid .public-tournament-standings-group {
+    padding: 10px;
+  }
+}
