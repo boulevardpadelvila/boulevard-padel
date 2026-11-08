@@ -559,3 +559,6 @@ BEGIN
 END;
 $function$
 ;
+
+-- Actualizar la caché de esquema para la API PostgREST tras la nueva columna.
+NOTIFY pgrst, 'reload schema';
