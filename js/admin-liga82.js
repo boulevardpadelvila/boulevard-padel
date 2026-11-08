@@ -42,6 +42,7 @@
       time:parts.hour+":"+parts.minute};
   }
   function updateVisible(league){
+    $("admin-torneos-view").classList.toggle("bp-league-active",league);
     panel.hidden=!league;
     groupsPanel.hidden=league;
     if(legacySteps)legacySteps.hidden=league;
@@ -196,6 +197,10 @@
     }
   }
   select.addEventListener("change",load);
+  // El selector se llena de forma asíncrona; incluso con una sola Liga debe
+  // abrirse el panel sin obligar a cambiar manualmente de torneo.
+  new MutationObserver(()=>load()).observe(select,{childList:true,subtree:true});
+  load();
   $("bp-league-refresh").addEventListener("click",()=>load());
 
   function askGenerateFixture(count,tournamentName) {
