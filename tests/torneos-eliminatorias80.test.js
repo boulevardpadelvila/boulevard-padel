@@ -107,7 +107,12 @@ test("SQL80 valida cuatro sin alterar la protección histórica de siete y sin b
   assert.match(sql,/v_groups <> 3 OR v_group_sizes IS DISTINCT FROM ARRAY\[3::bigint,3::bigint,4::bigint\]/);
   assert.doesNotMatch(sql,/DELETE FROM public\.(?:reservations|blockouts|bp_tournaments|bp_tournament_pairs)/i);
   assert.doesNotMatch(sql,/TRUNCATE\s+public\./i);
-  assert.ok(!sql.includes("DROP TRIGGER"));
+  // El único trigger sustituido es el de congelación, para cubrir
+  // explícitamente las semifinales, manteniendo nombre y función previa.
+  assert.match(sql,/DROP TRIGGER IF EXISTS bp_ko_freeze_started_bracket_trg/);
+  assert.match(sql,/CREATE TRIGGER bp_ko_freeze_started_bracket_trg/);
+  assert.match(sql,/BEFORE UPDATE OF quarterfinals, direct_semifinal_pair_id, semifinals/);
+  assert.equal((sql.match(/DROP TRIGGER/g)||[]).length,1);
 });
 
 test("El cálculo real del Admin clasifica 2+2 por A3 y puntos del grupo de 3",()=>{
