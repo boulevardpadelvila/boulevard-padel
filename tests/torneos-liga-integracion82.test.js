@@ -174,3 +174,13 @@ test("Asignación de Fecha: máximo dos por pareja, independiente del día y hor
   assert.doesNotMatch(sql,/EXTRACT\(DOW FROM|date_part\('dow'/i);
   assert.match(publicRender,/Partidos sin Fecha/);
 });
+
+
+test("Liga aparece automáticamente tras cargar el selector y oculta paneles incompatibles",()=>{
+  assert.match(admin,/new MutationObserver\(\(\)=>load\(\)\)\.observe\(select/);
+  assert.match(admin,/classList\.toggle\("bp-league-active",league\)/);
+  assert.match(css,/#admin-torneos-view\.bp-league-active #bp-results-panel/);
+  assert.match(css,/#admin-torneos-view\.bp-league-active #bp-ko-panel/);
+  assert.match(css,/#admin-torneos-view\.bp-league-active #bp-ko68-panel/);
+  assert.match(admin,/groupsPanel\.hidden=league/);
+});
