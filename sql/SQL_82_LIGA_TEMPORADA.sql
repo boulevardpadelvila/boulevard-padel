@@ -152,7 +152,9 @@ BEGIN
            INSERT INTO public.bp_league_matches(
              tournament_id,leg,round_number,match_number,pair1_id,pair2_id
            ) VALUES (
-             p_tournament_id,v_leg,(v_size-1)+v_round,v_slot,v_pair2,v_pair1
+             p_tournament_id,v_leg,(v_size-1)+v_round,v_slot,
+             CASE WHEN v_round%2=0 THEN v_pair1 ELSE v_pair2 END,
+             CASE WHEN v_round%2=0 THEN v_pair2 ELSE v_pair1 END
            );
          ELSE
            INSERT INTO public.bp_league_matches(
@@ -358,5 +360,254 @@ GRANT EXECUTE ON FUNCTION public.bp_league_schedule_match(uuid,timestamptz,integ
 GRANT EXECUTE ON FUNCTION public.bp_league_save_result(uuid,jsonb) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.bp_public_league_followup(uuid) TO anon,authenticated;
 
--- El disparador y los métodos de eliminación definitiva se amplían
--- en el mismo SQL para no dejar bloqueos sin dueño (ver abajo).
+-- Mantener protegidos los bloqueos y la eliminación definitiva de Ligas.
+CREATE OR REPLACE FUNCTION public.bp_tournament_blockout_integrity_guard()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+DECLARE v_match record;
+BEGIN
+  IF TG_OP = 'DELETE' AND (
+    EXISTS (
+      SELECT 1 FROM public.bp_tournament_group_matches m
+      WHERE m.id = OLD.tournament_group_match_id
+        AND public.bp_tournament_delete_allowed(m.tournament_id)
+    )
+    OR EXISTS (
+      SELECT 1 FROM public.bp_tournament_knockout_matches k
+      WHERE k.id = OLD.tournament_knockout_match_id
+        AND public.bp_tournament_delete_allowed(k.tournament_id)
+    )
+    OR EXISTS (
+      SELECT 1 FROM public.bp_league_matches lm
+      WHERE lm.id = OLD.tournament_league_match_id
+        AND public.bp_tournament_delete_allowed(lm.tournament_id)
+    )
+  ) THEN
+    RETURN OLD;
+  END IF;
+ IF TG_OP='DELETE' THEN
+   IF (OLD.tournament_group_match_id IS NOT NULL OR OLD.tournament_knockout_match_id IS NOT NULL OR OLD.tournament_league_match_id IS NOT NULL)
+      AND OLD.active THEN
+     RAISE EXCEPTION 'No se puede borrar un bloqueo activo de partido.' USING ERRCODE='23514';
+   END IF;
+   RETURN OLD;
+ END IF;
+ IF TG_OP='UPDATE' AND (
+     (OLD.tournament_group_match_id IS NOT NULL AND
+      NEW.tournament_group_match_id IS DISTINCT FROM OLD.tournament_group_match_id)
+     OR (OLD.tournament_knockout_match_id IS NOT NULL AND
+      NEW.tournament_knockout_match_id IS DISTINCT FROM OLD.tournament_knockout_match_id)
+     OR (OLD.tournament_league_match_id IS NOT NULL AND
+      NEW.tournament_league_match_id IS DISTINCT FROM OLD.tournament_league_match_id)) THEN
+   RAISE EXCEPTION 'No se puede desvincular el bloqueo de su partido.' USING ERRCODE='23514';
+ END IF;
+ IF NEW.block_type='tournament'::public.block_type THEN
+   IF num_nonnulls(NEW.tournament_group_match_id,NEW.tournament_knockout_match_id,NEW.tournament_league_match_id)<>1 THEN
+     RAISE EXCEPTION 'El bloqueo de torneo debe pertenecer a un solo partido.' USING ERRCODE='23514';
+   END IF;
+   IF NEW.tournament_group_match_id IS NOT NULL THEN
+     SELECT m.schedule_status,m.scheduled_at,m.scheduled_ends_at INTO v_match
+     FROM public.bp_tournament_group_matches m WHERE m.id=NEW.tournament_group_match_id;
+   ELSIF NEW.tournament_knockout_match_id IS NOT NULL THEN
+     SELECT m.schedule_status,m.scheduled_at,m.scheduled_ends_at INTO v_match
+     FROM public.bp_tournament_knockout_matches m WHERE m.id=NEW.tournament_knockout_match_id;
+   ELSE
+     SELECT m.schedule_status,m.scheduled_at,m.scheduled_ends_at INTO v_match
+     FROM public.bp_league_matches m WHERE m.id=NEW.tournament_league_match_id;
+   END IF;
+   IF NOT FOUND THEN RAISE EXCEPTION 'El bloqueo de torneo debe corresponder a un partido.' USING ERRCODE='23514'; END IF;
+   IF v_match.schedule_status='scheduled' THEN
+     IF NOT NEW.active OR NEW.starts_at IS DISTINCT FROM v_match.scheduled_at
+       OR NEW.ends_at IS DISTINCT FROM v_match.scheduled_ends_at THEN
+       RAISE EXCEPTION 'El bloqueo debe coincidir con la programación del partido.' USING ERRCODE='23514';
+     END IF;
+   ELSIF NEW.active THEN
+     RAISE EXCEPTION 'Un partido sin programar no puede ocupar la cancha.' USING ERRCODE='23514';
+   END IF;
+ ELSIF num_nonnulls(NEW.tournament_group_match_id,NEW.tournament_knockout_match_id,NEW.tournament_league_match_id)>0 THEN
+   RAISE EXCEPTION 'Los bloqueos de partidos deben ser del tipo torneo.' USING ERRCODE='23514';
+ END IF;
+ RETURN NEW;
+END $function$;
+CREATE OR REPLACE FUNCTION public.bp_admin_delete_tournament_safely(p_tournament_id uuid, p_expected_name text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+DECLARE
+  v_t public.bp_tournaments%ROWTYPE;
+  v_pairs bigint;
+  v_groups bigint;
+  v_group_matches bigint;
+  v_ko_matches bigint;
+  v_league_matches bigint;
+  v_blocks bigint;
+BEGIN
+  IF auth.uid() IS NULL
+     OR NOT COALESCE(public.bp_tournament_is_admin(), FALSE) THEN
+    RAISE EXCEPTION 'Operación exclusiva para administradores activos.'
+      USING ERRCODE='42501';
+  END IF;
+  IF p_tournament_id IS NULL OR NULLIF(BTRIM(p_expected_name),'') IS NULL THEN
+    RAISE EXCEPTION 'Seleccioná un torneo válido.'
+      USING ERRCODE='22023';
+  END IF;
+
+  -- Bloqueo por torneo. El servidor vuelve a validar el nombre y la existencia.
+  SELECT * INTO v_t FROM public.bp_tournaments t
+  WHERE t.id=p_tournament_id FOR UPDATE;
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'El torneo ya no existe. Actualizá la lista.'
+      USING ERRCODE='P0002';
+  END IF;
+  IF v_t.name IS DISTINCT FROM p_expected_name THEN
+    RAISE EXCEPTION 'El torneo cambió de nombre. Actualizá y volvé a confirmar.'
+      USING ERRCODE='23514';
+  END IF;
+
+  SELECT count(*) INTO v_pairs FROM public.bp_tournament_pairs
+    WHERE tournament_id=p_tournament_id;
+  SELECT count(*) INTO v_groups FROM public.bp_tournament_groups
+    WHERE tournament_id=p_tournament_id;
+  SELECT count(*) INTO v_group_matches FROM public.bp_tournament_group_matches
+    WHERE tournament_id=p_tournament_id;
+  SELECT count(*) INTO v_ko_matches FROM public.bp_tournament_knockout_matches
+    WHERE tournament_id=p_tournament_id;
+  SELECT count(*) INTO v_league_matches FROM public.bp_league_matches
+    WHERE tournament_id=p_tournament_id;
+  SELECT count(*) INTO v_blocks FROM public.blockouts b
+    WHERE b.tournament_group_match_id IN (
+      SELECT id FROM public.bp_tournament_group_matches WHERE tournament_id=p_tournament_id
+    ) OR b.tournament_knockout_match_id IN (
+      SELECT id FROM public.bp_tournament_knockout_matches WHERE tournament_id=p_tournament_id
+    ) OR b.tournament_league_match_id IN (
+      SELECT id FROM public.bp_league_matches WHERE tournament_id=p_tournament_id
+    );
+
+  -- Este acceso privado existe solo dentro de ESTA transacción y para ESTE ID.
+  INSERT INTO bp_revision_private.operation_access(transaction_id,tournament_id,action)
+  VALUES (txid_current(),p_tournament_id,'delete');
+
+  -- Primero liberar únicamente bloqueos vinculados a encuentros del torneo.
+  -- No se toca ningún bloque independiente ni ninguna reserva.
+  DELETE FROM public.blockouts b
+  WHERE b.tournament_group_match_id IN (
+    SELECT id FROM public.bp_tournament_group_matches WHERE tournament_id=p_tournament_id
+  ) OR b.tournament_knockout_match_id IN (
+    SELECT id FROM public.bp_tournament_knockout_matches WHERE tournament_id=p_tournament_id
+  ) OR b.tournament_league_match_id IN (
+    SELECT id FROM public.bp_league_matches WHERE tournament_id=p_tournament_id
+  );
+
+  -- Historial de resultados de grupos y resultados (FK RESTRICT).
+  DELETE FROM public.bp_tournament_match_result_revisions rev
+  WHERE rev.match_id IN (
+    SELECT m.id FROM public.bp_tournament_group_matches m WHERE m.tournament_id=p_tournament_id
+  );
+  DELETE FROM public.bp_tournament_match_results r
+  WHERE r.tournament_id=p_tournament_id;
+
+  -- Llave final; FK CASCADE elimina sus partidos, resultados, revisiones
+  -- e historiales de programación de eliminatorias.
+  DELETE FROM public.bp_tournament_knockout_brackets k
+  WHERE k.tournament_id=p_tournament_id;
+
+  -- Grupos: borrar primero partidos y asignaciones, después grupos y parejas.
+  DELETE FROM public.bp_tournament_group_matches m
+  WHERE m.tournament_id=p_tournament_id;
+  DELETE FROM public.bp_tournament_group_pairs gp
+  WHERE gp.tournament_id=p_tournament_id;
+  DELETE FROM public.bp_tournament_groups g
+  WHERE g.tournament_id=p_tournament_id;
+  -- Liga: liberar fixture y configuración ANTES de borrar sus parejas.
+  DELETE FROM public.bp_league_matches lm
+  WHERE lm.tournament_id=p_tournament_id;
+  DELETE FROM public.bp_league_settings ls
+  WHERE ls.tournament_id=p_tournament_id;
+  DELETE FROM public.bp_tournament_pairs p
+  WHERE p.tournament_id=p_tournament_id;
+
+  -- Historiales sin FK y bitácora de revisión, exclusivamente del torneo.
+  DELETE FROM public.bp_tournament_match_schedule_history h
+  WHERE h.tournament_id=p_tournament_id;
+  DELETE FROM public.bp_tournament_revision_log r
+  WHERE r.tournament_id=p_tournament_id;
+
+  DELETE FROM public.bp_tournaments t
+  WHERE t.id=p_tournament_id AND t.name=p_expected_name;
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'No se eliminó el torneo seleccionado.'
+      USING ERRCODE='23514';
+  END IF;
+
+  DELETE FROM bp_revision_private.operation_access a
+  WHERE a.transaction_id=txid_current()
+    AND a.tournament_id=p_tournament_id AND a.action='delete';
+
+  RETURN jsonb_build_object(
+    'deleted',TRUE,
+    'tournament_id',p_tournament_id,
+    'tournament_name',p_expected_name,
+    'pairs_deleted',v_pairs,
+    'groups_deleted',v_groups,
+    'group_matches_deleted',v_group_matches,
+    'knockout_matches_deleted',v_ko_matches,
+    'league_matches_deleted',v_league_matches,
+    'linked_blockouts_deleted',v_blocks
+  );
+END;
+$function$;
+CREATE OR REPLACE FUNCTION public.bp_admin_tournament_delete_preview(p_tournament_id uuid)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+DECLARE
+  v_t public.bp_tournaments%ROWTYPE;
+BEGIN
+  IF auth.uid() IS NULL
+     OR NOT COALESCE(public.bp_tournament_is_admin(), FALSE) THEN
+    RAISE EXCEPTION 'Acción exclusiva de administradores activos.'
+      USING ERRCODE='42501';
+  END IF;
+  SELECT * INTO v_t
+  FROM public.bp_tournaments
+  WHERE id=p_tournament_id;
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'El torneo ya no existe. Actualizá la lista.'
+      USING ERRCODE='P0002';
+  END IF;
+  RETURN jsonb_build_object(
+    'tournament_id', v_t.id,
+    'tournament_name', v_t.name,
+    'is_published', v_t.is_published,
+    'pairs', (SELECT count(*) FROM public.bp_tournament_pairs WHERE tournament_id=p_tournament_id),
+    'groups', (SELECT count(*) FROM public.bp_tournament_groups WHERE tournament_id=p_tournament_id),
+    'group_matches', (SELECT count(*) FROM public.bp_tournament_group_matches WHERE tournament_id=p_tournament_id),
+    'group_results', (SELECT count(*) FROM public.bp_tournament_match_results WHERE tournament_id=p_tournament_id),
+    'knockout_matches', (SELECT count(*) FROM public.bp_tournament_knockout_matches WHERE tournament_id=p_tournament_id),
+    'knockout_results', (SELECT count(*) FROM public.bp_tournament_knockout_results WHERE tournament_id=p_tournament_id),
+    'league_matches', (SELECT count(*) FROM public.bp_league_matches WHERE tournament_id=p_tournament_id),
+    'league_results', (SELECT count(*) FROM public.bp_league_matches WHERE tournament_id=p_tournament_id AND match_status='played'),
+    'linked_blockouts', (
+      SELECT count(*) FROM public.blockouts b
+      WHERE b.tournament_group_match_id IN (
+        SELECT m.id FROM public.bp_tournament_group_matches m WHERE m.tournament_id=p_tournament_id
+      ) OR b.tournament_knockout_match_id IN (
+        SELECT k.id FROM public.bp_tournament_knockout_matches k WHERE k.tournament_id=p_tournament_id
+      ) OR b.tournament_league_match_id IN (
+        SELECT lm.id FROM public.bp_league_matches lm WHERE lm.tournament_id=p_tournament_id
+      )
+    )
+  );
+END;
+$function$;
+
+-- El API recarga columnas y funciones una vez aplicada esta migración.
+NOTIFY pgrst, 'reload schema';
+
