@@ -1,0 +1,16 @@
+name: Validación temporal Parche 77
+on:
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  node:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Pruebas de torneos y presentación pública
+        run: node --test tests/*.test.js
