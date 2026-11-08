@@ -59,3 +59,59 @@
     }
   }
 }
+
+/* Parche 76 · Programación: una columna por fecha, máximo tres en PC.
+   Esta hoja carga DESPUÉS de torneos-public.css, por eso las reglas
+   del calendario se definen aquí para evitar sobreescrituras accidentales. */
+.public-tournament-fixture__body {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+  align-items: start;
+  container-type: inline-size;
+}
+.public-tournament-fixture__body--1 {
+  grid-template-columns: minmax(0, 1fr);
+}
+.public-tournament-fixture__body--2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.public-tournament-fixture__calendar-block {
+  min-width: 0;
+  margin: 0;
+  padding: 11px 9px;
+  border-color: var(--color-border);
+  background: var(--color-surface);
+}
+.public-tournament-fixture__calendar-heading {
+  margin: 0 0 11px;
+  padding: 0 0 9px;
+  border-bottom: 2px solid #c7b16e;
+  color: #315b3a;
+  text-align: center;
+  font-size: 0.98rem;
+  font-variant-numeric: tabular-nums;
+}
+.public-tournament-fixture__calendar-grid {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 9px;
+}
+.public-tournament-fixture__calendar-grid .public-tournament-fixture__match {
+  height: auto;
+  padding: 10px 9px;
+}
+.public-tournament-fixture__date-meta {
+  margin: 4px 0 9px;
+  font-variant-numeric: tabular-nums;
+}
+@container (max-width: 810px) {
+  .public-tournament-fixture__body:not(.public-tournament-fixture__body--1) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@container (max-width: 530px) {
+  .public-tournament-fixture__body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
