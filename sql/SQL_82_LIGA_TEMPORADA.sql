@@ -7,6 +7,9 @@
 -- Ninguna instrucción actualiza resultados históricos de grupos o eliminatorias.
 
 ALTER TABLE public.bp_tournaments ALTER COLUMN ends_on DROP NOT NULL;
+-- Las otras modalidades conservan la exigencia histórica de fecha final.
+ALTER TABLE public.bp_tournaments ADD CONSTRAINT bp_tournaments_end_date_except_league
+ CHECK (format='league' OR ends_on IS NOT NULL);
 
 CREATE TABLE IF NOT EXISTS public.bp_league_settings (
  tournament_id uuid PRIMARY KEY REFERENCES public.bp_tournaments(id) ON DELETE RESTRICT,
@@ -16,6 +19,7 @@ CREATE TABLE IF NOT EXISTS public.bp_league_settings (
 ALTER TABLE public.bp_league_settings ENABLE ROW LEVEL SECURITY;
 CREATE POLICY bp_league_settings_admin_read ON public.bp_league_settings
  FOR SELECT TO authenticated USING ((SELECT public.bp_tournament_is_admin()));
+REVOKE ALL ON public.bp_league_settings FROM PUBLIC,anon,authenticated;
 GRANT SELECT ON public.bp_league_settings TO authenticated;
 
 CREATE TABLE IF NOT EXISTS public.bp_league_matches (
@@ -64,6 +68,7 @@ CREATE INDEX IF NOT EXISTS bp_league_matches_tournament_idx
 ALTER TABLE public.bp_league_matches ENABLE ROW LEVEL SECURITY;
 CREATE POLICY bp_league_matches_admin_read ON public.bp_league_matches
  FOR SELECT TO authenticated USING ((SELECT public.bp_tournament_is_admin()));
+REVOKE ALL ON public.bp_league_matches FROM PUBLIC,anon,authenticated;
 GRANT SELECT ON public.bp_league_matches TO authenticated;
 -- Ninguna política de escritura: solo las RPC administrativas validan cambios.
 
@@ -88,6 +93,29 @@ ALTER TABLE public.blockouts ADD CONSTRAINT bp_blockout_tournament_type_valid CH
 CREATE UNIQUE INDEX IF NOT EXISTS bp_league_blockout_unique
  ON public.blockouts(tournament_league_match_id)
  WHERE tournament_league_match_id IS NOT NULL;
+
+-- Conservar el plantel definitivamente inscrito cuando el fixture exista.
+-- Permitir correcciones ortográficas/contacto, no altas/bajas o cambios de estado.
+CREATE OR REPLACE FUNCTION public.bp_league_lock_roster()
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $league$
+DECLARE
+ v_id uuid;
+BEGIN
+ v_id:=CASE WHEN TG_OP='DELETE' THEN OLD.tournament_id ELSE NEW.tournament_id END;
+ IF EXISTS (SELECT 1 FROM public.bp_league_settings WHERE tournament_id=v_id) THEN
+   IF TG_OP IN ('DELETE','INSERT') OR
+     (TG_OP='UPDATE' AND (NEW.status IS DISTINCT FROM OLD.status
+        OR NEW.tournament_id IS DISTINCT FROM OLD.tournament_id
+        OR NEW.id IS DISTINCT FROM OLD.id)) THEN
+     RAISE EXCEPTION 'La Liga ya tiene calendario. No se pueden cambiar sus parejas.' USING ERRCODE='23514';
+   END IF;
+ END IF;
+ RETURN CASE WHEN TG_OP='DELETE' THEN OLD ELSE NEW END;
+END;
+$league$;
+CREATE TRIGGER bp_league_roster_locked
+ BEFORE INSERT OR UPDATE OR DELETE ON public.bp_tournament_pairs
+ FOR EACH ROW EXECUTE FUNCTION public.bp_league_lock_roster();
 
 CREATE OR REPLACE FUNCTION public.bp_league_generate_fixture(
  p_tournament_id uuid, p_legs integer DEFAULT 1
