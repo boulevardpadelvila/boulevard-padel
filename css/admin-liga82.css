@@ -2,6 +2,10 @@
    Paleta aprobada: verde #00432e, oro #a48335, crema #f8f0db.
    Botones siempre del mismo alto y ancho dentro de su grupo. */
 #bp-league-panel[hidden] { display:none; }
+/* Evitar que las reglas display:flex/grid del Admin anulen el atributo hidden. */
+#admin-torneos-view .torneos-stage[hidden],
+#admin-torneos-view .torneos-hint[hidden],
+#torneos-groups-panel[hidden] {display:none!important;}
 .bp-league { min-width:0; margin:18px 0 0; padding:16px;
   border:1px solid #b7a06f; border-radius:13px; background:#fff; }
 .bp-league h3,.bp-league h4 {color:#00432e; margin:0 0 12px; font-weight:800;}
