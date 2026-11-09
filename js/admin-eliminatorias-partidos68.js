@@ -137,7 +137,7 @@
     '<p id="bp-ko68-schedule-pair"></p>' +
     '<div id="bp-ko68-schedule-fields" class="bp-ko68-form-grid">' +
     '<label>Fecha <input required id="bp-ko68-day" type="date"></label>' +
-    '<label>Hora de inicio <input required id="bp-ko68-time" type="time" min="09:00" max="23:30" step="1800"></label>' +
+    '<label>Hora de inicio <select required id="bp-ko68-time"></select></label>' +
     '<label>Duración <select id="bp-ko68-duration"><option value="90">90 minutos</option><option value="120">120 minutos</option></select></label>' +
     '</div><label class="bp-ko68-reason">Motivo de reprogramación/postergación' +
     '<textarea id="bp-ko68-schedule-reason" maxlength="500" rows="2"></textarea></label>' +
@@ -146,6 +146,14 @@
     '<div class="admin-save-dialog__actions"><button type="button" class="secondary" id="bp-ko68-schedule-cancel">Volver</button>' +
     '<button type="submit" class="primary" id="bp-ko68-schedule-save">Guardar horario</button></div></form>';
   document.body.append(scheduleDialog);
+  // HH:mm como en la programación de grupos: 09:00 a 23:30, cada 30 minutos.
+  const koTime = $("bp-ko68-time");
+  for (let hour = 9; hour <= 23; hour++) {
+    for (const minute of ["00", "30"]) {
+      const value = `${String(hour).padStart(2, "0")}:${minute}`;
+      koTime.add(new Option(value, value));
+    }
+  }
   const scheduleForm = $("bp-ko68-schedule-form"),
     scheduleCancel = $("bp-ko68-schedule-cancel"),
     scheduleSave = $("bp-ko68-schedule-save");

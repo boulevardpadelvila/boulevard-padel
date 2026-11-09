@@ -489,6 +489,14 @@
   const day = $("bp-league-schedule-day"),
     time = $("bp-league-schedule-time"),
     duration = $("bp-league-schedule-duration");
+  // HH:mm garantizado, incluso cuando el navegador está configurado con AM/PM.
+  // La Liga conserva las 48 opciones: 00:00 a 23:30, cada 30 minutos.
+  for (let hour = 0; hour <= 23; hour++) {
+    for (const minute of ["00", "30"]) {
+      const value = `${String(hour).padStart(2, "0")}:${minute}`;
+      time.add(new Option(value, value));
+    }
+  }
   function scheduleFields() {
     for (const field of [day, time, duration, $("bp-league-schedule-court")])
       field.disabled = postpone.checked;

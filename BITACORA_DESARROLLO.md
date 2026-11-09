@@ -3144,3 +3144,12 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 - **GitHub — CONFIRMADO:** commit de rama `ea816190361040e41d399280ba43db0d628f0555`; PR **#15** fusionado a `main` en el commit `e505f1f863de471c06a18cab3aace7fa0a7f2683`. El usuario revisó y aprobó también el diseño de escritorio en el despliegue Preview.
 - **Cloudflare — CONFIRMADO:** compilación y despliegue de producción del merge `e505f1f` finalizados con estado **success**. Sitio oficial actualizado. No se aplicó ninguna SQL ni se cambió Supabase.
 - **Pendientes:** sincronizar `main` en la laptop, probar el sitio oficial con Martín y **conservar sin eliminar** la rama `desarrollo/referencias-compactas-20261109` tanto local como remota hasta tener conformidad expresa de Martín y sincronización final. Mantener pendientes previos de la auditoría de seguridad de torneos y desempates.
+
+
+## 09/11/2026 — Parche 85: selectores de horario en 24 horas
+
+- **Fecha / motivo / estado:** 09/11/2026. La ventana «Programar partido» mostraba AM/PM en Chrome. **PREPARADO EN RAMA DE DESARROLLO; PENDIENTE DE PRUEBAS Y PUBLICACIÓN.**
+- **Diagnóstico:** `input type="time"` usa las preferencias regionales del navegador, por lo que `lang="es-AR"` no asegura visualización `HH:mm`.
+- **Solución:** reemplazo de los campos de hora de Liga y eliminatorias por selectores `<select>` con opciones explícitas en formato 24 horas, como en grupos. Liga mantiene 00:00–23:30 cada 30 minutos (rango original); eliminatorias conserva 09:00–23:30 cada 30 minutos. Se preservan IDs, precarga del horario programado, parámetros RPC y las validaciones actuales. Sin cambios SQL, Supabase ni turnero.
+- **Archivos:** `admin/index.html`, `js/admin-liga82.js`, `js/admin-eliminatorias-partidos68.js`, nueva prueba `tests/torneos-horarios85.test.js`.
+- **Rama:** `desarrollo/horarios-24h-20261109` basada en `main` `ae9159e`. Pendientes: pruebas locales completas, revisión visual Preview, aprobación antes de fusionar. Conservar la rama anterior Parche 84 hasta el OK de Martín.
