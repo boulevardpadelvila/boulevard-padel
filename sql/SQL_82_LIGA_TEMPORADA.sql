@@ -101,18 +101,33 @@ CREATE UNIQUE INDEX IF NOT EXISTS bp_league_blockout_unique
 CREATE OR REPLACE FUNCTION public.bp_league_lock_roster()
 RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $league$
 DECLARE
- v_id uuid;
+ v_source uuid;
+ v_destination uuid;
 BEGIN
- v_id:=CASE WHEN TG_OP='DELETE' THEN OLD.tournament_id ELSE NEW.tournament_id END;
- IF EXISTS (SELECT 1 FROM public.bp_league_settings WHERE tournament_id=v_id) THEN
-   IF TG_OP IN ('DELETE','INSERT') OR
-     (TG_OP='UPDATE' AND (NEW.status IS DISTINCT FROM OLD.status
-        OR NEW.tournament_id IS DISTINCT FROM OLD.tournament_id
-        OR NEW.id IS DISTINCT FROM OLD.id)) THEN
+ -- Verificar AMBOS torneos cuando una pareja se traslada: no basta
+ -- comprobar el destino, porque el origen puede ser una Liga sorteada.
+ IF TG_OP='DELETE' THEN
+   v_source:=OLD.tournament_id;
+ ELSIF TG_OP='INSERT' THEN
+   v_destination:=NEW.tournament_id;
+ ELSE
+   v_source:=OLD.tournament_id;
+   v_destination:=NEW.tournament_id;
+ END IF;
+ IF EXISTS (
+   SELECT 1 FROM public.bp_league_settings
+   WHERE tournament_id=v_source OR tournament_id=v_destination
+ ) THEN
+   IF TG_OP IN ('DELETE','INSERT') THEN
+     RAISE EXCEPTION 'La Liga ya tiene calendario. No se pueden cambiar sus parejas.' USING ERRCODE='23514';
+   ELSIF NEW.status IS DISTINCT FROM OLD.status
+     OR NEW.tournament_id IS DISTINCT FROM OLD.tournament_id
+     OR NEW.id IS DISTINCT FROM OLD.id THEN
      RAISE EXCEPTION 'La Liga ya tiene calendario. No se pueden cambiar sus parejas.' USING ERRCODE='23514';
    END IF;
  END IF;
- RETURN CASE WHEN TG_OP='DELETE' THEN OLD ELSE NEW END;
+ IF TG_OP='DELETE' THEN RETURN OLD; END IF;
+ RETURN NEW;
 END;
 $league$;
 CREATE TRIGGER bp_league_roster_locked
