@@ -302,7 +302,7 @@
       card.append(el("strong","Semifinal "+(i+1)));
       const rivals=el("div",null,"bp-ko-match-rivals");
       for (let side=0;side<2;side++) {
-        if (side===1) rivals.append(el("span","VS","bp-ko-versus"));
+        if (side===1) rivals.append(el("span","vs","bp-ko-versus"));
         const dropdown=document.createElement("select");
         dropdown.setAttribute("aria-label","Semifinal "+(i+1)+" pareja "+(side+1));
         for (const q of list) dropdown.add(
@@ -446,7 +446,7 @@
       card.append(el("strong", "Cuartos " + (index + 1)));
       const rivals = el("div", null, "bp-ko-match-rivals");
       pair.forEach((pairId, side) => {
-        if (side === 1) rivals.append(el("span", "VS", "bp-ko-versus"));
+        if (side === 1) rivals.append(el("span", "vs", "bp-ko-versus"));
         const dropdown = document.createElement("select");
         dropdown.setAttribute(
           "aria-label",

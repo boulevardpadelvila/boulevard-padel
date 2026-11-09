@@ -3171,3 +3171,12 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 - **Alcance:** Admin `js/admin-liga82.js`, `css/admin-liga82.css`; público `js/torneos-liga-public82.js`, `css/torneos-liga82.css`. Los nombres se insertan como texto, sin HTML dinámico. No altera fechas, horarios, resultados, botones ni consultas Supabase.
 - **Control de regresión:** `tests/torneos-rivales86.test.js` agrega tres pruebas estructurales. No se modifican SQL, reservas, grupos o eliminatorias.
 - **Rama:** `desarrollo/rivales-liga-20261109` desde `main` `2a8a3ef`; publicar únicamente tras pruebas y conformidad visual del usuario. Conservar las ramas anteriores pendientes del OK final de Martín.
+
+
+### 09/11/2026 — Ampliación visual del Parche 86 a todos los partidos (Admin y público)
+
+- **Motivo:** tras revisar la vista preliminar de Liga, el usuario solicita que la programación y los resultados de fase de grupos, las eliminatorias y la Liga se vean lo más parecidos posible, tanto en Admin como en el sitio público.
+- **Estado:** CAMBIO EN RAMA DE DESARROLLO, PENDIENTE DE PRUEBAS LOCALES Y APROBACIÓN VISUAL. No publicar todavía.
+- **Alcance:** se incorpora una hoja común `css/torneos-rivales86.css` cargada al final de las hojas de torneo en ambas páginas. Las tarjetas de grupos del Admin mantienen sus dos nombres individuales y la actualización de resultados, pero visualmente los presentan juntos (`Nombre y Nombre`) y apilan pareja 1 / `vs` / pareja 2. El público aplica el mismo criterio a programación de grupos. Los resultados públicos de grupos y eliminatorias pasan a generar tres elementos DOM independientes, en vez de una cadena única con `vs.`. Los cruces del Admin normalizan el separador a `vs` sin negrita.
+- **Conservado:** toda la programación, postergación, marcador, ganador, orden de partidos, consulta pública, tablas, botones, grillas 3/2/1 y reglas deportivas. La Liga conserva el diseño ya probado. No se cambian la base de datos, SQL ni las reservas.
+- **Pruebas:** `tests/torneos-rivales-unificado86.test.js` agrega cinco verificaciones de integración estructural. Se ejecutará `node --test tests/*.test.js` en la laptop antes de integrar a `main`.
