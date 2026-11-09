@@ -32,6 +32,7 @@
     <link rel="stylesheet" href="../css/torneos-tablas83.css" />
     <link rel="stylesheet" href="../css/torneos-rivales86.css" />
     <link rel="stylesheet" href="../css/torneos-tablas87.css" />
+    <link rel="stylesheet" href="../css/admin-limpieza88.css" />
   </head>
   <body>
     <main class="admin-shell">
@@ -309,7 +310,11 @@
               >
                 Actualizar
               </button>
+              <button type="button" id="bp-cleanup88-open"
+                class="secondary bp-cleanup88__trigger">Limpiar historial</button>
             </div>
+            <p class="bp-cleanup88__feedback" id="bp-cleanup88-feedback"
+              aria-live="polite"></p>
           </div>
           <section
             id="new-booking-panel"
@@ -1517,6 +1522,71 @@
           </div>
         </div>
       </dialog>
+      <!-- Parche 88: limpieza controlada de historial, mismo modal institucional. -->
+      <dialog
+        id="bp-cleanup88-dialog"
+        class="admin-save-dialog bp-cleanup88__dialog"
+        aria-labelledby="bp-cleanup88-title"
+        aria-describedby="bp-cleanup88-description"
+      >
+        <div class="admin-save-dialog__body">
+          <span class="admin-save-dialog__icon" aria-hidden="true">🧹</span>
+          <h2 id="bp-cleanup88-title">Limpiar historial</h2>
+          <p id="bp-cleanup88-description">
+            Seleccioná qué datos históricos querés eliminar definitivamente.
+          </p>
+          <div id="bp-cleanup88-choose" class="bp-cleanup88__screen">
+            <fieldset class="bp-cleanup88__options" aria-label="Tipos de historial">
+              <label class="bp-cleanup88__choice">
+                <input type="checkbox" id="bp-cleanup88-cancelled" />
+                <span><strong>Reservas canceladas</strong>
+                  <small>Solo reservas comunes canceladas, incluso si su fecha era futura.</small></span>
+              </label>
+              <label class="bp-cleanup88__choice">
+                <input type="checkbox" id="bp-cleanup88-finished" />
+                <span><strong>Reservas finalizadas</strong>
+                  <small>Solo reservas comunes cuyo horario ya terminó.</small></span>
+              </label>
+              <label class="bp-cleanup88__choice">
+                <input type="checkbox" id="bp-cleanup88-fixed" />
+                <span><strong>Turnos fijos terminados o cancelados</strong>
+                  <small>Incluye sus reservas históricas. Nunca se borran períodos vigentes, aunque tengan fechas jugadas.</small></span>
+              </label>
+            </fieldset>
+          </div>
+          <div id="bp-cleanup88-review" class="bp-cleanup88__screen" hidden>
+            <div class="bp-cleanup88__preview">
+              <h3>Resumen antes de eliminar</h3>
+              <div class="bp-cleanup88__counts">
+                <span>Reservas canceladas</span><strong id="bp-cleanup88-count-cancelled">0</strong>
+                <span>Reservas finalizadas</span><strong id="bp-cleanup88-count-finished">0</strong>
+                <span>Turnos fijos completos</span><strong id="bp-cleanup88-count-fixed">0</strong>
+                <span>Reservas de esos turnos fijos</span><strong id="bp-cleanup88-count-fixed-reservations">0</strong>
+                <span class="bp-cleanup88__total">Registros a eliminar</span>
+                <strong class="bp-cleanup88__total" id="bp-cleanup88-count-total">0</strong>
+              </div>
+            </div>
+            <p class="admin-save-dialog__hint">
+              Esta acción no se puede deshacer. No borra clientes, bloqueos,
+              reservas futuras activas ni turnos fijos vigentes.
+            </p>
+            <div id="bp-cleanup88-confirmation" class="bp-cleanup88__confirmation" hidden>
+              <label for="bp-cleanup88-phrase">
+                Segunda confirmación: escribí <strong>ELIMINAR</strong>
+              </label>
+              <input type="text" id="bp-cleanup88-phrase"
+                autocomplete="off" autocapitalize="characters" spellcheck="false"
+                placeholder="ELIMINAR" />
+            </div>
+          </div>
+          <p class="bp-cleanup88__error" id="bp-cleanup88-error"
+            role="alert" aria-live="assertive" hidden></p>
+          <div class="admin-save-dialog__actions">
+            <button class="secondary" type="button" id="bp-cleanup88-back">Volver</button>
+            <button class="primary" type="button" id="bp-cleanup88-next">Revisar limpieza</button>
+          </div>
+        </div>
+      </dialog>
       <dialog
         class="admin-save-dialog"
         id="bp-block-dialog"
@@ -1601,6 +1671,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="../js/supabase-config.js"></script>
     <script src="../js/admin.js" defer></script>
+    <script src="../js/admin-limpieza88.js" defer></script>
     <script src="../js/admin-torneos.js" defer></script>
     <script src="../js/admin-parejas.js" defer></script>
     <script src="../js/admin-grupos.js" defer></script>
