@@ -47,12 +47,109 @@
   overflow-wrap: anywhere;
 }
 .bp-league__buttons {
-  grid-template-columns: repeat(2,minmax(0,1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
-@media(max-width:650px) {
-  .bp-league__buttons { grid-template-columns: minmax(0,1fr); }
+@media (max-width: 650px) {
+  .bp-league__buttons {
+    grid-template-columns: minmax(0, 1fr);
+  }
   .bp-results-legend,
   .public-tournament-standings-legend,
   .bp-league__legend,
-  .bp-public-league__legend { font-size: 0.77rem; }
+  .bp-public-league__legend {
+    font-size: 0.77rem;
+  }
+}
+
+/* Parche 84: referencias compactas de posiciones.
+   Grupos y Liga, Admin y sitio público. */
+
+.bp-results-legend,
+.public-tournament-standings-legend,
+.bp-league__legend,
+.bp-public-league__legend {
+  padding: 10px;
+  line-height: 1.4;
+}
+
+/* Distribución de las referencias */
+.bp-results-legend__grid,
+.public-tournament-standings-legend__grid,
+.bp-league__legend__grid,
+.bp-public-league__legend__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px 12px;
+}
+
+/* Cada abreviatura y su significado */
+.bp-results-legend__item,
+.public-tournament-standings-legend__item,
+.bp-league__legend__item,
+.bp-public-league__legend__item {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+  min-width: 0;
+  font-size: 0.73rem;
+  line-height: 1.35;
+}
+
+/* Abreviaturas destacadas */
+.bp-results-legend__key,
+.public-tournament-standings-legend__key,
+.bp-league__legend__key,
+.bp-public-league__legend__key {
+  color: #176047;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* Significados */
+.bp-results-legend__value,
+.public-tournament-standings-legend__value,
+.bp-league__legend__value,
+.bp-public-league__legend__value {
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+
+/* Nota de puntuación y desempates */
+.bp-results-legend__note,
+.public-tournament-standings-legend__note,
+.bp-league__legend__note,
+.bp-public-league__legend__note {
+  margin: 10px 0 0;
+  padding-top: 8px;
+  border-top: 1px solid #ddd5bb;
+  font-size: 0.7rem;
+  line-height: 1.45;
+  opacity: 0.85;
+}
+
+/* PC: aprovechar el espacio disponible */
+@media (min-width: 800px) {
+  .bp-results-legend__grid,
+  .public-tournament-standings-legend__grid,
+  .bp-league__legend__grid,
+  .bp-public-league__legend__grid {
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  }
+}
+
+/* Celulares: referencias pequeñas en dos columnas */
+@media (max-width: 420px) {
+  .bp-results-legend__grid,
+  .public-tournament-standings-legend__grid,
+  .bp-league__legend__grid,
+  .bp-public-league__legend__grid {
+    gap: 5px 8px;
+  }
+
+  .bp-results-legend__item,
+  .public-tournament-standings-legend__item,
+  .bp-league__legend__item,
+  .bp-public-league__legend__item {
+    font-size: 0.69rem;
+  }
 }
