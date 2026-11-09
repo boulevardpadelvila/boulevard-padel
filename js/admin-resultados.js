@@ -536,7 +536,7 @@
               block.append(
                 element(
                   "p",
-                  "Grupo completo. Clasifican las dos parejas del cruce de ganadores A3.",
+                  "Grupo completo. Clasifican las dos parejas del cruce de ganadores A3. Orden oficial: ganador A3 (1°), perdedor A3 (2°), ganador A4 (3°), perdedor A4 (4°). Ese orden se determina por los cruces, aunque haya empate en estadísticas.",
                   "bp-results-hint bp-results-success",
                 ),
               );
