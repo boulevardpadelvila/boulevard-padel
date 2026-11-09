@@ -48,6 +48,10 @@
   min-width:0;background:#fff;border:1px solid #cfdacc;
   border-left:4px solid #a48335;border-radius:10px;padding:13px;}
 .bp-league__match strong {color:#00432e;line-height:1.4;overflow-wrap:anywhere;}
+/* Parche 86: rivales en tres líneas, nombres centrados, vs discreto. */
+.bp-league__rivals {display:grid;justify-items:center;gap:2px;min-width:0;text-align:center;}
+.bp-league__rival {max-width:100%;font-size:.88rem;line-height:1.35;overflow-wrap:anywhere;}
+.bp-league__versus {color:#6b786d;font-size:.72rem;line-height:1.2;font-weight:400;}
 .bp-league__match-meta {font-size:.81rem;color:#607363;line-height:1.4;margin:0;}
 .bp-league__score {color:#00432e;font-weight:800;margin:0;}
 .bp-league__buttons {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));

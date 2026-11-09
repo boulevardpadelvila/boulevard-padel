@@ -3162,3 +3162,12 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 - **GitHub — CONFIRMADO:** commit de desarrollo `e66e1f6c488d5f15fc380714f0f73a45d7d7edea`, Pull Request **#16** integrado a `main` como `2c7a421552ce6fcd79bcadfd07d97661e6d77edb`.
 - **Cloudflare — CONFIRMADO:** despliegue de producción del merge `2c7a421` completado correctamente (`success`). Sin cambios en SQL ni Supabase.
 - **Pendiente de equipo:** actualizar `main` local mediante `git switch main`, `git pull --ff-only origin main` y `git status -sb`. Mantener ramas de desarrollo Parche 84 y Parche 85 hasta la aprobación final de Martín; no eliminarlas por el momento.
+
+
+## 09/11/2026 — Parche 86: rivales de Liga en tres renglones (Admin y público)
+
+- **Fecha / motivo / estado:** 09/11/2026. Solicitud del usuario para mejorar la lectura de los partidos agrupados por Fecha. **PREPARADO EN DESARROLLO; PENDIENTES PRUEBAS LOCALES Y REVISIÓN VISUAL ANTES DE PUBLICAR.**
+- **Implementación:** tarjetas de Liga muestran nombre de pareja 1, separador `vs` centrado, y nombre de pareja 2 en tres renglones, nombres con negrita y `vs` pequeño (`0.72rem`, peso `400`). Se conservan la disposición responsive y la tipografía verde/dorada.
+- **Alcance:** Admin `js/admin-liga82.js`, `css/admin-liga82.css`; público `js/torneos-liga-public82.js`, `css/torneos-liga82.css`. Los nombres se insertan como texto, sin HTML dinámico. No altera fechas, horarios, resultados, botones ni consultas Supabase.
+- **Control de regresión:** `tests/torneos-rivales86.test.js` agrega tres pruebas estructurales. No se modifican SQL, reservas, grupos o eliminatorias.
+- **Rama:** `desarrollo/rivales-liga-20261109` desde `main` `2a8a3ef`; publicar únicamente tras pruebas y conformidad visual del usuario. Conservar las ramas anteriores pendientes del OK final de Martín.
