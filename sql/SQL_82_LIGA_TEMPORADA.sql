@@ -1,6 +1,6 @@
--- Boulevard Pádel · SQL 82 · Modalidad Liga (borrador, NO INSTALADA)
--- Fecha: 07/11/2026. Necesita autorización SQL explícita previa a aplicación.
--- Definitiva: SÍ guardar como migración GitHub; NO ejecutar en SQL Editor ahora.
+-- Boulevard Pádel · SQL 82 · Modalidad Liga (APLICADA 09/11/2026)
+-- Preparada 07/11/2026; aplicada y auditada en Supabase 09/11/2026.
+-- Migración definitiva versionada en GitHub. NO volver a ejecutar manualmente en SQL Editor.
 -- Una sola rueda, inicio estimado sin finalización obligatoria.
 -- Sorteo genera todos los rivales sin asignar Fechas; máximo dos partidos
 -- por pareja en cada Fecha competitiva, sin exigir fin de semana.
