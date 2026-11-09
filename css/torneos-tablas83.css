@@ -1,0 +1,58 @@
+/* Boulevard Pádel · Parche 83 · Estadísticas legibles y Fechas automáticas.
+   Solo afecta los paneles de posiciones de Torneos y Liga. */
+.bp-results-table-wrap,
+.public-tournament-standings-grid .public-tournament-table-scroll,
+.bp-league__table-scroll,
+.bp-public-league__table-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+.bp-results-table {
+  width: 100%;
+  min-width: 820px;
+  font-variant-numeric: tabular-nums;
+}
+.bp-results-table th:nth-child(2),
+.bp-results-table td:nth-child(2) {
+  min-width: 140px;
+}
+.public-tournament-standings-grid .public-tournament-table {
+  min-width: 825px;
+  width: 100%;
+  font-variant-numeric: tabular-nums;
+}
+.public-tournament-standings-grid .public-tournament-table th:first-child,
+.public-tournament-standings-grid .public-tournament-table td:first-child {
+  width: 6%;
+}
+.public-tournament-standings-grid .public-tournament-table th:nth-child(2),
+.public-tournament-standings-grid .public-tournament-table td:nth-child(2) {
+  width: 27%;
+  min-width: 155px;
+}
+.bp-results-legend,
+.public-tournament-standings-legend,
+.bp-league__legend,
+.bp-public-league__legend {
+  box-sizing: border-box;
+  margin: 12px 0 16px;
+  padding: 10px 12px;
+  border: 1px solid #d7d0b5;
+  border-radius: 8px;
+  background: #faf8f0;
+  color: #325341;
+  font-size: 0.8rem;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+.bp-league__buttons {
+  grid-template-columns: repeat(2,minmax(0,1fr));
+}
+@media(max-width:650px) {
+  .bp-league__buttons { grid-template-columns: minmax(0,1fr); }
+  .bp-results-legend,
+  .public-tournament-standings-legend,
+  .bp-league__legend,
+  .bp-public-league__legend { font-size: 0.77rem; }
+}
