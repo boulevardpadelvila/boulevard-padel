@@ -37,8 +37,8 @@ test("Liga utiliza inscripciones ya existentes pero no exige fecha final",()=>{
   assert.match(sql,/v_t\.status='registration_open' AND v_t\.max_pairs=v_count/);
   assert.match(sql,/status='approved'/);
 });
-test("SQL 82 NO está ejecutada: RLS, permisos seguros y RPC sin teléfono público",()=>{
-  assert.match(sql,/NO INSTALADA/);
+test("SQL 82 preparada e instalada: RLS, permisos seguros y RPC sin teléfono público",()=>{
+  assert.match(sql,/APLICADA 09\/11\/2026/);
   assert.match(sql,/ALTER TABLE public\.bp_league_matches ENABLE ROW LEVEL SECURITY/);
   assert.match(sql,/ALTER TABLE public\.bp_league_settings ENABLE ROW LEVEL SECURITY/);
   assert.match(sql,/bp_league_matches_admin_read/);
