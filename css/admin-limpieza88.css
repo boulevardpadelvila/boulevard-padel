@@ -1,0 +1,228 @@
+/* Boulevard Pádel · Parche 88 · Reservas: 5 botones simétricos y modal seguro.
+   Carga al final. No afecta Torneos ni Turnos fijos fuera del modal. */
+
+.admin-card.dashboard #admin-reservas-view .dashboard-title-row {
+  flex-wrap: wrap;
+}
+.admin-card.dashboard #admin-reservas-view .dashboard-actions {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  flex: 1 1 670px;
+  width: min(100%, 795px);
+  max-width: 100%;
+  min-width: 0;
+  margin-left: auto;
+  gap: 8px;
+  justify-content: stretch;
+  align-items: stretch;
+}
+.admin-card.dashboard #admin-reservas-view .dashboard-actions > button {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+  min-height: 46px;
+  height: 46px;
+  margin: 0;
+  padding: 5px 6px;
+  font: 700 11px/1.2 Inter, Arial, sans-serif;
+  text-align: center;
+  white-space: normal;
+}
+.admin-card.dashboard #admin-reservas-view .dashboard-actions > .bp-cleanup88__trigger {
+  border: 1px solid #b69a4b;
+  background: #f9f5e9;
+  color: #694c19;
+}
+.admin-card.dashboard #admin-reservas-view .dashboard-actions > .bp-cleanup88__trigger:hover {
+  background: #f2e8cd;
+}
+@media (max-width: 850px) {
+  .admin-card.dashboard #admin-reservas-view .dashboard-actions {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    flex-basis: 100%;
+  }
+}
+@media (max-width: 620px) {
+  .admin-card.dashboard #admin-reservas-view .dashboard-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+    flex-basis: 100%;
+    gap: 7px;
+  }
+  .admin-card.dashboard #admin-reservas-view .dashboard-actions > button {
+    height: 44px;
+    min-height: 44px;
+    padding: 4px 6px;
+    font-size: clamp(10px, 2.65vw, 12px);
+  }
+}
+
+/* Reutiliza el lenguaje institucional del modal admin-save-dialog. */
+.bp-cleanup88__dialog {
+  box-sizing: border-box;
+  width: min(540px, calc(100vw - 28px));
+  max-width: calc(100vw - 28px);
+  max-height: min(90vh, 800px);
+  overflow-y: auto;
+}
+.bp-cleanup88__dialog .admin-save-dialog__body {
+  text-align: center;
+}
+.bp-cleanup88__dialog .admin-save-dialog__icon {
+  background: #f8eed8;
+  color: #8d6a1e;
+}
+.bp-cleanup88__dialog .bp-cleanup88__screen[hidden],
+.bp-cleanup88__dialog .bp-cleanup88__confirmation[hidden],
+.bp-cleanup88__dialog .bp-cleanup88__error[hidden] {
+  display: none !important;
+}
+.bp-cleanup88__dialog .bp-cleanup88__options {
+  display: grid;
+  gap: 9px;
+  border: 0;
+  padding: 0;
+  margin: 16px 0 10px;
+  text-align: left;
+}
+.bp-cleanup88__dialog .bp-cleanup88__choice {
+  box-sizing: border-box;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid #d9e2d3;
+  border-left: 3px solid #b69a4b;
+  border-radius: 10px;
+  background: #fbfbf8;
+  cursor: pointer;
+}
+.bp-cleanup88__dialog .bp-cleanup88__choice:focus-within {
+  outline: 2px solid #b69a4b;
+  outline-offset: 2px;
+}
+.bp-cleanup88__dialog .bp-cleanup88__choice input {
+  flex: 0 0 auto;
+  width: 19px;
+  height: 19px;
+  margin: 2px 0 0;
+  accent-color: #00432e;
+}
+.bp-cleanup88__dialog .bp-cleanup88__choice > span {
+  display: grid;
+  gap: 3px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: #21402d;
+}
+.bp-cleanup88__dialog .bp-cleanup88__choice strong {
+  font-weight: 800;
+  color: #00432e;
+}
+.bp-cleanup88__dialog .bp-cleanup88__choice small {
+  font-size: 11px;
+  color: #5d6d5e;
+  line-height: 1.4;
+}
+.bp-cleanup88__dialog .bp-cleanup88__preview {
+  padding: 14px;
+  text-align: left;
+  border-radius: 11px;
+  border: 1px solid #d6c99c;
+  background: #faf8f0;
+}
+.bp-cleanup88__dialog .bp-cleanup88__preview h3 {
+  margin: 0 0 10px;
+  color: #00432e;
+  font-size: 16px;
+}
+.bp-cleanup88__dialog .bp-cleanup88__counts {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 7px 12px;
+  font-size: 13px;
+  color: #31503b;
+}
+.bp-cleanup88__dialog .bp-cleanup88__counts strong {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.bp-cleanup88__dialog .bp-cleanup88__counts .bp-cleanup88__total {
+  padding-top: 9px;
+  border-top: 1px solid #d6c99c;
+  font-weight: 800;
+}
+.bp-cleanup88__dialog .bp-cleanup88__confirmation {
+  margin-top: 14px;
+}
+.bp-cleanup88__dialog .bp-cleanup88__confirmation label {
+  display: block;
+  color: #334b37;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 700;
+  margin: 0 0 8px;
+}
+.bp-cleanup88__dialog .bp-cleanup88__confirmation input {
+  box-sizing: border-box;
+  display: block;
+  width: 100%;
+  height: 44px;
+  padding: 9px 12px;
+  border: 1px solid #b9c9b9;
+  border-radius: 9px;
+  color: #173e2d;
+  font: 700 14px Inter, Arial, sans-serif;
+  letter-spacing: .04em;
+  text-align: center;
+  background: #fff;
+}
+.bp-cleanup88__dialog .bp-cleanup88__confirmation input:focus-visible {
+  outline: 3px solid #c7b16e;
+  outline-offset: 2px;
+}
+.bp-cleanup88__dialog .bp-cleanup88__error {
+  padding: 9px 11px;
+  border: 1px solid #e6bdbb;
+  border-radius: 8px;
+  background: #fff3f2;
+  color: #a02c32 !important;
+  font-size: 12px !important;
+}
+.bp-cleanup88__dialog .bp-cleanup88__danger {
+  border: 1px solid #a33035;
+  border-radius: 9px;
+  background: #a33035;
+  color: #fff;
+  font-weight: 800;
+  cursor: pointer;
+}
+.bp-cleanup88__dialog .bp-cleanup88__danger:disabled {
+  opacity: .52;
+  cursor: not-allowed;
+}
+.bp-cleanup88__dialog .bp-cleanup88__danger:not(:disabled):hover {
+  background: #86272b;
+}
+.bp-cleanup88__feedback {
+  color: #1d603d;
+  font-size: 12px;
+  font-weight: 700;
+  margin: 5px 0 0;
+}
+.bp-cleanup88__feedback:empty {
+  display: none;
+}
+@media (max-width: 390px) {
+  .bp-cleanup88__dialog .admin-save-dialog__body {
+    padding: 21px 15px;
+  }
+  .bp-cleanup88__dialog .admin-save-dialog__actions button {
+    font-size: 12px !important;
+    padding: 6px;
+  }
+}
