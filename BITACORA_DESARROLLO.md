@@ -3148,8 +3148,17 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 
 ## 09/11/2026 — Parche 85: selectores de horario en 24 horas
 
-- **Fecha / motivo / estado:** 09/11/2026. La ventana «Programar partido» mostraba AM/PM en Chrome. **PREPARADO EN RAMA DE DESARROLLO; PENDIENTE DE PRUEBAS Y PUBLICACIÓN.**
+- **Fecha / motivo / estado:** 09/11/2026. La ventana «Programar partido» mostraba AM/PM en Chrome. **CONFIRMADO: 124 pruebas aprobadas, revisión visual aprobada, PR #16 fusionado a `main` y Cloudflare producción en estado success.**
 - **Diagnóstico:** `input type="time"` usa las preferencias regionales del navegador, por lo que `lang="es-AR"` no asegura visualización `HH:mm`.
 - **Solución:** reemplazo de los campos de hora de Liga y eliminatorias por selectores `<select>` con opciones explícitas en formato 24 horas, como en grupos. Liga mantiene 00:00–23:30 cada 30 minutos (rango original); eliminatorias conserva 09:00–23:30 cada 30 minutos. Se preservan IDs, precarga del horario programado, parámetros RPC y las validaciones actuales. Sin cambios SQL, Supabase ni turnero.
 - **Archivos:** `admin/index.html`, `js/admin-liga82.js`, `js/admin-eliminatorias-partidos68.js`, nueva prueba `tests/torneos-horarios85.test.js`.
 - **Rama:** `desarrollo/horarios-24h-20261109` basada en `main` `ae9159e`. Pendientes: pruebas locales completas, revisión visual Preview, aprobación antes de fusionar. Conservar la rama anterior Parche 84 hasta el OK de Martín.
+
+
+### Cierre de publicación — Parche 85 (09/11/2026)
+
+- **Local — CONFIRMADO:** `node --test tests/*.test.js` ejecutado por el usuario, **124/124 pruebas exitosas**, 0 fallidas. Verificación visual del selector de Liga en Cloudflare Preview aprobada por el usuario.
+- **Auditoría de código — CONFIRMADA:** revisión de archivos HTML y JavaScript del proyecto; los formularios que seleccionan horas utilizan opciones `HH:mm` o controles de texto con validación de 24 horas. No hay selectores nativos `input type="time"` restantes en los formularios inspeccionados.
+- **GitHub — CONFIRMADO:** commit de desarrollo `e66e1f6c488d5f15fc380714f0f73a45d7d7edea`, Pull Request **#16** integrado a `main` como `2c7a421552ce6fcd79bcadfd07d97661e6d77edb`.
+- **Cloudflare — CONFIRMADO:** despliegue de producción del merge `2c7a421` completado correctamente (`success`). Sin cambios en SQL ni Supabase.
+- **Pendiente de equipo:** actualizar `main` local mediante `git switch main`, `git pull --ff-only origin main` y `git status -sb`. Mantener ramas de desarrollo Parche 84 y Parche 85 hasta la aprobación final de Martín; no eliminarlas por el momento.
