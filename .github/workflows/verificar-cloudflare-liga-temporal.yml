@@ -1,0 +1,32 @@
+name: Verificar despliegue Cloudflare Liga (temporal)
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Verificar Admin y assets de Liga en Cloudflare
+        shell: bash
+        run: |
+          set -euo pipefail
+          ok=0
+          for n in $(seq 1 20); do
+            if curl --location --fail --silent --show-error --max-time 20 --output /tmp/bpadmin.html 'https://boulevard-padel.pages.dev/admin/index.html' && \
+               curl --location --fail --silent --show-error --max-time 20 --output /tmp/bpliga.js 'https://boulevard-padel.pages.dev/js/torneos-liga-motor.js'; then
+              if grep -q 'value="league">Liga</option>' /tmp/bpadmin.html && \
+                 grep -q 'value="groups_knockout"' /tmp/bpadmin.html && \
+                 ! grep -q 'value="knockout"' /tmp/bpadmin.html && \
+                 grep -q 'BPLeagueEngine' /tmp/bpliga.js; then
+                ok=1
+                echo 'OK: Cloudflare publica exactamente Fase de grupos + eliminatorias y Liga; motor de Liga disponible.'
+                break
+              fi
+            fi
+            echo "Despliegue aún no visible en intento $n"
+            sleep 10
+          done
+          test "$ok" = 1
