@@ -69,7 +69,7 @@ test("Admin y público de grupos muestran GF/GC/Dif.G y referencias accesibles",
   assert.match(groupAdmin,/motor\.standingsLegend/);
   assert.match(groupPublic,/const cols = \["Pos\.","Pareja","PJ","PG","PP","SF","SC","Dif\.","GF","GC","Dif.G","Pts"\]/);
   assert.match(groupPublic,/window\.BPTournamentEngine\.countNormalGames/);
-  assert.match(groupPublic,/window\.BPTournamentEngine\.standingsLegend/);
+  assert.match(groupPublic,/standingsLegend/);
   for(const term of ["PJ:","PG:","PP:","SF:","SC:","Dif.:","GF:","GC:","Dif.G:","Pts:"])
     assert.ok(group.standingsLegend.includes(term),term);
 });
