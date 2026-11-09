@@ -184,3 +184,12 @@ test("Liga aparece automáticamente tras cargar el selector y oculta paneles inc
   assert.match(css,/#admin-torneos-view\.bp-league-active #bp-ko68-panel/);
   assert.match(admin,/groupsPanel\.hidden=league/);
 });
+
+test("Liga bloquea cambios del plantel tanto en el torneo de origen como en el destino",()=>{
+  const guard=sql.match(/CREATE OR REPLACE FUNCTION public\.bp_league_lock_roster\(\)[\s\S]*?\$league\$;/);
+  assert.ok(guard,"Falta la función que protege el plantel");
+  assert.match(guard[0],/v_source:=OLD\.tournament_id/);
+  assert.match(guard[0],/v_destination:=NEW\.tournament_id/);
+  assert.match(guard[0],/tournament_id=v_source OR tournament_id=v_destination/);
+  assert.match(guard[0],/NEW\.tournament_id IS DISTINCT FROM OLD\.tournament_id/);
+});
