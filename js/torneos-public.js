@@ -11,6 +11,28 @@
     groups_knockout: "Grupos + eliminatorias",
     knockout: "Eliminación directa",
   };
+  // El sitio carga primero el motor deportivo. El fallback mantiene las
+  // vistas informativas ante cargas parciales o simulaciones de pruebas.
+  const standingsLegend = window.BPTournamentEngine?.standingsLegend ||
+    "PJ: Partidos jugados · PG: Ganados · PP: Perdidos · SF: Sets a favor · " +
+    "SC: Sets en contra · Dif.: Diferencia de sets · GF: Games a favor · " +
+    "GC: Games en contra · Dif.G: Diferencia de games · Pts: Puntos.";
+  function countNormalGames(sets, format = "legacy") {
+    if (window.BPTournamentEngine?.countNormalGames)
+      return window.BPTournamentEngine.countNormalGames(sets, format);
+    if (!Array.isArray(sets)) return [0, 0];
+    const third=sets[2];
+    const includeThird=format==="three_sets" ||
+      (format==="legacy" && Array.isArray(third) && third.length===2 &&
+       third.every(n=>Number.isSafeInteger(n) && n>=0 && n<=7));
+    return (includeThird ? sets : sets.slice(0,2)).reduce((sum,set)=>{
+      if(Array.isArray(set)&&set.length===2&&
+        set.every(n=>Number.isSafeInteger(n)&&n>=0)){
+        sum[0]+=set[0];sum[1]+=set[1];
+      }
+      return sum;
+    },[0,0]);
+  }
   let selection = null;
   let loading = false;
   let tournamentsCache = [];
@@ -203,8 +225,7 @@
       a.played++; b.played++;
       a.setsFor += match.sets_pair1; a.setsAgainst += match.sets_pair2;
       b.setsFor += match.sets_pair2; b.setsAgainst += match.sets_pair1;
-      const [g1,g2] = window.BPTournamentEngine.countNormalGames(
-        match.sets,match.score_format || "legacy");
+      const [g1,g2] = countNormalGames(match.sets,match.score_format || "legacy");
       a.gamesFor += g1; a.gamesAgainst += g2;
       b.gamesFor += g2; b.gamesAgainst += g1;
       winner.won++; winner.points += 3;
@@ -351,7 +372,7 @@
     }
     standings.append(standingsGrid);
     if (groups.length) standings.append(make("p","public-tournament-standings-legend",
-      window.BPTournamentEngine.standingsLegend));
+      standingsLegend));
     if (!groups.length) standings.append(make("p","public-tournament-data__empty","Grupos pendientes de publicación."));
     content.append(matchesSection,standings);
 
