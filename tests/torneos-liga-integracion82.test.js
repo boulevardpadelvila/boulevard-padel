@@ -22,9 +22,9 @@ test("Liga se integra dentro de Torneos, no crea navegación paralela",()=>{
   assert.match(html,/src="\.\.\/js\/torneos-liga-motor\.js"/);
   assert.match(html,/src="\.\.\/js\/admin-liga82\.js"/);
   assert.match(html,/href="\.\.\/css\/admin-liga82\.css"/);
-  assert.match(admin,/select\.addEventListener\("change",load\)/);
+  assert.match(admin,/select\.addEventListener\("change",\s*load\)/);
   assert.match(admin,/updateVisible\(true\)/);
-  assert.match(admin,/groupsPanel\.hidden=league/);
+  assert.match(admin,/groupsPanel\.hidden\s*=\s*league/);
 });
 test("Liga utiliza inscripciones ya existentes pero no exige fecha final",()=>{
   assert.match(create,/const format = \$\("torneo-format"\)\.value/);
@@ -72,10 +72,10 @@ test("Resultado Liga es 2 sets más súper tie-break; no tercero normal",()=>{
   assert.match(sql,/v_i=2 AND NOT\(\(v_high=10 AND v_low<=8\)/);
   assert.match(sql,/v_high>10 AND v_high-v_low=2/);
   assert.match(admin,/engine\.analyzeScore\(sets\)/);
-  assert.match(admin,/p_sets:sets/);
+  assert.match(admin,/p_sets:\s*sets/);
   assert.match(html,/súper tie-break/i);
   assert.match(html,/bp-league-result-form/);
-  assert.match(admin,/inputs\.slice\(0,2\)/);
+  assert.match(admin,/inputs\.slice\(0,\s*split\s*\?\s*3\s*:\s*2\)/);
   assert.match(admin,/toggleThird/);
 });
 test("Vista pública Liga: fixture, tabla, campeón y RPC con información filtrada",()=>{
@@ -87,7 +87,7 @@ test("Vista pública Liga: fixture, tabla, campeón y RPC con información filtr
   assert.match(publicJS,/bp_public_league_followup/);
   assert.match(publicJS,/publicLeagueByTournament/);
   assert.match(publicJS,/Inicio estimado:/);
-  assert.match(publicJS,/t\.format==="league"/);
+  assert.match(publicJS,/t\.format\s*===\s*"league"/);
   assert.match(publicRender,/Calendario de Liga/);
   assert.match(publicRender,/Tabla general/);
   assert.match(publicRender,/Campeones/);
@@ -129,7 +129,7 @@ test("Confirmación para generar fixture usa diálogo del Admin, no confirmació
   assert.match(html,/id="bp-league-generate-dialog"/);
   assert.match(html,/id="bp-league-generate-cancel"/);
   assert.match(html,/id="bp-league-generate-confirm"/);
-  assert.match(admin,/askGenerateFixture\(count,current\.name\)/);
+  assert.match(admin,/askGenerateFixture\(count,\s*current\.name\)/);
   assert.doesNotMatch(admin,/window\.confirm/);
   assert.match(css,/\.bp-league__dialog \.admin-save-dialog__actions/);
 });
@@ -143,12 +143,12 @@ test("Modalidades visibles: Fase de grupos + eliminatorias y Liga, sin eliminaci
   assert.doesNotMatch(select[1],/value="knockout"/);
   assert.doesNotMatch(select[1],/Todos contra todos<\/option>/);
 });
-test("Sorteo: una rueda, sin Fechas asignadas, al cerrar inscripciones o completar cupo",()=>{
+test("SQL82 histórico: sorteo de una rueda antes de Fechas automáticas de SQL83",()=>{
   assert.doesNotMatch(html,/id="bp-league-legs"/);
   assert.match(html,/id="bp-league-generate"[^>]*>[\s\S]*?Sortear partidos/);
-  assert.match(admin,/engine\.buildSchedule\(\[\.\.\.pairs\.keys\(\)\],1\)/);
-  assert.match(admin,/p_tournament_id:id,p_legs:1/);
-  assert.match(admin,/current\.status==="registration_open"&&current\.approved===current\.max_pairs/);
+  assert.match(admin,/engine\.buildSchedule\(\[\.\.\.pairs\.keys\(\)\],\s*1\)/);
+  assert.match(admin,/p_tournament_id:\s*id,\s*p_legs:\s*1/);
+  assert.match(admin,/current\.status\s*===\s*"registration_open"\s*&&\s*current\.approved\s*===\s*current\.max_pairs/);
   assert.match(sql,/p_legs IS DISTINCT FROM 1/);
   assert.match(sql,/legs smallint NOT NULL DEFAULT 1 CHECK \(legs=1\)/);
   assert.match(sql,/SELECT array_agg\(id ORDER BY draw_key\)/);
@@ -159,13 +159,13 @@ test("Sorteo: una rueda, sin Fechas asignadas, al cerrar inscripciones o complet
   assert.match(sql,/round_number integer CHECK \(round_number IS NULL/);
   assert.match(sql,/CONSTRAINT bp_league_match_order_unique/);
 });
-test("Asignación de Fecha: máximo dos por pareja, independiente del día y hora",()=>{
+test("SQL82 histórico: asignación manual de Fecha (ahora limitada por SQL83)",()=>{
   assert.match(html,/id="bp-league-round-dialog"/);
   assert.match(html,/id="bp-league-round-number"/);
   assert.match(admin,/function openRound\(match\)/);
-  assert.match(admin,/engine\.validateRoundAssignment\(matchList,match\.id,round\)/);
+  assert.match(admin,/engine\.validateRoundAssignment\(matchList,\s*match\.id,\s*round\)/);
   assert.match(admin,/supabaseClient\.rpc\("bp_league_assign_round"/);
-  assert.match(admin,/round===null\?"Partidos sin Fecha"/);
+  assert.match(admin,/round\s*===\s*null\s*\?\s*"Partidos sin Fecha"/);
   assert.match(sql,/FUNCTION public\.bp_league_assign_round\(/);
   assert.match(sql,/v_p1_count>=2 OR v_p2_count>=2/);
   assert.match(sql,/pg_advisory_xact_lock|FOR UPDATE/);
@@ -177,12 +177,12 @@ test("Asignación de Fecha: máximo dos por pareja, independiente del día y hor
 
 
 test("Liga aparece automáticamente tras cargar el selector y oculta paneles incompatibles",()=>{
-  assert.match(admin,/new MutationObserver\(\(\)=>load\(\)\)\.observe\(select/);
-  assert.match(admin,/classList\.toggle\("bp-league-active",league\)/);
+  assert.match(admin,/new MutationObserver\(\(\s*\)\s*=>\s*load\(\)\)\.observe\(select/);
+  assert.match(admin,/classList\.toggle\("bp-league-active",\s*league\)/);
   assert.match(css,/#admin-torneos-view\.bp-league-active #bp-results-panel/);
   assert.match(css,/#admin-torneos-view\.bp-league-active #bp-ko-panel/);
   assert.match(css,/#admin-torneos-view\.bp-league-active #bp-ko68-panel/);
-  assert.match(admin,/groupsPanel\.hidden=league/);
+  assert.match(admin,/groupsPanel\.hidden\s*=\s*league/);
 });
 
 test("Liga bloquea cambios del plantel tanto en el torneo de origen como en el destino",()=>{

@@ -176,10 +176,10 @@
       // El puesto oficial en el grupo de 4 viene de los cruces A3 y A4.
       // No forzar un desempate estadístico de dos parejas con 3 puntos.
       const order = motor.decisiveFourPlacings(found.pairIds, results);
-      const byId = new Map(positions.table.map((row)=>[row.pairId,row]));
-      positions.table = order.map((id)=>byId.get(id));
+      const byId = new Map(positions.table.map((row) => [row.pairId, row]));
+      positions.table = order.map((id) => byId.get(id));
       positions.qualifyingPlaces = 2;
-      positions.qualifiedPairIds = order.slice(0,2);
+      positions.qualifiedPairIds = order.slice(0, 2);
       positions.boundaryTie = false;
       positions.fullTies = [];
       positions.seedingReady = true;
@@ -521,7 +521,12 @@
         }
       } else if (members.length === 4 && matches.length) {
         try {
-          const standings = standingsForFour(members, matches, byResult, data.groups.length===2);
+          const standings = standingsForFour(
+            members,
+            matches,
+            byResult,
+            data.groups.length === 2,
+          );
           if (standings) {
             block.append(tableForStandings(standings, pairMap));
             if (!standings.complete)
@@ -532,7 +537,7 @@
                   "bp-results-hint",
                 ),
               );
-            else if (data.groups.length===2)
+            else if (data.groups.length === 2)
               block.append(
                 element(
                   "p",
@@ -584,7 +589,26 @@
       }
       content.append(block);
     }
-    content.append(element("p", motor.standingsLegend, "bp-results-legend"));
+    const referencias = element("div", "", "bp-results-legend");
+    const columnas = element("div", "", "bp-results-legend__grid");
+
+    for (const [sigla, significado] of motor.standingsLegendItems) {
+      const item = element("div", "", "bp-results-legend__item");
+
+      item.append(
+        element("strong", `${sigla}:`, "bp-results-legend__key"),
+        element("span", significado, "bp-results-legend__value"),
+      );
+
+      columnas.append(item);
+    }
+
+    referencias.append(
+      columnas,
+      element("p", motor.standingsLegendNote, "bp-results-legend__note"),
+    );
+
+    content.append(referencias);
     if (!published)
       setMessage(
         "Publicá el fixture antes de cargar resultados. Las tablas se calculan con los resultados ya registrados.",

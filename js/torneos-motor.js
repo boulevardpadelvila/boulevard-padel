@@ -249,18 +249,26 @@
   function countNormalGames(sets, format = "legacy") {
     if (!Array.isArray(sets)) return [0, 0];
     const third = sets[2];
-    const includeThird = format === "three_sets" ||
-      (format === "legacy" && Array.isArray(third) &&
-        third.length === 2 && third.every(n =>
-          Number.isSafeInteger(n) && n >= 0 && n <= 7));
-    return (includeThird ? sets : sets.slice(0, 2)).reduce((sum, set) => {
-      if (Array.isArray(set) && set.length === 2 &&
-        set.every(n => Number.isSafeInteger(n) && n >= 0)) {
-        sum[0] += set[0];
-        sum[1] += set[1];
-      }
-      return sum;
-    }, [0, 0]);
+    const includeThird =
+      format === "three_sets" ||
+      (format === "legacy" &&
+        Array.isArray(third) &&
+        third.length === 2 &&
+        third.every((n) => Number.isSafeInteger(n) && n >= 0 && n <= 7));
+    return (includeThird ? sets : sets.slice(0, 2)).reduce(
+      (sum, set) => {
+        if (
+          Array.isArray(set) &&
+          set.length === 2 &&
+          set.every((n) => Number.isSafeInteger(n) && n >= 0)
+        ) {
+          sum[0] += set[0];
+          sum[1] += set[1];
+        }
+        return sum;
+      },
+      [0, 0],
+    );
   }
   const standingsLegend =
     "PJ: Partidos jugados · PG: Ganados · PP: Perdidos · " +
@@ -268,6 +276,24 @@
     "GF: Games a favor · GC: Games en contra · Dif.G: Diferencia de games · " +
     "Pts: Puntos. Orden estadístico: Pts, Dif. y SF; " +
     "los games se muestran como información, no desempatan. " +
+    "El súper tie-break cuenta como set, no como games.";
+
+  const standingsLegendItems = [
+    ["PJ", "Partidos jugados"],
+    ["PG", "Ganados"],
+    ["PP", "Perdidos"],
+    ["SF", "Sets a favor"],
+    ["SC", "Sets en contra"],
+    ["Dif.", "Diferencia de sets"],
+    ["GF", "Games a favor"],
+    ["GC", "Games en contra"],
+    ["Dif.G", "Diferencia de games"],
+    ["Pts", "Puntos"],
+  ];
+
+  const standingsLegendNote =
+    "Orden estadístico: Pts, Dif. y SF. " +
+    "Los games son informativos y no desempatan. " +
     "El súper tie-break cuenta como set, no como games.";
 
   function calculateGroupStandings(pairIds, results = {}) {
@@ -321,7 +347,8 @@
       r2.setsFor += outcome.side2Sets;
       r2.setsAgainst += outcome.side1Sets;
       const [games1, games2] = countNormalGames(
-        results[code].sets, results[code].format || "legacy",
+        results[code].sets,
+        results[code].format || "legacy",
       );
       r1.gamesFor += games1;
       r1.gamesAgainst += games2;
@@ -394,8 +421,13 @@
     const winFinal = outcome("A3");
     const loseFinal = outcome("A4");
     const positions = [...winFinal, ...loseFinal];
-    if (new Set(positions).size !== 4 || positions.some((id) => !pairIds.includes(id))) {
-      throw new Error("Los cruces del grupo de cuatro no determinan puestos únicos.");
+    if (
+      new Set(positions).size !== 4 ||
+      positions.some((id) => !pairIds.includes(id))
+    ) {
+      throw new Error(
+        "Los cruces del grupo de cuatro no determinan puestos únicos.",
+      );
     }
     return positions;
   }
@@ -404,18 +436,25 @@
   // grupo. Cruces cruzados: 1º A vs. 2º B; 1º B vs. 2º A.
   // Martín podrá intercambiarlos antes de confirmar desde el Admin.
   function planFourKnockout(qualified) {
-    if (!Array.isArray(qualified) || qualified.length !== 4 ||
-        new Set(qualified.map((q) => q.pairId)).size !== 4) {
+    if (
+      !Array.isArray(qualified) ||
+      qualified.length !== 4 ||
+      new Set(qualified.map((q) => q.pairId)).size !== 4
+    ) {
       throw new Error("Se requieren cuatro parejas clasificadas distintas.");
     }
-    const groups = [...new Set(qualified.map((q) => q.groupNumber))].sort((a,b) => a-b);
-    if (groups.length !== 2) throw new Error("Se requieren exactamente dos grupos.");
-    const from = (group, rank) => qualified.filter(
-      (q) => q.groupNumber === group && q.rank === rank
+    const groups = [...new Set(qualified.map((q) => q.groupNumber))].sort(
+      (a, b) => a - b,
     );
-    const a1 = from(groups[0],1), a2 = from(groups[0],2),
-      b1 = from(groups[1],1), b2 = from(groups[1],2);
-    if ([a1,a2,b1,b2].some((v) => v.length !== 1))
+    if (groups.length !== 2)
+      throw new Error("Se requieren exactamente dos grupos.");
+    const from = (group, rank) =>
+      qualified.filter((q) => q.groupNumber === group && q.rank === rank);
+    const a1 = from(groups[0], 1),
+      a2 = from(groups[0], 2),
+      b1 = from(groups[1], 1),
+      b2 = from(groups[1], 2);
+    if ([a1, a2, b1, b2].some((v) => v.length !== 1))
       throw new Error("Faltan puestos primero o segundo en los grupos.");
     return {
       directSemifinalPairId: null,
@@ -427,7 +466,7 @@
       final: [
         { from: "SF1", outcome: "winner" },
         { from: "SF2", outcome: "winner" },
-      ]
+      ],
     };
   }
 
@@ -550,6 +589,8 @@
     resolveGroupFixture,
     calculateGroupStandings,
     countNormalGames,
+    standingsLegendItems,
+    standingsLegendNote,
     standingsLegend,
     compareStats,
     scoringModeForStage,
