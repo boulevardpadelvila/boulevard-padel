@@ -1,6 +1,6 @@
 -- Boulevard Pádel · SQL 83 · Fechas automáticas de Liga
--- Preparada 09/11/2026. NO INSTALADA: requiere aprobación explícita previa.
--- Migración definitiva para guardar en GitHub; NO ejecutar ni guardar en SQL Editor.
+-- Preparada y APLICADA en Supabase 09/11/2026 mediante migración bp_sql83_liga_fechas_automaticas.
+-- Migración definitiva versionada en GitHub; NO volver a ejecutar manualmente en SQL Editor.
 -- No borra partidos, no modifica parejas, horarios, reservas ni bloqueos.
 -- Una sola rueda: 12 parejas = 11 Fechas con 6 partidos cada una, 66 en total.
 -- Una pareja juega a lo sumo una vez por Fecha deportiva.
