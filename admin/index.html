@@ -28,6 +28,7 @@
     <link rel="stylesheet" href="../css/admin-partidos62.css" />
     <link rel="stylesheet" href="../css/admin-eliminatorias66.css" />
     <link rel="stylesheet" href="../css/admin-eliminatorias68.css" />
+    <link rel="stylesheet" href="../css/admin-liga82.css" />
   </head>
   <body>
     <main class="admin-shell">
@@ -1102,8 +1103,7 @@
                       <option value="groups_knockout" selected>
                         Fase de grupos + eliminatorias
                       </option>
-                      <option value="knockout">Eliminación directa</option>
-                      <option value="league">Todos contra todos</option>
+                      <option value="league">Liga</option>
                     </select>
                   </div>
                   <div class="torneos-category-tools torneos-field--full">
@@ -1326,9 +1326,111 @@
                     class="torneos-groups-list"
                   ></div>
                 </div>
+                <!-- Modalidad Liga: forma parte de Torneos, NO es otro menú. -->
+                <section id="bp-league-panel" class="bp-league" hidden
+                  aria-labelledby="bp-league-title">
+                  <h3 id="bp-league-title">Liga · Fechas y posiciones</h3>
+                  <p class="bp-league__help">Todos contra todos. Un ganador suma 2 puntos,
+                    una derrota 2–1 suma 1 y una derrota 2–0 suma 0.
+                    Si hay tercer set, se juega súper tie-break a 10, con 2 de diferencia.</p>
+                  <div class="bp-league__toolbar">
+                    <p class="bp-league__one-round">Sorteo · Todos contra todos, una sola rueda</p>
+                    <button type="button" id="bp-league-generate" class="torneos-outline">
+                      Sortear partidos
+                    </button>
+                    <button type="button" id="bp-league-refresh" class="torneos-outline">
+                      Actualizar
+                    </button>
+                  </div>
+                  <p id="bp-league-message" role="status" aria-live="polite"></p>
+                  <div id="bp-league-standings"></div>
+                  <div id="bp-league-fixture"></div>
+                </section>
               </section>
             </div>
           </div>
+          <dialog id="bp-league-generate-dialog" class="admin-save-dialog bp-league__dialog"
+            aria-labelledby="bp-league-generate-title">
+            <div class="admin-save-dialog__body">
+              <span class="admin-save-dialog__icon" aria-hidden="true">🗓</span>
+              <h2 id="bp-league-generate-title">Sortear partidos de Liga</h2>
+              <p id="bp-league-generate-description"></p>
+              <p class="admin-save-dialog__hint">Se sortearán todos los cruces de una rueda, sin asignar Fechas ni horarios.
+                Martín organizará los partidos de cada Fecha (máximo 2 por pareja) y luego los programará.</p>
+              <div class="admin-save-dialog__actions">
+                <button id="bp-league-generate-cancel" type="button" class="secondary">Volver</button>
+                <button id="bp-league-generate-confirm" type="button" class="primary">Sortear partidos</button>
+              </div>
+            </div>
+          </dialog>
+          <dialog id="bp-league-round-dialog" class="admin-save-dialog bp-league__dialog"
+            aria-labelledby="bp-league-round-title">
+            <form id="bp-league-round-form" class="admin-save-dialog__body">
+              <h2 id="bp-league-round-title">Asignar Fecha</h2>
+              <p id="bp-league-round-rivals"></p>
+              <label class="bp-league__round-label" for="bp-league-round-number">
+                Número de Fecha
+                <input id="bp-league-round-number" type="number" min="1" max="999" step="1"
+                  placeholder="Ej.: 1 para Fecha 1" required />
+              </label>
+              <p class="admin-save-dialog__hint">Cada pareja puede tener como máximo 2 partidos
+                en la misma Fecha. Los días y horarios se programan después,
+                incluso entre semana.</p>
+              <p id="bp-league-round-error" class="torneo-dialog__error" role="alert"></p>
+              <div class="admin-save-dialog__actions">
+                <button id="bp-league-round-cancel" type="button" class="secondary">Volver</button>
+                <button id="bp-league-round-save" type="submit" class="primary">Guardar Fecha</button>
+              </div>
+            </form>
+          </dialog>
+          <dialog id="bp-league-schedule-dialog" class="admin-save-dialog bp-league__dialog"
+            aria-labelledby="bp-league-schedule-title">
+            <form id="bp-league-schedule-form" class="admin-save-dialog__body">
+              <h2 id="bp-league-schedule-title">Programar partido</h2>
+              <p id="bp-league-schedule-rivals"></p>
+              <div class="bp-league__form">
+                <label for="bp-league-schedule-day">Fecha
+                  <input id="bp-league-schedule-day" type="date" required />
+                </label>
+                <label for="bp-league-schedule-time">Horario
+                  <input id="bp-league-schedule-time" type="time" step="1800" required />
+                </label>
+                <label for="bp-league-schedule-duration">Duración
+                  <select id="bp-league-schedule-duration">
+                    <option value="90">90 minutos</option>
+                    <option value="120">120 minutos</option>
+                  </select>
+                </label>
+                <label for="bp-league-schedule-court">Cancha (detalle opcional)
+                  <input id="bp-league-schedule-court" type="text" maxlength="100"
+                    placeholder="Ej.: Cancha principal" />
+                </label>
+                <label class="bp-league__check">
+                  <input id="bp-league-schedule-postpone" type="checkbox" />
+                  Postergar y liberar el horario existente
+                </label>
+              </div>
+              <p id="bp-league-schedule-error" class="torneo-dialog__error" role="alert"></p>
+              <div class="admin-save-dialog__actions">
+                <button type="button" class="secondary" id="bp-league-schedule-cancel">Volver</button>
+                <button type="submit" class="primary" id="bp-league-schedule-save">Guardar horario</button>
+              </div>
+            </form>
+          </dialog>
+          <dialog id="bp-league-result-dialog" class="admin-save-dialog bp-league__dialog"
+            aria-labelledby="bp-league-result-title">
+            <form id="bp-league-result-form" class="admin-save-dialog__body">
+              <h2 id="bp-league-result-title">Cargar resultado</h2>
+              <p id="bp-league-result-rivals"></p>
+              <div id="bp-league-sets" class="bp-league__sets"></div>
+              <p class="bp-league__footnote">Tercer set: súper tie-break a 10 con diferencia de 2.</p>
+              <p id="bp-league-result-error" class="torneo-dialog__error" role="alert"></p>
+              <div class="admin-save-dialog__actions">
+                <button type="button" class="secondary" id="bp-league-result-cancel">Volver</button>
+                <button type="submit" class="primary" id="bp-league-result-save">Guardar resultado</button>
+              </div>
+            </form>
+          </dialog>
           <dialog
             id="torneo-dialog"
             class="admin-save-dialog torneo-dialog"
@@ -1500,6 +1602,8 @@
     <script src="../js/admin-parejas.js" defer></script>
     <script src="../js/admin-grupos.js" defer></script>
     <script src="../js/torneos-motor.js" defer></script>
+    <script src="../js/torneos-liga-motor.js" defer></script>
+    <script src="../js/admin-liga82.js" defer></script>
     <script src="../js/admin-resultados.js" defer></script>
     <script src="../js/admin-eliminatorias.js" defer></script>
     <script src="../js/admin-eliminatorias-partidos68.js" defer></script>

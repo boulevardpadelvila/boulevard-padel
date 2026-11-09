@@ -91,6 +91,21 @@
     );
     return `${values.year}-${values.month}-${values.day}`;
   }
+  // La Liga tiene inicio estimado y duración abierta, sin fin obligatorio.
+  const formatField = $("torneo-format");
+  const startField = $("torneo-start");
+  const endField = $("torneo-end");
+  const endWrap = endField.closest(".torneos-field");
+  const startLabel = startField.closest(".torneos-field").querySelector("label");
+  function syncTournamentDates() {
+    const league = formatField.value === "league";
+    endWrap.hidden = league;
+    startLabel.textContent = league ? "Fecha estimada de inicio" : "Fecha de inicio";
+    if (league) endField.value = "";
+  }
+  formatField.addEventListener("change", syncTournamentDates);
+  syncTournamentDates();
+
   let busy = false,
     editing = null,
     records = [],
@@ -472,7 +487,9 @@
       const title = document.createElement("strong");
       title.textContent = t.name;
       const meta = document.createElement("p");
-      meta.textContent = `${t.bp_tournament_categories?.name || "Sin categoría"} · ${names[t.format] || t.format} · ${date(t.starts_on)} a ${date(t.ends_on)} (fin estimado) · ${isFinished(t) ? "Finalizado" : t.status === "registration_open" && !registrationOpen(t) ? "Inscripciones cerradas por fecha" : states[t.status] || t.status} · ${t.is_published ? "Publicado" : "Oculto"}`;
+      meta.textContent = `${t.bp_tournament_categories?.name || "Sin categoría"} · ${names[t.format] || t.format} · ${t.format === "league"
+        ? "Inicio estimado: " + date(t.starts_on) + " · Sin fecha de finalización"
+        : date(t.starts_on) + " a " + date(t.ends_on) + " (fin estimado)"} · ${isFinished(t) ? "Finalizado" : t.status === "registration_open" && !registrationOpen(t) ? "Inscripciones cerradas por fecha" : states[t.status] || t.status} · ${t.is_published ? "Publicado" : "Oculto"}`;
       const actions = document.createElement("div");
       actions.className = "torneos-entry__actions";
       actions.append(
@@ -535,6 +552,7 @@
     $("torneo-format").value = "groups_knockout";
     $("torneo-start").value = "";
     $("torneo-end").value = "";
+    syncTournamentDates();
     const stateSelect = $("torneo-state");
     stateSelect
       .querySelectorAll('option[data-temporary-torneo-state="true"]')
@@ -552,7 +570,8 @@
     $("torneo-category").value = t.category_id;
     $("torneo-format").value = t.format;
     $("torneo-start").value = t.starts_on;
-    $("torneo-end").value = t.ends_on;
+    $("torneo-end").value = t.ends_on || "";
+    syncTournamentDates();
     const stateSelect = $("torneo-state");
     stateSelect
       .querySelectorAll('option[data-temporary-torneo-state="true"]')
@@ -751,7 +770,7 @@
       label: opening ? "Fecha de cierre (opcional)" : "",
       inputType: opening ? "date" : "text",
       inputMin: opening ? localToday() : "",
-      inputMax: opening ? t.ends_on : "",
+      inputMax: opening ? (t.format === "league" ? "" : t.ends_on) : "",
       value:
         opening && t.registration_closes_at && registrationOpen(t)
           ? closingDateInArgentina(t.registration_closes_at)
@@ -765,7 +784,7 @@
           dateString &&
           (!/^\d{4}-\d{2}-\d{2}$/.test(dateString) ||
             dateString < localToday() ||
-            dateString > t.ends_on)
+            (t.format !== "league" && dateString > t.ends_on))
         ) {
           throw new Error(
             "Elegí una fecha entre hoy y el fin del torneo, o dejala vacía.",
@@ -833,6 +852,24 @@
       confirm: "Finalizar torneo",
       action: async () => {
         await adminSession();
+        if (t.format === "league") {
+          const [matchRes,pairRes] = await Promise.all([
+            supabaseClient.from("bp_league_matches")
+              .select("pair1_id,pair2_id,match_status,sets")
+              .eq("tournament_id",t.id),
+            supabaseClient.from("bp_tournament_pairs")
+              .select("id").eq("tournament_id",t.id).eq("status","approved")
+          ]);
+          if(matchRes.error||pairRes.error)
+            throw new Error("No se pudo verificar la tabla final de Liga.");
+          const stats=window.BPLeagueEngine.standings(
+            (pairRes.data||[]).map(p=>p.id),matchRes.data||[]
+          );
+          if(!stats.complete)
+            throw new Error("Completá todos los resultados antes de finalizar la Liga.");
+          if(!stats.champion)
+            throw new Error("Hay empate en el primer puesto. Martín debe resolverlo antes de finalizar.");
+        }
         const { data, error } = await supabaseClient
           .from("bp_tournaments")
           .update({
@@ -872,8 +909,8 @@
       return;
     }
 
-    const totalMatches = Number(preview.group_matches) + Number(preview.knockout_matches);
-    const totalResults = Number(preview.group_results) + Number(preview.knockout_results);
+    const totalMatches = Number(preview.group_matches) + Number(preview.knockout_matches) + Number(preview.league_matches || 0);
+    const totalResults = Number(preview.group_results) + Number(preview.knockout_results) + Number(preview.league_results || 0);
     const publicNotice = preview.is_published
       ? " También dejará de aparecer inmediatamente en la página pública."
       : "";
@@ -947,7 +984,7 @@
       category_id = $("torneo-category").value;
     const format = $("torneo-format").value,
       starts_on = $("torneo-start").value,
-      ends_on = $("torneo-end").value;
+      ends_on = format === "league" ? null : $("torneo-end").value;
     const status = $("torneo-state").value;
     const max_pairs = Number(
       $("torneo-pairs").value === "custom"
@@ -959,10 +996,10 @@
       name.length > 100 ||
       !category_id ||
       !starts_on ||
-      !ends_on ||
-      ends_on < starts_on ||
+      (format !== "league" && (!ends_on || ends_on < starts_on)) ||
       !Number.isInteger(max_pairs) ||
       max_pairs < 2 ||
+      (format === "league" && max_pairs > 64) ||
       max_pairs > 256
     ) {
       feedback(

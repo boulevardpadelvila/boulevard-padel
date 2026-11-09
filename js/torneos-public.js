@@ -23,6 +23,7 @@
   let publishedFixtureByTournament = new Map();
   /* SQL 71: sólo datos sanitizados de torneos visibles y fases publicadas. */
   let publicFollowupByTournament = new Map();
+  let publicLeagueByTournament = new Map();
 
   function status(text) {
     feedback.textContent = text;
@@ -606,6 +607,24 @@
     return byId;
   }
 
+  // Liga: RPC sanitizada, solo torneos publicados, sin datos de contacto.
+  async function fetchPublishedLeagues(tournaments) {
+    const leagues=tournaments.filter(t=>t.format==="league");
+    const reports=new Map();
+    for(let i=0;i<leagues.length;i+=4){
+      const batch=await Promise.all(leagues.slice(i,i+4).map(async t=>{
+        const {data,error}=await supabaseClient.rpc("bp_public_league_followup",{
+          p_tournament_id:t.id
+        });
+        if(error)throw error;
+        return {id:t.id,data};
+      }));
+      for(const item of batch)
+        if(item.data?.tournament_id===item.id)reports.set(item.id,item.data);
+    }
+    return reports;
+  }
+
   // Programación: todos los partidos del fixture publicado, sin marcadores.
   // Resultados oficiales y tablas quedan exclusivamente en "Seguimiento".
   function publishedFixtureBlock(t) {
@@ -707,7 +726,9 @@
       make(
         "p",
         "public-tournament-card__dates",
-        `Fechas previstas: ${dateText(t.starts_on)} — ${dateText(t.ends_on)}`,
+        t.format === "league"
+          ? `Inicio estimado: ${dateText(t.starts_on)} · Sin fecha final prevista`
+          : `Fechas previstas: ${dateText(t.starts_on)} — ${dateText(t.ends_on)}`,
       ),
     );
     if (!isFinished(t)) {
@@ -734,7 +755,10 @@
     if (groupsBlock) card.append(groupsBlock);
     const fixtureBlock = publishedFixtureBlock(t);
     if (fixtureBlock) card.append(fixtureBlock);
-    card.append(detailBlock(t));
+    if(t.format==="league") {
+      for(const block of (window.BPLeaguePublic?.leagueBlocks(t,
+        publicLeagueByTournament.get(t.id))||[]))card.append(block);
+    } else card.append(detailBlock(t));
     const eliminatorias = knockoutBlock(t);
     if (eliminatorias) card.append(eliminatorias);
     return card;
@@ -841,6 +865,7 @@
       publishedGroupsByTournament = new Map();
       publishedFixtureByTournament = new Map();
       publicFollowupByTournament = new Map();
+      publicLeagueByTournament = new Map();
       const notices = [];
       try {
         publishedGroupsByTournament =
@@ -865,6 +890,12 @@
       } catch (followupError) {
         console.error("No se pudo cargar el seguimiento deportivo",followupError);
         notices.push("No se pudieron consultar los resultados y posiciones.");
+      }
+      try {
+        publicLeagueByTournament=await fetchPublishedLeagues(tournamentsCache);
+      }catch(error){
+        console.error("No se pudo consultar la Liga pública",error);
+        notices.push("No se pudieron cargar los partidos y posiciones de Liga.");
       }
       status(
         notices.length

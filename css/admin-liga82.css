@@ -1,0 +1,127 @@
+/* Boulevard Pádel · Parche 82 · Liga dentro de Torneos.
+   Paleta aprobada: verde #00432e, oro #a48335, crema #f8f0db.
+   Botones siempre del mismo alto y ancho dentro de su grupo. */
+#bp-league-panel[hidden] { display:none; }
+/* Evitar que las reglas display:flex/grid del Admin anulen el atributo hidden. */
+#admin-torneos-view .torneos-stage[hidden],
+#admin-torneos-view .torneos-hint[hidden],
+#torneos-groups-panel[hidden] {display:none!important;}
+.bp-league { min-width:0; margin:18px 0 0; padding:16px;
+  border:1px solid #b7a06f; border-radius:13px; background:#fff; }
+.bp-league h3,.bp-league h4 {color:#00432e; margin:0 0 12px; font-weight:800;}
+.bp-league__help {margin:0 0 15px; color:#536654; font-size:.88rem; line-height:1.5;}
+.bp-league__toolbar {display:grid; grid-template-columns:minmax(0,1fr) repeat(2,minmax(0,1fr));
+  gap:10px; align-items:end; margin:0 0 12px;}
+.bp-league__toolbar label {display:grid; gap:5px; min-width:0; color:#00432e;
+  font-weight:800; font-size:.83rem;}
+.bp-league__toolbar select {min-width:0; width:100%; height:46px; border:1px solid #bacdbd;
+  padding:8px 10px; border-radius:8px; font:inherit; background:#fff; color:#194b31;}
+.bp-league__toolbar button {box-sizing:border-box; width:100%; min-width:0; height:46px;
+  min-height:46px; max-height:46px; margin:0; padding:7px 8px;
+  font-size:.84rem; line-height:1.3; font-weight:800; text-align:center;}
+#bp-league-message {min-height:1.3em; margin:10px 0 14px; color:#126138;
+  font-size:.86rem; line-height:1.5;}
+#bp-league-message.bp-league__message--error {color:#a52c35;}
+#bp-league-standings {margin:0 0 20px; min-width:0;}
+.bp-league__table-scroll {overflow-x:auto;max-width:100%;scrollbar-width:thin;}
+.bp-league__table {width:100%;min-width:780px;table-layout:fixed;
+  border:1px solid #b7a06f;border-collapse:collapse;font-size:.78rem;
+  font-variant-numeric:tabular-nums;}
+.bp-league__table th {padding:10px 4px;text-align:center;
+  color:#fff;background:#00432e;border-bottom:2px solid #a48335;}
+.bp-league__table th:nth-child(2) {width:27%;text-align:left;}
+.bp-league__table td {padding:9px 4px;text-align:center;
+  border-bottom:1px solid #d7ddd0;overflow-wrap:anywhere;line-height:1.35;}
+.bp-league__table td:nth-child(2) {text-align:left;font-weight:600;}
+.bp-league__table tbody tr:nth-child(even) td {background:#f7f8f3;}
+.bp-league__table th:last-child {background:#a48335;color:white;}
+.bp-league__table td:last-child {color:#00432e;background:#f8f0db;
+  font-weight:900;border-left:2px solid #a48335;}
+.bp-league__note {font-size:.85rem;color:#526b55;line-height:1.5;margin:10px 0;}
+.bp-league__round {padding:13px;margin:14px 0;border:1px solid #b7a06f;
+  border-radius:12px;background:#fbfaf5;}
+.bp-league__round h4 {background:#00432e;color:#fff;padding:10px 13px;
+  border-radius:8px;border-bottom:3px solid #a48335;font-size:.98rem;}
+.bp-league__matches {display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr));
+  gap:12px;}
+.bp-league__match {box-sizing:border-box;display:flex;flex-direction:column;gap:8px;
+  min-width:0;background:#fff;border:1px solid #cfdacc;
+  border-left:4px solid #a48335;border-radius:10px;padding:13px;}
+.bp-league__match strong {color:#00432e;line-height:1.4;overflow-wrap:anywhere;}
+.bp-league__match-meta {font-size:.81rem;color:#607363;line-height:1.4;margin:0;}
+.bp-league__score {color:#00432e;font-weight:800;margin:0;}
+.bp-league__buttons {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:8px;margin-top:auto;}
+.bp-league__buttons button {box-sizing:border-box;display:inline-flex;
+  justify-content:center;align-items:center;text-align:center;
+  width:100%;height:47px;min-height:47px;max-height:47px;min-width:0;
+  margin:0;padding:6px;font-size:.77rem;line-height:1.2;font-weight:800;}
+.bp-league__dialog {box-sizing:border-box;width:min(540px,calc(100vw - 26px));
+  max-width:calc(100vw - 26px);max-height:90dvh;overflow-y:auto;
+  border:1px solid #b7a06f;border-top:4px solid #a48335;
+  border-radius:15px;background:#fff;padding:0;}
+.bp-league__dialog .admin-save-dialog__body {padding:24px 24px 20px;text-align:center;}
+.bp-league__dialog h2 {color:#00432e;line-height:1.25;margin:0 0 8px;}
+.bp-league__dialog .admin-save-dialog__body > p {color:#4b6450;line-height:1.5;overflow-wrap:anywhere;}
+.bp-league__form {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px;margin:15px 0;text-align:left;}
+.bp-league__form label {display:grid;gap:6px;min-width:0;
+  color:#00432e;font-size:.82rem;font-weight:800;line-height:1.4;}
+.bp-league__form input,.bp-league__form select {box-sizing:border-box;min-width:0;
+  width:100%;height:46px;border:1px solid #bacdbd;border-radius:9px;
+  padding:9px 11px;color:#214731;background:#fff;font:inherit;}
+.bp-league__form .bp-league__check {grid-column:1/-1;display:flex;align-items:center;gap:10px;}
+.bp-league__check input {width:18px;height:18px;flex:none;}
+.bp-league__sets {display:grid;gap:10px;margin:16px 0;}
+.bp-league__set {display:grid;grid-template-columns:minmax(0,1.2fr) repeat(2,minmax(0,1fr));
+  align-items:center;gap:9px;padding:10px;border:1px solid #d3dacb;border-radius:8px;}
+.bp-league__set[hidden] {display:none;}
+.bp-league__set strong {color:#00432e;text-align:left;font-size:.84rem;}
+.bp-league__set input {box-sizing:border-box;width:100%;min-width:0;
+  height:45px;border:1px solid #bacdbd;border-radius:8px;padding:7px;
+  text-align:center;font-size:.91rem;}
+.bp-league__footnote {font-size:.79rem;margin:8px 0;color:#5e715c;}
+.bp-league__dialog .admin-save-dialog__actions {display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:15px;}
+.bp-league__dialog .admin-save-dialog__actions > button {box-sizing:border-box;
+  width:100%!important;height:48px;min-height:48px!important;max-height:48px;
+  min-width:0;padding:6px;font-weight:800;font-size:.85rem;}
+.bp-league :is(button,select):focus-visible,
+.bp-league__dialog :is(button,input,select):focus-visible {
+  outline:3px solid #a48335;outline-offset:2px;}
+@media(max-width:650px){
+  .bp-league {padding:11px;}
+  .bp-league__toolbar {grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
+  .bp-league__toolbar label {grid-column:1/-1;}
+  .bp-league__matches {grid-template-columns:minmax(0,1fr);}
+  .bp-league__buttons {grid-template-columns:minmax(0,1fr);}
+  .bp-league__dialog .admin-save-dialog__body {padding:18px 13px 16px;}
+  .bp-league__form {grid-template-columns:minmax(0,1fr);}
+  .bp-league__set {grid-template-columns:minmax(0,1.15fr) repeat(2,minmax(0,1fr));gap:5px;padding:7px;}
+  .bp-league__set input {padding:5px;}
+}
+@media(prefers-reduced-motion:reduce) {
+ .bp-league__match,.bp-league__dialog {transition:none;}
+}
+
+
+/* Sorteo de una rueda: leyenda sencilla en lugar de configuración técnica. */
+.bp-league__one-round {
+  box-sizing:border-box;display:flex;align-items:center;min-height:46px;
+  margin:0;padding:8px 12px;border:1px solid #b7a06f;border-radius:8px;
+  background:#f8f0db;color:#00432e;font-size:.83rem;font-weight:800;
+  line-height:1.3;
+}
+.bp-league__round-label {display:grid;gap:8px;margin:12px 0;text-align:left;
+  color:#00432e;font-size:.87rem;font-weight:800;}
+.bp-league__round-label input {box-sizing:border-box;width:100%;height:46px;
+  padding:8px 12px;border:1px solid #bacdbd;border-radius:8px;background:white;
+  color:#00432e;font:inherit;}
+.bp-league__round-label input:focus-visible {outline:3px solid #a48335;outline-offset:2px;}
+@media(max-width:650px){.bp-league__one-round{grid-column:1/-1;}}
+
+/* Mientras está seleccionada Liga, los módulos exclusivos de zonas y
+   eliminatorias se mantienen ocultos. No se altera su estado ni sus datos. */
+#admin-torneos-view.bp-league-active #bp-results-panel,
+#admin-torneos-view.bp-league-active #bp-ko-panel,
+#admin-torneos-view.bp-league-active #bp-ko68-panel {display:none!important;}
