@@ -266,7 +266,9 @@
     "PJ: Partidos jugados · PG: Ganados · PP: Perdidos · " +
     "SF: Sets a favor · SC: Sets en contra · Dif.: Diferencia de sets · " +
     "GF: Games a favor · GC: Games en contra · Dif.G: Diferencia de games · " +
-    "Pts: Puntos. El súper tie-break cuenta como set, no como games.";
+    "Pts: Puntos. Orden estadístico: Pts, Dif. y SF; " +
+    "los games se muestran como información, no desempatan. " +
+    "El súper tie-break cuenta como set, no como games.";
 
   function calculateGroupStandings(pairIds, results = {}) {
     checkPairs(pairIds);
