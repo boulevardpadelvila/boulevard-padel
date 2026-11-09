@@ -359,7 +359,7 @@
       } else if (pairCount === 3) {
         message = "Grupo completo. Clasifican las dos primeras parejas.";
       } else if (pairCount === 4 && groups.length === 2) {
-        message = "Grupo completo. Clasifican el ganador y el perdedor del cruce de ganadores A3. Orden oficial: ganador A3 (1°), perdedor A3 (2°), ganador A4 (3°) y perdedor A4 (4°), aunque haya empate en puntos y sets.";
+        message = "Grupo completo. Clasifican las dos parejas del cruce de ganadores A3. Orden oficial: ganador A3 (1°), perdedor A3 (2°), ganador A4 (3°) y perdedor A4 (4°), aunque haya empate en puntos y sets.";
       } else if (pairCount === 4) {
         message = "Grupo completo. Clasifican las tres primeras parejas.";
       } else {
