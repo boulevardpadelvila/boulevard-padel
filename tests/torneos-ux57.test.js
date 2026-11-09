@@ -9,11 +9,11 @@ test("Parche 57: columna Pts al final, datos del motor preservados", () => {
   const js = read("js/admin-resultados.js");
   assert.match(
     js,
-    /["']Pos\.["'],\s*["']Pareja["'],\s*["']PJ["'],\s*["']PG["'],\s*["']PP["'],\s*["']SF["'],\s*["']SC["'],\s*["']Dif\.["'],\s*["']Pts["']/,
+    /["']Pos\.["'],\s*["']Pareja["'],\s*["']PJ["'],\s*["']PG["'],\s*["']PP["'],\s*["']SF["'],\s*["']SC["'],\s*["']Dif\.["'],\s*["']GF["'],\s*["']GC["'],\s*["']Dif\.G["'],\s*["']Pts["']/,
   );
   assert.match(
     js,
-    /row\.setsFor\s*,\s*row\.setsAgainst\s*,\s*row\.setDifference\s*>\s*0[\s\S]*row\.points\s*,?\s*\]\s*\)/,
+    /row\.setsFor\s*,\s*row\.setsAgainst\s*,\s*row\.setDifference\s*>\s*0[\s\S]*row\.gamesFor\s*,\s*row\.gamesAgainst\s*,[\s\S]*row\.gameDifference[\s\S]*row\.points\s*,?\s*\]\s*\)/,
   );
 });
 test("Parche 57: ningún formulario requiere escribir motivo", () => {
