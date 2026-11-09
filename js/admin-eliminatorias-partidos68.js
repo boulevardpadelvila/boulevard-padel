@@ -427,7 +427,7 @@
         card.append(el("strong", stageName[stage] + " " + match.slot));
         const rivals = el("div", null, "bp-ko68-rivals");
         rivals.append(el("span", p[0] ? nameOf(p[0]) : p[2] || "Por definir"));
-        rivals.append(el("span", "VS", "bp-ko68-versus"));
+        rivals.append(el("span", "vs", "bp-ko68-versus"));
         rivals.append(el("span", p[1] ? nameOf(p[1]) : p[3] || "Por definir"));
         card.append(rivals);
         card.append(

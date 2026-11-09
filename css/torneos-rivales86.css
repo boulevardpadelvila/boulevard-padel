@@ -1,0 +1,118 @@
+/* Boulevard Pádel · Parche 86 ampliado · Presentación uniforme de rivales.
+   Nombres de pareja 1 / vs / pareja 2, en Admin y público.
+   Carga al final de las hojas de torneos para respetar los diseños aprobados. */
+
+/* ADMIN: tarjetas de programación/resultados de fase de grupos. */
+.torneos-fixture-entry {
+  border-left: 4px solid #a48335;
+}
+.torneos-fixture-entry .torneos-fixture-match {
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: center;
+  gap: 2px;
+  min-width: 0;
+  text-align: center;
+}
+.torneos-fixture-entry .torneos-fixture-match > .torneos-fixture-pair {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  text-align: center;
+  color: #00432e;
+  font-size: .88rem;
+  font-weight: 700;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+.torneos-fixture-entry .torneos-fixture-match > .torneos-fixture-pair > span {
+  display: inline;
+}
+.torneos-fixture-entry .torneos-fixture-pair > span + span::before {
+  content: " y ";
+  white-space: pre;
+}
+.torneos-fixture-entry .torneos-fixture-versus {
+  color: #6b786d;
+  font-size: .72rem;
+  line-height: 1.2;
+  font-weight: 400;
+  text-transform: lowercase;
+}
+
+/* ADMIN: tarjetas de eliminatorias y cuadro de cruces. */
+.admin-torneos .bp-ko68-rivals {
+  justify-items: center;
+  gap: 2px;
+}
+.admin-torneos .bp-ko68-versus,
+.admin-torneos .bp-ko-versus {
+  color: #6b786d;
+  font-size: .72rem;
+  line-height: 1.2;
+  font-weight: 400;
+  letter-spacing: normal;
+  text-transform: lowercase;
+}
+
+/* PÚBLICO: programación de los partidos de fase de grupos. */
+.public-tournaments .public-tournament-fixture__calendar-grid .public-tournament-fixture__match {
+  border-left: 4px solid #a48335;
+}
+.public-tournaments .public-tournament-fixture__versus-row {
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: center;
+  gap: 2px;
+  text-align: center;
+}
+.public-tournaments .public-tournament-fixture__pair {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  text-align: center;
+  color: #00432e;
+  font-size: .88rem;
+  font-weight: 700;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+.public-tournaments .public-tournament-fixture__player {
+  display: inline;
+}
+.public-tournaments .public-tournament-fixture__player + .public-tournament-fixture__player::before {
+  content: " y ";
+  white-space: pre;
+}
+.public-tournaments .public-tournament-fixture__vs {
+  color: #6b786d;
+  font-size: .72rem;
+  line-height: 1.2;
+  font-weight: 400;
+  text-transform: lowercase;
+}
+
+/* PÚBLICO: resultados de grupos y eliminatorias. */
+.public-tournaments .public-tournament-result__teams {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: center;
+  gap: 2px;
+  min-width: 0;
+  margin: 7px 0;
+  text-align: center;
+}
+.public-tournaments .public-tournament-result__rival {
+  max-width: 100%;
+  color: #00432e;
+  font-size: .88rem;
+  font-weight: 700;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+.public-tournaments .public-tournament-result__vs {
+  color: #6b786d;
+  font-size: .72rem;
+  line-height: 1.2;
+  font-weight: 400;
+}

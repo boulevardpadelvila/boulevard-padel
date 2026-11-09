@@ -141,9 +141,14 @@
       const meta = make("div", "public-tournament-result__meta");
       meta.append(make("span", "", item.stage), make("span", "", item.date));
       article.append(meta);
-      article.append(
-        make("div", "public-tournament-result__teams", item.teams),
+      // Resultados de grupos y eliminatorias: un rival por línea, como en Liga.
+      const rivals = make("div", "public-tournament-result__teams");
+      rivals.append(
+        make("strong", "public-tournament-result__rival", item.pair1),
+        make("span", "public-tournament-result__vs", "vs"),
+        make("strong", "public-tournament-result__rival", item.pair2),
       );
+      article.append(rivals);
       article.append(
         make("span", "public-tournament-result__score", item.score),
       );
@@ -449,7 +454,8 @@
           ordered.map(({ match, time }) => ({
             stage: `Grupo ${publicGroupLetter(groupNumber.get(match.group_id))} · Partido ${match.match_number}`,
             date: time,
-            teams: `${nameOf(match.resolved_pair1_id || match.pair1_id)} vs. ${nameOf(match.resolved_pair2_id || match.pair2_id)}`,
+            pair1: nameOf(match.resolved_pair1_id || match.pair1_id),
+            pair2: nameOf(match.resolved_pair2_id || match.pair2_id),
             score: publicScore(match.sets),
             winner: `Ganó ${nameOf(match.winner_pair_id)}`,
           })),
@@ -685,7 +691,8 @@
           return {
             stage: `${stageLabel} · Partido ${m.slot}`,
             date: publicMatchDate(m.scheduled_at),
-            teams: `${nameOf(m.resolved_pair1_id || p1, fallback1)} vs. ${nameOf(m.resolved_pair2_id || p2, fallback2)}`,
+            pair1: nameOf(m.resolved_pair1_id || p1, fallback1),
+            pair2: nameOf(m.resolved_pair2_id || p2, fallback2),
             score: publicScore(m.sets),
             winner: m.winner_pair_id
               ? `Ganó ${nameOf(m.winner_pair_id)}`

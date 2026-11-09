@@ -23,6 +23,16 @@
 .public-tournaments .bp-public-league__match strong {
   color:#00432e;font-size:.88rem;line-height:1.4;overflow-wrap:anywhere;
 }
+/* Parche 86: los rivales de Liga se presentan igual que en el Admin. */
+.public-tournaments .bp-public-league__rivals {
+  display:grid;justify-items:center;gap:2px;min-width:0;text-align:center;
+}
+.public-tournaments .bp-public-league__rival {
+  max-width:100%;line-height:1.35;overflow-wrap:anywhere;
+}
+.public-tournaments .bp-public-league__versus {
+  color:#6b786d;font-size:.72rem;line-height:1.2;font-weight:400;
+}
 .public-tournaments .bp-public-league__meta {
   margin:0;color:#617265;font-size:.81rem;line-height:1.35;
 }

@@ -190,9 +190,13 @@
       values.sort((a, b) => a.match_number - b.match_number);
       for (const m of values) {
         const card = el("article", null, "bp-league__match");
-        card.append(
-          el("strong", name(m.pair1_id) + " vs. " + name(m.pair2_id)),
+        const rivals = el("div", null, "bp-league__rivals");
+        rivals.append(
+          el("strong", name(m.pair1_id), "bp-league__rival"),
+          el("span", "vs", "bp-league__versus"),
+          el("strong", name(m.pair2_id), "bp-league__rival"),
         );
+        card.append(rivals);
         const statusLabel =
           m.match_status === "played"
             ? "Jugado"

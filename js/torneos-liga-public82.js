@@ -51,15 +51,21 @@
       const cards = make("div", "bp-public-league__matches");
       for (const m of items.sort((a, b) => a.match_number - b.match_number)) {
         const article = make("article", "bp-public-league__match");
-        article.append(
+        const rivals = make("div", "bp-public-league__rivals");
+        rivals.append(
           make(
             "strong",
-            "",
-            (pairs.get(m.pair1_id) || "Pareja por confirmar") +
-              " vs. " +
-              (pairs.get(m.pair2_id) || "Pareja por confirmar"),
+            "bp-public-league__rival",
+            pairs.get(m.pair1_id) || "Pareja por confirmar",
+          ),
+          make("span", "bp-public-league__versus", "vs"),
+          make(
+            "strong",
+            "bp-public-league__rival",
+            pairs.get(m.pair2_id) || "Pareja por confirmar",
           ),
         );
+        article.append(rivals);
         const when =
           m.schedule_status === "scheduled" && m.scheduled_at
             ? dateTime(m.scheduled_at)
