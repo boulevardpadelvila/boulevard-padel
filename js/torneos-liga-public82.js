@@ -69,6 +69,8 @@
         tbody.append(row);
       }
       table.append(tbody);scroll.append(table);rankingBody.append(scroll);
+      rankingBody.append(make("p","bp-public-league__legend",
+        root.BPTournamentEngine.standingsLegend));
     }
     const text=results.complete
       ? results.champion

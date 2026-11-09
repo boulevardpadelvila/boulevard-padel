@@ -15,23 +15,23 @@ test("Una rueda: todas las parejas se enfrentan una sola vez",()=>{
     assert.equal(schedule.length,n*(n-1)/2);
     const pairs=new Set(schedule.map(m=>[m.pair1Id,m.pair2Id].sort().join("|")));
     assert.equal(pairs.size,schedule.length);
-    assert.ok(schedule.every(m=>m.roundNumber===null&&m.leg===1));
+    assert.ok(schedule.every(m=>Number.isInteger(m.roundNumber)&&m.roundNumber>0&&m.leg===1));
     assert.deepEqual(schedule.map(m=>m.matchNumber),Array.from({length:schedule.length},(_,i)=>i+1));
   }
 });
 test("Por ahora solo una rueda: no se admite ida y vuelta",()=>{
   assert.throws(()=>engine.buildSchedule(ids(5),2),/sola rueda/);
 });
-test("Fecha N la decide Martín; máximo dos partidos por pareja",()=>{
+test("Una pareja participa una vez por Fecha; Martín elige día y horario",()=>{
   const matches=[
     {id:"a",pair1_id:"A",pair2_id:"B",round_number:1},
-    {id:"b",pair1_id:"A",pair2_id:"C",round_number:1},
-    {id:"c",pair1_id:"A",pair2_id:"D",round_number:null},
-    {id:"d",pair1_id:"E",pair2_id:"F",round_number:1}
+    {id:"b",pair1_id:"C",pair2_id:"D",round_number:1},
+    {id:"c",pair1_id:"A",pair2_id:"E",round_number:2},
+    {id:"d",pair1_id:"E",pair2_id:"F",round_number:3}
   ];
   assert.equal(engine.validateRoundAssignment(matches,"c",2),true);
-  assert.throws(()=>engine.validateRoundAssignment(matches,"c",1),/dos partidos/);
-  assert.equal(engine.validateRoundAssignment(matches,"b",1),true); // no cuenta dos veces el actual
+  assert.throws(()=>engine.validateRoundAssignment(matches,"c",1),/un solo partido/);
+  assert.equal(engine.validateRoundAssignment(matches,"b",1),true);
   assert.throws(()=>engine.validateRoundAssignment(matches,"c",0),/Fecha/);
   assert.throws(()=>engine.validateRoundAssignment(matches,"c",1000),/Fecha/);
   assert.throws(()=>engine.validateRoundAssignment(matches,"x",3),/No se encontró/);

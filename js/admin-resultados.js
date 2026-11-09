@@ -261,6 +261,9 @@
       "SF",
       "SC",
       "Dif.",
+      "GF",
+      "GC",
+      "Dif.G",
       "Pts",
     ])
       tr.append(element("th", label));
@@ -278,6 +281,9 @@
         row.setsFor,
         row.setsAgainst,
         row.setDifference > 0 ? `+${row.setDifference}` : row.setDifference,
+        row.gamesFor,
+        row.gamesAgainst,
+        row.gameDifference > 0 ? `+${row.gameDifference}` : row.gameDifference,
         row.points,
       ])
         tr.append(element("td", value));
@@ -530,7 +536,7 @@
               block.append(
                 element(
                   "p",
-                  "Grupo completo. Clasifican las dos parejas del cruce de ganadores A3.",
+                  "Grupo completo. Clasifican las dos parejas del cruce de ganadores A3. Orden oficial: ganador A3 (1°), perdedor A3 (2°), ganador A4 (3°), perdedor A4 (4°). Ese orden se determina por los cruces, aunque haya empate en estadísticas.",
                   "bp-results-hint bp-results-success",
                 ),
               );
@@ -578,6 +584,7 @@
       }
       content.append(block);
     }
+    content.append(element("p", motor.standingsLegend, "bp-results-legend"));
     if (!published)
       setMessage(
         "Publicá el fixture antes de cargar resultados. Las tablas se calculan con los resultados ya registrados.",

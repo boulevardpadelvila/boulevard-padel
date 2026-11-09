@@ -68,7 +68,8 @@
       body.append(row);
     });
     grid.append(body);scroll.append(grid);
-    table.replaceChildren(heading,scroll);
+    table.replaceChildren(heading,scroll,
+      el("p",window.BPTournamentEngine.standingsLegend,"bp-league__legend"));
     if(report.complete){
       const note=report.champion
         ?"Primera pareja: "+name(report.champion)+". Confirmá la finalización desde Torneos."
@@ -104,10 +105,6 @@
           card.append(el("p",m.sets.map(set=>set.join("–")).join(" · "),
             "bp-league__score"));
         const buttons=el("div",null,"bp-league__buttons");
-        const roundAction=el("button",m.round_number==null?"Asignar Fecha":"Cambiar Fecha","torneos-outline");
-        roundAction.type="button";
-        roundAction.disabled=current?.status==="completed"||m.match_status==="played";
-        roundAction.addEventListener("click",()=>openRound(m));
         const plan=el("button",m.schedule_status==="scheduled"?"Reprogramar":"Programar","torneos-outline");
         plan.type="button";
         plan.disabled=current?.status==="completed"||m.match_status==="played"||m.round_number==null;
@@ -115,7 +112,7 @@
         const result=el("button",m.match_status==="played"?"Corregir resultado":"Cargar resultado","torneos-outline");
         result.type="button";result.disabled=current?.status==="completed"||m.round_number==null;
         result.addEventListener("click",()=>openResult(m));
-        buttons.append(roundAction,plan,result);card.append(buttons);grid.append(card);
+        buttons.append(plan,result);card.append(buttons);grid.append(card);
       }
       section.append(grid);fixture.append(section);
     }
@@ -134,11 +131,15 @@
       table.replaceChildren();
       status(current?.pending
         ?"Hay solicitudes pendientes: aprobá o rechazá las parejas antes de generar el fixture."
-        :"Cuando cierres inscripciones o completes el cupo aprobado, sorteá los cruces. Después asigná cada partido a Fecha 1, 2, 3…");
+        :"Cuando cierres inscripciones o completes el cupo aprobado, el sorteo organizará automáticamente las Fechas. Vos elegís el día y la hora de cada encuentro.");
       return;
     }
-    status("Sorteo completo: "+matchList.length+
-      " partidos, una sola rueda. Asigná las Fechas y después los días y horarios.");
+    const noDate=matchList.some(m=>m.round_number==null);
+    status(noDate
+      ?"Esta Liga se sorteó con la versión anterior. Hay partidos sin Fecha; falta instalar la migración 83 para organizarlos automáticamente."
+      :"Sorteo organizado: "+matchList.length+" partidos distribuidos en "+
+        new Set(matchList.map(m=>m.round_number)).size+
+        " Fechas. Programá el día y horario de cada encuentro.",noDate);
     rank();renderMatches();
   }
   // Supabase suele limitar cada consulta a 1000 filas. Paginar el fixture
@@ -206,7 +207,7 @@
   function askGenerateFixture(count,tournamentName) {
     const dialog=$("bp-league-generate-dialog");
     $("bp-league-generate-description").textContent=
-      "¿Sortear los "+count+" cruces de «"+tournamentName+"»? Una sola rueda; las Fechas se asignan luego.";
+      "¿Sortear los "+count+" cruces de «"+tournamentName+"»? El sistema los distribuirá automáticamente en Fechas. Los días y horarios quedan a cargo de Martín.";
     return new Promise(resolve=>{
       const yes=$("bp-league-generate-confirm"),
         no=$("bp-league-generate-cancel");

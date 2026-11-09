@@ -243,6 +243,33 @@
     );
   }
 
+  // Los games solo son criterio informativo: el orden oficial de grupos
+  // conserva puntos, diferencia de sets y sets a favor.
+  // El súper tie-break define un set, pero NO agrega games.
+  function countNormalGames(sets, format = "legacy") {
+    if (!Array.isArray(sets)) return [0, 0];
+    const third = sets[2];
+    const includeThird = format === "three_sets" ||
+      (format === "legacy" && Array.isArray(third) &&
+        third.length === 2 && third.every(n =>
+          Number.isSafeInteger(n) && n >= 0 && n <= 7));
+    return (includeThird ? sets : sets.slice(0, 2)).reduce((sum, set) => {
+      if (Array.isArray(set) && set.length === 2 &&
+        set.every(n => Number.isSafeInteger(n) && n >= 0)) {
+        sum[0] += set[0];
+        sum[1] += set[1];
+      }
+      return sum;
+    }, [0, 0]);
+  }
+  const standingsLegend =
+    "PJ: Partidos jugados · PG: Ganados · PP: Perdidos · " +
+    "SF: Sets a favor · SC: Sets en contra · Dif.: Diferencia de sets · " +
+    "GF: Games a favor · GC: Games en contra · Dif.G: Diferencia de games · " +
+    "Pts: Puntos. Orden estadístico: Pts, Dif. y SF; " +
+    "los games se muestran como información, no desempatan. " +
+    "El súper tie-break cuenta como set, no como games.";
+
   function calculateGroupStandings(pairIds, results = {}) {
     checkPairs(pairIds);
     const fixture = buildGroupFixture(pairIds);
@@ -258,6 +285,9 @@
           setsFor: 0,
           setsAgainst: 0,
           setDifference: 0,
+          gamesFor: 0,
+          gamesAgainst: 0,
+          gameDifference: 0,
         },
       ]),
     );
@@ -290,6 +320,13 @@
       r1.setsAgainst += outcome.side2Sets;
       r2.setsFor += outcome.side2Sets;
       r2.setsAgainst += outcome.side1Sets;
+      const [games1, games2] = countNormalGames(
+        results[code].sets, results[code].format || "legacy",
+      );
+      r1.gamesFor += games1;
+      r1.gamesAgainst += games2;
+      r2.gamesFor += games2;
+      r2.gamesAgainst += games1;
       const winner = outcome.winnerSide === 1 ? r1 : r2;
       const loser = outcome.winnerSide === 1 ? r2 : r1;
       winner.won++;
@@ -298,7 +335,10 @@
       playedMatches++;
     }
     const table = [...rows.values()];
-    for (const row of table) row.setDifference = row.setsFor - row.setsAgainst;
+    for (const row of table) {
+      row.setDifference = row.setsFor - row.setsAgainst;
+      row.gameDifference = row.gamesFor - row.gamesAgainst;
+    }
     table.sort(compareStats); // mantiene el orden de entrada SOLO para visualizar empate total.
     const fullTies = [];
     for (let i = 1; i < table.length; i++) {
@@ -509,6 +549,8 @@
     evaluateSets,
     resolveGroupFixture,
     calculateGroupStandings,
+    countNormalGames,
+    standingsLegend,
     compareStats,
     scoringModeForStage,
     validRegularSet,

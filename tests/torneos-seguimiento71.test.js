@@ -227,7 +227,7 @@ test("La interfaz dibuja tabla real, resultados, campeón y subcampeón sin escr
   assert.match(collect(tableGrids[0]),/Grupo A · 3 parejas/);
   assert.match(collect(tableGrids[0]),/Grupo completo. Clasifican las dos primeras parejas./);
   assert.match(collect(tables[0]),/Jugador a y Compañero a/);
-  assert.equal(tables[0].children[0].children[0].children.length,9); // Nueve columnas
+  assert.equal(tables[0].children[0].children[0].children.length,12); // Pts sigue última, ahora se incluyen GF/GC/Dif.G
   assert.doesNotMatch(collect(group),/Cuartos de final/);
   assert.match(collect(knockout),/Cuartos de final/);
   assert.match(collect(knockout),/Semifinales/);

@@ -11,6 +11,28 @@
     groups_knockout: "Grupos + eliminatorias",
     knockout: "Eliminación directa",
   };
+  // El sitio carga primero el motor deportivo. El fallback mantiene las
+  // vistas informativas ante cargas parciales o simulaciones de pruebas.
+  const standingsLegend = window.BPTournamentEngine?.standingsLegend ||
+    "PJ: Partidos jugados · PG: Ganados · PP: Perdidos · SF: Sets a favor · " +
+    "SC: Sets en contra · Dif.: Diferencia de sets · GF: Games a favor · " +
+    "GC: Games en contra · Dif.G: Diferencia de games · Pts: Puntos.";
+  function countNormalGames(sets, format = "legacy") {
+    if (window.BPTournamentEngine?.countNormalGames)
+      return window.BPTournamentEngine.countNormalGames(sets, format);
+    if (!Array.isArray(sets)) return [0, 0];
+    const third=sets[2];
+    const includeThird=format==="three_sets" ||
+      (format==="legacy" && Array.isArray(third) && third.length===2 &&
+       third.every(n=>Number.isSafeInteger(n) && n>=0 && n<=7));
+    return (includeThird ? sets : sets.slice(0,2)).reduce((sum,set)=>{
+      if(Array.isArray(set)&&set.length===2&&
+        set.every(n=>Number.isSafeInteger(n)&&n>=0)){
+        sum[0]+=set[0];sum[1]+=set[1];
+      }
+      return sum;
+    },[0,0]);
+  }
   let selection = null;
   let loading = false;
   let tournamentsCache = [];
@@ -188,6 +210,7 @@
     const rows = (group.pairs || []).map((p) => ({
       id: p.id, name: publicPairName(p), played: 0, won: 0, lost: 0,
       setsFor: 0, setsAgainst: 0, difference: 0, points: 0,
+      gamesFor: 0, gamesAgainst: 0, gameDifference: 0,
     }));
     const byId = new Map(rows.map((row) => [row.id, row]));
     let counted = 0;
@@ -202,10 +225,16 @@
       a.played++; b.played++;
       a.setsFor += match.sets_pair1; a.setsAgainst += match.sets_pair2;
       b.setsFor += match.sets_pair2; b.setsAgainst += match.sets_pair1;
+      const [g1,g2] = countNormalGames(match.sets,match.score_format || "legacy");
+      a.gamesFor += g1; a.gamesAgainst += g2;
+      b.gamesFor += g2; b.gamesAgainst += g1;
       winner.won++; winner.points += 3;
       (winner.id === a.id ? b : a).lost++;
     }
-    for (const row of rows) row.difference = row.setsFor - row.setsAgainst;
+    for (const row of rows) {
+      row.difference = row.setsFor - row.setsAgainst;
+      row.gameDifference = row.gamesFor - row.gamesAgainst;
+    }
     rows.sort((a,b) => b.points-a.points || b.difference-a.difference ||
       b.setsFor-a.setsFor || a.name.localeCompare(b.name,"es-AR"));
     const full = counted === groupMatches.length &&
@@ -236,7 +265,9 @@
       tied ||= same || nextSame;
       const position = same || nextSame ? "=" : String(i+1);
       return [position,row.name,row.played,row.won,row.lost,row.setsFor,
-        row.setsAgainst,row.difference>0?`+${row.difference}`:row.difference,row.points];
+        row.setsAgainst,row.difference>0?`+${row.difference}`:row.difference,
+        row.gamesFor,row.gamesAgainst,
+        row.gameDifference>0?`+${row.gameDifference}`:row.gameDifference,row.points];
     });
     return {
       rows: tableRows,
@@ -314,7 +345,7 @@
       const wrap = make("div","public-tournament-standings-group");
       const pairCount = (group.pairs || []).length;
       wrap.append(make("h5","",`Grupo ${publicGroupLetter(group.number)} · ${pairCount} ${pairCount === 1 ? "pareja" : "parejas"}`));
-      const cols = ["Pos.","Pareja","PJ","PG","PP","SF","SC","Dif.","Pts"];
+      const cols = ["Pos.","Pareja","PJ","PG","PP","SF","SC","Dif.","GF","GC","Dif.G","Pts"];
       // Solo el texto de presentación cambia, nunca los valores, resultados o puntajes.
       const displayRows = table.rows.map((row) => [
         row[0], row[1].replace(" / ", " y "), ...row.slice(2)
@@ -328,7 +359,7 @@
       } else if (pairCount === 3) {
         message = "Grupo completo. Clasifican las dos primeras parejas.";
       } else if (pairCount === 4 && groups.length === 2) {
-        message = "Grupo completo. Clasifican las dos parejas del cruce de ganadores.";
+        message = "Grupo completo. Clasifican las dos parejas del cruce de ganadores A3. Orden oficial: ganador A3 (1°), perdedor A3 (2°), ganador A4 (3°) y perdedor A4 (4°), aunque haya empate en puntos y sets.";
       } else if (pairCount === 4) {
         message = "Grupo completo. Clasifican las tres primeras parejas.";
       } else {
@@ -340,6 +371,8 @@
       standingsGrid.append(wrap);
     }
     standings.append(standingsGrid);
+    if (groups.length) standings.append(make("p","public-tournament-standings-legend",
+      standingsLegend));
     if (!groups.length) standings.append(make("p","public-tournament-data__empty","Grupos pendientes de publicación."));
     content.append(matchesSection,standings);
 

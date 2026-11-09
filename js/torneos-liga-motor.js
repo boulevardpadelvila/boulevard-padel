@@ -19,8 +19,8 @@
   if(!classic||typeof classic.evaluateSets!=="function")
     throw Error("Falta el motor deportivo de Boulevard Pádel.");
 
-  // El sorteo arma todos los cruces de UNA sola rueda. La jornada
-  // deportiva no se asigna automáticamente; Martín elige Fecha 1, 2...
+  // Sorteo de una rueda: el sistema agrupa automáticamente en Fechas
+  // competitivas. Martín elige el día y horario real de cada partido.
   function buildSchedule(pairIds,legs=1){
     if(!Array.isArray(pairIds)||pairIds.length<2||pairIds.length>64||
       legs!==1||new Set(pairIds).size!==pairIds.length||
@@ -38,7 +38,7 @@
           schedule.push({
             pair1Id:round%2===0?z:a,
             pair2Id:round%2===0?a:z,
-            roundNumber:null,
+            roundNumber:round,
             leg:1,
             matchNumber:schedule.length+1
           });
@@ -62,8 +62,8 @@
     const others=matches.filter(m=>m.id!==matchId&&m.round_number===roundNumber);
     const count=id=>others.filter(m=>(m.pair1_id||m.pair1Id)===id||
         (m.pair2_id||m.pair2Id)===id).length;
-    if(count(a)>=2||count(b)>=2)
-      throw Error("Una pareja no puede jugar más de dos partidos en la misma Fecha.");
+    if(count(a)>=1||count(b)>=1)
+      throw Error("Cada pareja juega un solo partido por Fecha en una Liga.");
     return true;
   }
 
