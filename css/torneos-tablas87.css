@@ -1,0 +1,123 @@
+/* Boulevard Pádel · Parche 87 · Posiciones: una tabla por fila en escritorio.
+   Móvil conserva las reglas y el desplazamiento horizontal existentes. */
+
+@media (min-width: 900px) {
+  /* ADMIN · Grupos: eliminar la grilla de 2/3 columnas del Parche 58. */
+  .bp-results-panel #bp-results-content,
+  .bp-results-panel #bp-results-content:has(> .bp-results-group:nth-child(3)) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .bp-results-panel #bp-results-content > .bp-results-group {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
+  .bp-results-panel .bp-results-group .bp-results-table-wrap {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+  .bp-results-panel .bp-results-group .bp-results-table {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    table-layout: fixed;
+    font-size: .76rem;
+  }
+  .bp-results-panel .bp-results-group .bp-results-table th,
+  .bp-results-panel .bp-results-group .bp-results-table td {
+    min-width: 0;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    padding: 9px 3px;
+  }
+  .bp-results-panel .bp-results-group .bp-results-table th:first-child,
+  .bp-results-panel .bp-results-group .bp-results-table td:first-child {
+    width: 6%;
+  }
+  .bp-results-panel .bp-results-group .bp-results-table th:nth-child(2),
+  .bp-results-panel .bp-results-group .bp-results-table td:nth-child(2) {
+    width: 28%;
+    min-width: 0;
+    text-align: left;
+  }
+
+  /* PÚBLICO · Grupos: una tarjeta por fila, incluso si es grupo impar. */
+  .public-tournaments .public-tournament-standings-grid {
+    grid-template-columns: minmax(0, 1fr);
+    width: 100%;
+  }
+  .public-tournaments .public-tournament-standings-grid > .public-tournament-standings-group,
+  .public-tournaments .public-tournament-standings-grid > .public-tournament-standings-group:last-child:nth-child(odd) {
+    box-sizing: border-box;
+    grid-column: auto;
+    justify-self: stretch;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+  .public-tournaments .public-tournament-standings-grid .public-tournament-table-scroll {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+  .public-tournaments .public-tournament-standings-grid .public-tournament-table {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    table-layout: fixed;
+    font-size: .76rem;
+  }
+  .public-tournaments .public-tournament-standings-grid .public-tournament-table th,
+  .public-tournaments .public-tournament-standings-grid .public-tournament-table td {
+    min-width: 0;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    padding: 9px 3px;
+  }
+  .public-tournaments .public-tournament-standings-grid .public-tournament-table th:first-child,
+  .public-tournaments .public-tournament-standings-grid .public-tournament-table td:first-child {
+    width: 6%;
+  }
+  .public-tournaments .public-tournament-standings-grid .public-tournament-table th:nth-child(2),
+  .public-tournaments .public-tournament-standings-grid .public-tournament-table td:nth-child(2) {
+    width: 28%;
+    min-width: 0;
+    text-align: left;
+  }
+
+  /* LIGA · Eliminar mínimos de 780/800px en ambas tablas. */
+  .bp-league__table-scroll,
+  .public-tournaments .bp-public-league__table-scroll {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+  .bp-league__table,
+  .public-tournaments .bp-public-league__table {
+    width: 100%;
+    min-width: 0;
+    table-layout: fixed;
+  }
+  .bp-league__table th,
+  .bp-league__table td,
+  .public-tournaments .bp-public-league__table th,
+  .public-tournaments .bp-public-league__table td {
+    min-width: 0;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    padding-left: 3px;
+    padding-right: 3px;
+  }
+  .bp-league__table th:nth-child(2),
+  .bp-league__table td:nth-child(2),
+  .public-tournaments .bp-public-league__table th:nth-child(2),
+  .public-tournaments .bp-public-league__table td:nth-child(2) {
+    width: 28%;
+    text-align: left;
+  }
+}
