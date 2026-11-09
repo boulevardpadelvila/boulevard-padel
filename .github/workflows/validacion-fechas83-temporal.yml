@@ -1,0 +1,27 @@
+name: Validacion Temporal Torneos 83
+on:
+  push:
+    branches:
+      - desarrollo/fechas-liga-tablas83-20261109
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Pruebas completas
+        run: node --test tests/*.test.js
+      - name: Sintaxis JavaScript
+        run: |
+          node --check js/torneos-motor.js
+          node --check js/admin-resultados.js
+          node --check js/torneos-public.js
+          node --check js/admin-liga82.js
+          node --check js/torneos-liga-motor.js
+          node --check js/torneos-liga-public82.js
