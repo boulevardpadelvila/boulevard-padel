@@ -188,6 +188,7 @@
     const rows = (group.pairs || []).map((p) => ({
       id: p.id, name: publicPairName(p), played: 0, won: 0, lost: 0,
       setsFor: 0, setsAgainst: 0, difference: 0, points: 0,
+      gamesFor: 0, gamesAgainst: 0, gameDifference: 0,
     }));
     const byId = new Map(rows.map((row) => [row.id, row]));
     let counted = 0;
@@ -202,10 +203,17 @@
       a.played++; b.played++;
       a.setsFor += match.sets_pair1; a.setsAgainst += match.sets_pair2;
       b.setsFor += match.sets_pair2; b.setsAgainst += match.sets_pair1;
+      const [g1,g2] = window.BPTournamentEngine.countNormalGames(
+        match.sets,match.score_format || "legacy");
+      a.gamesFor += g1; a.gamesAgainst += g2;
+      b.gamesFor += g2; b.gamesAgainst += g1;
       winner.won++; winner.points += 3;
       (winner.id === a.id ? b : a).lost++;
     }
-    for (const row of rows) row.difference = row.setsFor - row.setsAgainst;
+    for (const row of rows) {
+      row.difference = row.setsFor - row.setsAgainst;
+      row.gameDifference = row.gamesFor - row.gamesAgainst;
+    }
     rows.sort((a,b) => b.points-a.points || b.difference-a.difference ||
       b.setsFor-a.setsFor || a.name.localeCompare(b.name,"es-AR"));
     const full = counted === groupMatches.length &&
@@ -236,7 +244,9 @@
       tied ||= same || nextSame;
       const position = same || nextSame ? "=" : String(i+1);
       return [position,row.name,row.played,row.won,row.lost,row.setsFor,
-        row.setsAgainst,row.difference>0?`+${row.difference}`:row.difference,row.points];
+        row.setsAgainst,row.difference>0?`+${row.difference}`:row.difference,
+        row.gamesFor,row.gamesAgainst,
+        row.gameDifference>0?`+${row.gameDifference}`:row.gameDifference,row.points];
     });
     return {
       rows: tableRows,
@@ -314,7 +324,7 @@
       const wrap = make("div","public-tournament-standings-group");
       const pairCount = (group.pairs || []).length;
       wrap.append(make("h5","",`Grupo ${publicGroupLetter(group.number)} · ${pairCount} ${pairCount === 1 ? "pareja" : "parejas"}`));
-      const cols = ["Pos.","Pareja","PJ","PG","PP","SF","SC","Dif.","Pts"];
+      const cols = ["Pos.","Pareja","PJ","PG","PP","SF","SC","Dif.","GF","GC","Dif.G","Pts"];
       // Solo el texto de presentación cambia, nunca los valores, resultados o puntajes.
       const displayRows = table.rows.map((row) => [
         row[0], row[1].replace(" / ", " y "), ...row.slice(2)
@@ -340,6 +350,8 @@
       standingsGrid.append(wrap);
     }
     standings.append(standingsGrid);
+    if (groups.length) standings.append(make("p","public-tournament-standings-legend",
+      window.BPTournamentEngine.standingsLegend));
     if (!groups.length) standings.append(make("p","public-tournament-data__empty","Grupos pendientes de publicación."));
     content.append(matchesSection,standings);
 
