@@ -15,7 +15,11 @@ test("Admin: cada pareja y vs se dibujan en tres renglones", () => {
   assert.match(admin, /el\("span", "vs", "bp-league__versus"\)/);
   assert.match(admin, /el\("strong", name\(m\.pair2_id\), "bp-league__rival"\)/);
   assert.match(admin, /card\.append\(rivals\)/);
-  assert.doesNotMatch(admin, /name\(m\.pair1_id\) \+ " vs\. " \+ name\(m\.pair2_id\)/);
+  // El "vs." original sigue siendo válido en los modales de programación y resultados.
+  // Solo prohibimos su formato anterior en las tarjetas de la Liga.
+  const cards = admin.split("function renderMatches() {")[1]?.split("function render() {")[0];
+  assert.ok(cards, "Debe existir el renderizado de tarjetas de Liga");
+  assert.doesNotMatch(cards, /name\(m\.pair1_id\) \+ " vs\. " \+ name\(m\.pair2_id\)/);
   assert.match(admin, /"bp-league__match-meta"/);
   assert.match(admin, /"bp-league__buttons"/);
 });
