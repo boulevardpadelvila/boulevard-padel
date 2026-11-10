@@ -6,14 +6,15 @@ set -euo pipefail
 psql -X -v ON_ERROR_STOP=1 <<'SQL'
 INSERT INTO public.bp_tournaments(id,name,format,status,is_published)
 VALUES('00000000-0000-0000-0000-000000000102','Liga concurrencia P89','league','in_progress',false);
-INSERT INTO public.bp_tournament_pairs(id,tournament_id,status)
-SELECT x.id,'00000000-0000-0000-0000-000000000102'::uuid,'approved'
+INSERT INTO public.bp_tournament_pairs(id,tournament_id,status,player1_name,player2_name)
+SELECT x.id,'00000000-0000-0000-0000-000000000102'::uuid,
+       'approved',x.p1,x.p2
 FROM (VALUES
- ('00000000-0000-0000-0000-000000000011'::uuid),
- ('00000000-0000-0000-0000-000000000012'::uuid),
- ('00000000-0000-0000-0000-000000000013'::uuid),
- ('00000000-0000-0000-0000-000000000014'::uuid)
-) AS x(id);
+ ('00000000-0000-0000-0000-000000000011'::uuid,'Pareja 11','Jugador 11'),
+ ('00000000-0000-0000-0000-000000000012'::uuid,'Pareja 12','Jugador 12'),
+ ('00000000-0000-0000-0000-000000000013'::uuid,'Pareja 13','Jugador 13'),
+ ('00000000-0000-0000-0000-000000000014'::uuid,'Pareja 14','Jugador 14')
+) AS x(id,p1,p2);
 INSERT INTO public.bp_league_matches(tournament_id,pair1_id,pair2_id,
   match_number,round_number,leg,match_status,sets,sets_pair1,sets_pair2,winner_pair_id)
 SELECT '00000000-0000-0000-0000-000000000102'::uuid,p1,p2,n,n,1,
