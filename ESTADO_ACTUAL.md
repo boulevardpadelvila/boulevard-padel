@@ -2,7 +2,7 @@
 
 > Fuente breve de continuidad. Leer este archivo PRIMERO al iniciar otro chat, después consultar el final de `BITACORA_DESARROLLO.md` y los archivos reales de la rama. No sustituye el código ni las pruebas.
 >
-> Actualizado: 10/11/2026 (hora argentina). **SQL89 INSTALADO en el único Supabase productivo y PR #19 FUSIONADO a main** (merge `91a67f9`). Respaldo privado verificado: 8 tablas sin filas anteriores alteradas. Publicación efectiva de Cloudflare aún no verificable por HTTP desde este entorno. CI 226 JS + 3 Chromium + PostgreSQL 17 OK.
+> Actualizado: 10/11/2026 (hora argentina). **SQL89 INSTALADO en el único Supabase productivo y PR #19 FUSIONADO a main** (merge `91a67f9`). Respaldo privado verificado: 8 tablas sin filas anteriores alteradas. Cloudflare confirmado por el usuario mediante curl del módulo Admin y revisión visual del turnero y panel Admin. CI 226 JS + 3 Chromium + PostgreSQL 17 OK.
 
 ## Cómo retomar en el próximo chat
 
@@ -24,6 +24,15 @@ Mensaje sugerido: **«JP, retomamos Boulevard Pádel. Leé ESTADO_ACTUAL.md en G
 - **Frontend FUSIONADO en `main`:** PR #19 merged 10/11/2026, commit `91a67f96a8c1d08871a0d890f01b270e08a6e15d`. Se comprobó `index.html` y `admin/index.html` de `main` con scripts P89. **Cloudflare Pages no verificable por HTTP desde este entorno** (sin resolución DNS); revisar visualmente el sitio y el Admin. El usuario debe sincronizar `main` en su laptop, después se puede borrar la rama de GitHub de desarrollo.
 - **Test sintético CI validado:** 226/226 JavaScript, 3/3 Chromium móvil, PostgreSQL 17 con RLS, carreras, empate y no-regresión de reservas. Se mantiene un solo proyecto, sin staging.
 - Protocolo actualizado: `docs/P89_DESPLIEGUE_CONTROLADO.md`. Si se encuentran referencias antiguas a «NO instalar SQL89» más abajo, **son anotaciones HISTÓRICAS previas a la autorización y aplicación efectiva**.
+
+## Verificación real del usuario · 10/11/2026
+
+- Laptop en `main`, `git pull --ff-only` exitoso hasta `728b6ff` sin conflictos.
+- Cloudflare sirve `/js/admin-liga-final89-ui.js`: el usuario ejecutó `curl -fsSL ... | grep -F 'bp_league_prepare_final_manual89'` y confirmó la línea del RPC.
+- Turnero público: el usuario abrió el sábado 14/11/2026 y confirmó que aparecen perfectamente los horarios disponibles. **No creó reservas, no canceló turnos ni editó registros.**
+- Admin: el usuario ingresó a Torneos y Campeonatos, seleccionó la Liga y confirmó que todo se ve correctamente (parejas, partidos y posiciones). No modificó resultados ni generó semifinales.
+- SQL89 instalado, PR #19 fusionado y frontend servido por Cloudflare; **verificación visual/read-only aprobada**. La creación/cancelación de reservas y el flujo completo de fase final con sesión de Martín siguen sin una prueba manual en producción; no afirmar que esos flujos ya fueron ejercitados.
+- Próximo paso acordado: eliminar la rama de Git **local y remota** `desarrollo/liga-fase-final-20261109` de manera ordenada, sin borrar historial fusionado; mantener `main` como única rama de trabajo. No borrar el respaldo privado `bp_p89_safety`.
 
 ## Objetivo que se está desarrollando
 
@@ -115,7 +124,7 @@ Mensaje sugerido: **«JP, retomamos Boulevard Pádel. Leé ESTADO_ACTUAL.md en G
 
 ## Próximo paso técnico concreto
 
-**Siguiente paso: el usuario debe cambiar su laptop a `main`, actualizarla y verificar `https://boulevard-padel.pages.dev/` y el Admin desde un navegador real.** SQL89 está instalado y PR #19 ya fusionado. Confirmar que Cloudflare publicó, que el turnero/reservas y turnos fijos siguen funcionando, sin hacer cambios a registros reales. Después borrar rama de desarrollo local y remota para conservar `main` como flujo único. No crear proyectos o ramas Supabase, ni ejecutar SQL89 otra vez.
+**Siguiente paso: borrar primero la rama local `desarrollo/liga-fase-final-20261109` desde `main` con `git branch -d`; al confirmar su salida, borrar la remota GitHub y sincronizar `main`.** La disponibilidad y visualización del Admin ya fueron verificadas por el usuario. No crear proyectos o ramas Supabase, no repetir SQL89 y no tocar reservas reales.
 
 ## Regla de mantenimiento de este archivo
 
