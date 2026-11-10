@@ -66,3 +66,5 @@ jobs:
         run: psql -X -v ON_ERROR_STOP=1 -f sql/SQL_89_LIGA_FASE_FINAL_CONSOLIDADO_BORRADOR.sql
       - name: "Pruebas reales de RPC, bloqueos, fase final y borrado"
         run: psql -X -v ON_ERROR_STOP=1 -f tests/fixtures/p89_postgres_smoke.sql
+      - name: "Concurrencia: INSERT regular frente a creación de semifinales"
+        run: bash tests/fixtures/p89_postgres_race.sh
