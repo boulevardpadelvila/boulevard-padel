@@ -13,6 +13,18 @@
 - **Evoluciones futuras separadas del cierre:** el caso particular de empate de posiciones para un torneo de 7 parejas en grupos de 3 y 4 queda como *pendiente diferido de reglas*, no bloquea este cierre; se retomará solo si el usuario lo solicita. No presentar tareas históricas marcadas «desarrollo» como pendientes activos cuando ya fueron publicadas.
 - **Siguiente acción:** ninguna en Torneos. Al hacer el próximo trabajo local, sincronizar `main` si hay cambios nuevos de documentación.
 
+## Reapertura de diseño deportivo — 10/11/2026 (sin cambios funcionales)
+
+> **Prioridad de continuidad:** a pedido del usuario, documentar decisiones confirmadas y asuntos en suspenso por separado. El cierre funcional del módulo vigente NO se revoca: se trata de una propuesta futura de reglas para **Grupos + eliminatorias**, pendiente de aprobación. No modificar código, RPC, Supabase, reservas reales ni turnos fijos por estos análisis.
+
+- **CONFIRMADO — 6 parejas:** dos grupos de 3, todos contra todos dentro de cada grupo (3 partidos por grupo); clasifican 1° y 2° de cada grupo. Semifinales 1°A vs 2°B y 1°B vs 2°A; ganadores juegan final. Total 9 partidos.
+- **CONFIRMADO — estructura interna del grupo de 4:** dos cruces iniciales; luego ganadores vs ganadores y perdedores vs perdedores (4 partidos en total). Para ordenar la clasificación deportiva de quienes terminan con una victoria y una derrota, NO asumir que el perdedor de ganadores sea siempre 2°: revisar tabla de posiciones; ver los desempates a continuación.
+- **CRITERIOS COMUNICADOS POR MARTÍN para empates por puntos:** diferencia de sets → diferencia de games → resultado del enfrentamiento directo (solo si existió) → sorteo o decisión del organizador si aún persiste. Revisar casos de 3+ parejas empatadas antes de implementarlo. Distinto de criterios actuales de algunas funciones del motor; **no implementar todavía**.
+- **EN SUSPENSO — 7 parejas (4+3):** se examinó que clasifiquen dos por grupo y haya semifinales cruzadas como en 6; NO se considera aprobado hasta resolver el orden por tabla del grupo de 4 y validarlo con Martín.
+- **EN SUSPENSO — 8 parejas (4+4):** definir si clasifican **dos** por grupo (4 clasificadas, semifinales cruzadas y final) o **tres** por grupo (6 clasificadas). Con seis se plantea como alternativa estándar pase directo a semifinales de los 1° de grupo; 2°A vs 3°B y 2°B vs 3°A juegan dos preliminares, cuyos ganadores enfrentan a los 1° del grupo opuesto, y luego final. Alternativa del usuario — tres cruces para obtener tres ganadores, mini todos-contra-todos de esos tres y final — sólo propuesta, no aprobada. Los cruces de ejemplo con un grupo C no aplican cuando solo existen A y B.
+- **EN SUSPENSO — más participantes:** distribución en grupos de 3 y 4 es calculable por `planGroupSizes()`; cupos de clasificación y llaves eliminatorias de 9+ necesitan aprobación específica. No asumir que la tabla propuesta anteriormente para 13+ es definitiva.
+- **Revisión técnica de solo lectura:** `js/torneos-motor.js` ya crea fixtures de 3/4; `calculateGroupStandings()` hoy ordena por puntos, diferencia de sets, sets a favor, y `decisiveFourPlacings()` por cruces. No reflejan íntegramente los criterios de desempate comunicados por Martín; diseñar una solución futura con tests de regresión. La Liga previamente finalizada permanece intacta.
+
 ## Cómo retomar en el próximo chat
 
 Mensaje sugerido: **«JP, retomamos Boulevard Pádel. Leé ESTADO_ACTUAL.md en GitHub y la última bitácora. SQL89 ya está instalado en el único Supabase; verificá main/Cloudflare y conservá las reservas y turnos fijos intactos.»**
