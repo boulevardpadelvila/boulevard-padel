@@ -174,7 +174,7 @@ ALTER TABLE public.blockouts ADD CONSTRAINT bp_blockout_group_match_fk
 -- Data ficticia inspirada exclusivamente en CONTEOS, NO en registros reales.
 -- Permite comprobar que los 39 bloqueos anteriores sobreviven a ALTER TABLE.
 INSERT INTO public.courts(id,active)
-VALUES('e0000000-0000-0000-0000-000000000001',true);
+VALUES('e0000000-0000-0000-0000-000000000001',false);
 INSERT INTO public.bp_tournaments(id,name,format,status,ends_on)
 VALUES('a0000000-0000-0000-0000-000000000001','Torneo legado simulado',
   'groups_knockout','in_progress','2027-12-31');
