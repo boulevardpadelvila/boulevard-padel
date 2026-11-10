@@ -74,3 +74,9 @@ jobs:
         run: psql -X -v ON_ERROR_STOP=1 -f tests/fixtures/p89_postgres_smoke.sql
       - name: "Concurrencia: INSERT regular frente a creación de semifinales"
         run: bash tests/fixtures/p89_postgres_race.sh
+      - name: "Temporada completa ficticia: 12 parejas, 66 partidos, 11 Fechas"
+        run: |
+          node --check tests/fixtures/p89_postgres_12pairs.js
+          node tests/fixtures/p89_postgres_12pairs.js > /tmp/p89_12pairs.sql
+          psql -X -v ON_ERROR_STOP=1 -f /tmp/p89_12pairs.sql
+          psql -X -v ON_ERROR_STOP=1 -f tests/fixtures/p89_postgres_12pairs_check.sql
