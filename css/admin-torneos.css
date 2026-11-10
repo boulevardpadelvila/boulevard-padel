@@ -1698,3 +1698,33 @@
   .torneos-entry__button:focus-visible {
   color: #721e1e;
 }
+
+/* 10/11/2026 — Acceso aislado al simulador de llaves (solo vista previa). */
+.admin-torneos .torneos-simulador-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  max-width: 100%;
+  padding: 10px 15px;
+  border: 1px solid #294f3b;
+  border-radius: 10px;
+  background: #1f4534;
+  color: #fff;
+  font: 700 13px/1.35 Inter, Arial, sans-serif;
+  text-align: center;
+  text-decoration: none;
+  box-sizing: border-box;
+}
+.admin-torneos .torneos-simulador-link:hover {
+  background: #163626;
+}
+.admin-torneos .torneos-simulador-link:focus-visible {
+  outline: 3px solid #d3ab57;
+  outline-offset: 3px;
+}
+@media (max-width: 520px) {
+  .admin-torneos .torneos-simulador-link {
+    width: 100%;
+  }
+}
