@@ -35,7 +35,7 @@ test("89 Admin: vista previa contabiliza partidos/resultados de Liga final",()=>
 });
 
 test("89 Público: primera posición es clasificación, NO campeón",()=>{
-  assert.match(pub,/el campeón y subcampeón se definen en la final/);
+  assert.match(pub,/el campeón y subcampeón se definen en la final/i);
   assert.doesNotMatch(pub,/Campeones:.*results\.champion/);
   assert.doesNotMatch(pub,/results\.champion/);
   assert.match(pub,/const results = engine\.standings/);
