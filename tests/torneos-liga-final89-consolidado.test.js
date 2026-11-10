@@ -111,3 +111,16 @@ test("89 2D: reemplazo de RPC administrativas no abre permisos al público",()=>
   assert.match(sql,/REVOKE ALL ON FUNCTION public\.bp_admin_delete_tournament_safely\(uuid,text\)\s+FROM PUBLIC,anon,authenticated/);
   assert.match(sql,/GRANT EXECUTE ON FUNCTION public\.bp_admin_delete_tournament_safely\(uuid,text\)\s+TO authenticated/);
 });
+
+test("89 2F: desempate manual solo dentro de igualdad y con motivo auditado",()=>{
+  assert.match(sql,/CREATE TABLE public\.bp_league_final_tiebreak_decisions89/);
+  assert.match(sql,/bp_league_final_tiebreak_decisions89 ENABLE ROW LEVEL SECURITY/);
+  assert.match(sql,/REVOKE ALL ON public\.bp_league_final_tiebreak_decisions89/);
+  assert.match(sql,/CREATE POLICY bp_lf_tiebreak_admin_read89/);
+  assert.match(sql,/CREATE OR REPLACE FUNCTION public\.bp_league_prepare_final_manual89/);
+  assert.match(sql,/rank\(\) OVER\(ORDER BY points DESC,sd DESC,sf DESC/);
+  assert.match(sql,/first_seed<=seed AND first_seed\+group_size-1>=seed/);
+  assert.match(sql,/v_unique<>4 OR v_invalid<>0/);
+  assert.match(sql,/VALUES\(p_tournament_id,p_qualifiers,btrim\(p_reason\),auth\.uid\(\)\)/);
+  assert.match(sql,/GRANT EXECUTE ON FUNCTION public\.bp_league_prepare_final_manual89\(uuid,uuid\[\],text\)\s+TO authenticated/);
+});
