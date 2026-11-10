@@ -201,7 +201,8 @@
       showMessage(err.message || "No se pudieron generar las semifinales.", true);
     } finally {
       busy = false;
-      if (tournament?.id === id) render();
+      // No pisar el mensaje de error ni reactivar el botón tras una RPC
+      // exitosa hasta que la recarga confirme los tres partidos.
     }
   });
 
