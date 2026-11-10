@@ -73,7 +73,7 @@ test("P89 Chromium público móvil: cuadro y proclamación sólo con final ofici
 });
 
 function adminFixtureHtml() {
-  return \`<!doctype html><html><head><meta name="viewport" content="width=device-width, initial-scale=1"></head><body>
+  return `<!doctype html><html><head><meta name="viewport" content="width=device-width, initial-scale=1"></head><body>
   <select id="torneos-pairs-tournament"><option value="liga-fixture-89">Liga de prueba</option></select>
   <button id="bp-league-refresh" type="button">Actualizar</button>
   <section id="bp-league-final-panel" hidden>
@@ -107,7 +107,7 @@ function adminFixtureHtml() {
       <button id="bp-league-final-result-cancel" type="button">Volver</button>
       <button id="bp-league-final-result-save" type="submit">Guardar resultado</button>
     </form></dialog>
-  </body></html>\`;
+  </body></html>`;
 }
 
 test("P89 Chromium Admin móvil: generar, programar y cargar resultado sin tocar fase regular",async()=>{
