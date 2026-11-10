@@ -66,6 +66,8 @@ test("P89 Chromium público móvil: cuadro y proclamación sólo con final ofici
     document.getElementById("t").replaceChildren(
       BPLeagueFinalPublic89.finalBlock(t,p,data));
   });
+  // Re-renderizar sustituye <details>; la nueva tarjeta empieza cerrada.
+  await page.locator(".bp-public-league-final > summary").click();
   assert.equal(await page.locator(".bp-public-league-final__champions").count(),1);
   assert.match(await page.locator(".bp-public-league-final__champions").innerText(),/Campeón: Ana y Sol/);
   assert.match(await page.locator(".bp-public-league-final__champions").innerText(),/Subcampeón: Berta y Luz/);
