@@ -1,0 +1,72 @@
+/* Boulevard Pádel · Parche 89 · Fase final de Liga, solo dentro del Admin.
+ * Paleta existente del sitio: verde oscuro, dorado y crema.
+ * No altera partidos ni estilos de otras modalidades.
+ */
+#bp-league-final-panel[hidden] { display: none !important; }
+.bp-league-final {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  margin-top: 28px;
+  padding: 18px;
+  border: 2px solid #a48335;
+  border-radius: 16px;
+  background: #fbf9f3;
+}
+.bp-league-final h4 {
+  margin: 0 0 12px;
+  color: #00432e;
+  font-weight: 800;
+}
+.bp-league-final > #bp-league-final-generate {
+  box-sizing: border-box;
+  min-height: 44px;
+  padding: 10px 16px;
+}
+#bp-league-final-message {
+  margin: 12px 0;
+  color: #245b41;
+  font-size: .88rem;
+  line-height: 1.5;
+}
+#bp-league-final-message.bp-league__message--error { color: #a52c35; }
+.bp-league-final__matches {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 270px), 1fr));
+  gap: 12px;
+}
+.bp-league-final__matches .bp-league__match {
+  margin: 0;
+  min-width: 0;
+}
+.bp-league-final__stage {
+  margin: 0 0 6px;
+  text-align: center;
+  color: #00432e;
+  font-weight: 800;
+  font-size: .98rem;
+}
+.bp-league-final__matches .bp-league__buttons {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.bp-league-final__champions {
+  grid-column: 1 / -1;
+  margin: 4px 0 0;
+  padding: 14px;
+  border-radius: 12px;
+  background: #00432e;
+  color: #fff;
+  font-size: .95rem;
+  font-weight: 800;
+  text-align: center;
+  line-height: 1.6;
+}
+@media (max-width: 550px) {
+  .bp-league-final { padding: 12px; margin-top: 18px; }
+  .bp-league-final > #bp-league-final-generate { width: 100%; }
+  .bp-league-final__matches { grid-template-columns: minmax(0, 1fr); }
+  .bp-league-final__matches .bp-league__buttons > button {
+    min-width: 0;
+    font-size: .82rem;
+  }
+}
