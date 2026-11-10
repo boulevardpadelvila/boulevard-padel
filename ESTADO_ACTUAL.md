@@ -2,7 +2,7 @@
 
 > Fuente breve de continuidad. Leer este archivo PRIMERO al iniciar otro chat, después consultar el final de `BITACORA_DESARROLLO.md` y los archivos reales de la rama. No sustituye el código ni las pruebas.
 >
-> Actualizado: 09/11/2026 (hora argentina). Última etapa confirmada: fase final Admin y pública P89; CI 221 OK; PostgreSQL 17 sintético OK con 12 parejas. Consultar HEAD para SHA actualizado.
+> Actualizado: 10/11/2026 (hora argentina). Última etapa: SQL89 atómico + pruebas reales de Chromium aislado; CI 222 JS + 2 Chromium + PostgreSQL 17 OK. Consultar HEAD para SHA actualizado.
 
 ## Cómo retomar en el próximo chat
 
@@ -21,9 +21,9 @@ Mensaje sugerido: **«JP, retomamos Boulevard Pádel. Leé ESTADO_ACTUAL.md en G
 
 ## Estado verificado
 
-- Última sincronización local reportada: `git pull --ff-only` avanzó `2593bba..7204777` correctamente, sin conflictos. Los cambios posteriores del Admin aún deben sincronizarse.
-- Laptop: `node --test tests/*.test.js` **201/201 OK** confirmadas previamente por el usuario. Los tests añadidos en desarrollo llevan el total a **221/221 en GitHub Actions**; falta sincronizar y repetir localmente.
-- GitHub Actions: run **42743654250**: **221/221 tests JavaScript OK**, **SQL89 PostgreSQL 17 aislado SUCCESS** (smoke + carrera INSERT + Liga de 12 parejas, 66 partidos y 11 Fechas). Anteriores: 42742991124 y 42741224876.
+- Última sincronización local reportada: `git pull --ff-only` avanzó `7f40652..86fca66` correctamente, sin conflictos. Cambios posteriores requieren nuevo pull.
+- Laptop: 201/201 verificados previamente; los cambios posteriores elevan la suite a **222/222 en GitHub Actions**, más **2/2 pruebas reales en Chromium móvil aislado**. Falta sincronizar y ejecutar localmente si se desea.
+- GitHub Actions: run **42803713743**, tres jobs en SUCCESS: **222/222 JavaScript**, **2/2 Chromium móvil** (Admin/publicación con cliente Supabase simulado) y **PostgreSQL 17 aislado** (migración atómica, smoke, concurrencia, temporada 12 parejas/66 partidos).
 - SQL consolidado: `sql/SQL_89_LIGA_FASE_FINAL_CONSOLIDADO_BORRADOR.sql` (2A+2B+2C, con guardia de fixture reforzada). **BORRADOR; NO INSTALAR NI GUARDAR EN SUPABASE SQL EDITOR**.
 - Esquema y smoke test temporal: `tests/fixtures/p89_postgres_bootstrap.sql` y `tests/fixtures/p89_postgres_smoke.sql`. PostgreSQL 17 **sintético, efímero**, no es copia de Supabase.
 - En Supabase de producción, la Liga «SUMA 14 - Temporada 2027» sigue con **12 parejas aprobadas, 66 partidos regulares, 1 disputado**, inscripciones cerradas, NO publicada, sin tabla de fase final P89 (último SELECT 09/11).
@@ -55,17 +55,25 @@ Mensaje sugerido: **«JP, retomamos Boulevard Pádel. Leé ESTADO_ACTUAL.md en G
 - **Supabase productivo (SELECT únicamente):** 35 registros en `reservations`, 4 en `fixed_turn_requests`, 39 en `blockouts`, 7 en `weekly_hours` (instantánea de auditoría, NO prueba histórica de ausencia de cambios). Ninguna escritura productiva.
 - **Diff `main` vs rama P89:** 33 archivos, ninguno de turnero, reservas, turnos fijos ni horarios semanales. EL SQL P89 modifica las restricciones/triggers de `blockouts` cuando SE INSTALE; todavía es BORRADOR y NO está instalado. No confundir estado de rama con publicación.
 
+## Auditoría P89 del 10/11/2026
+
+- `SQL_89_LIGA_FASE_FINAL_CONSOLIDADO_BORRADOR.sql` se envolvió en **una única transacción BEGIN/COMMIT** con `SET LOCAL lock_timeout='5s'` y `statement_timeout='90s'`; probado en PostgreSQL 17 temporal. Si una instrucción falla antes de COMMIT, la transacción se revierte. **Sigue BORRADOR; NO EJECUTAR en Supabase**.
+- Prueba de navegador `tests/torneos-liga-final89-browser.test.cjs`: Chromium real a 390×844, 2/2 aprobadas con módulos reales, DOM de ensayo y Supabase simulado. La tarjeta pública es plegable y se probó apertura, marcadores y proclamación oficial. El Admin simuló generación, programación de 120 min y carga de marcador. **No equivale a probar autenticación/SQL en producción**.
+- Auditado en Supabase con SELECT solamente: `reservations` 35, `fixed_turn_requests` 4, `blockouts` 39, `bp_league_matches` 66 (1 jugado), tabla P89 inexistente. De los bloqueos activos de torneos, 0 inconsistencias de horario y 0 referencias a partidos sin programación. En GitHub, comparación contra `main` sin archivos del turnero/turnos fijos modificados.
+- Advisors de seguridad muestran avisos previos en 2 vistas públicas y RPC SECURITY DEFINER existentes; la RPC `create_admin_booking_flexible` verifica `auth.uid()` e `is_admin()` internamente. Revisar como mantenimiento aparte; **no cambiar funciones de reservas como parte de SQL89**.
+- PR #19 sigue abierto como DRAFT. No se tocó `main`, Cloudflare ni la BD productiva.
+
 ## Pendientes prioritarios
 
 1. **Concurrencia:** protegido y probado en PostgreSQL temporal el INSERT de un partido regular simultáneo a generar semifinales. **Comprobado por lectura** que `bp_reservation_blockout_guard` usa el mismo `pg_advisory_xact_lock(...,72119)` que la programación de partidos (bloqueo de cancha compartido). Faltan ensayos adicionales de corrección de marcadores/reglas de cierre y posibles interbloqueos entre RPC.
 2. Revisar diferencias entre **esquema simulado** del CI y Supabase real, privilegios/triggers/operaciones de borrado. No presentar el smoke test como certificación de producción.
-3. **Admin fase final integrado EN DESARROLLO:** `js/admin-liga-final89-ui.js` + panel y modales de `admin/index.html`, con CSS móvil dedicado y RPC finales. Corrige/deshabilita correcciones regulares tras crear SF1/SF2. **Faltan pruebas funcionales de navegador**, instalación de SQL definitiva y verificación contra esquema productivo. No usar todavía en producción.
+3. **Admin fase final integrado EN DESARROLLO:** `js/admin-liga-final89-ui.js` + modales en `admin/index.html`. **Chromium móvil con datos ficticios: 1 test PASS** (generar, programar y cargar resultado); falta prueba completa del portal autenticado contra un Supabase clon/staging. No instalar todavía.
 4. **Público integrado EN DESARROLLO:** `js/torneos-liga-final89-public.js`, `css/torneos-liga-final89.css`, `index.html` y `js/torneos-public.js` consumen exclusivamente `bp_public_league_final89`; cuadro y marcadores, campeón/subcampeón únicamente al terminar y cerrar Liga; **8 tests DOM nuevos**. No publicado.
 5. **Probado en PostgreSQL temporal** 12 parejas / 66 encuentros / 11 Fechas: top 4 y semifinales correctas, fixture regular intacto. Pendientes: empate absoluto/criterio de intervención, pruebas reales de interfaz y seguridad completa del esquema productivo; preparar migración definitiva revisada. **Aplicar en Supabase productivo, fusionar PR o publicar SOLO tras verificar seguridad y consentimiento de publicación.**
 
 ## Próximo paso técnico concreto
 
-**Siguiente etapa: revisión funcional real de Admin y público en navegador + auditoría de compatibilidad del SQL89 contra esquema completo y permisos de producción.** El código y los tests de Liga están completos en desarrollo, no publicados; no ejecutar SQL de mutación en producción hasta validar migración definitiva. Mantener PR #19 como DRAFT.
+**Siguiente etapa: validar migración SQL89 contra copia completa del esquema y comprobar login Admin/RPC/Reserva real en entorno de staging; después preparar una instalación con respaldo, verificación post-migración y publicación controlada.** Chromium aislado ya prueba los módulos, pero NO es una prueba integral contra Supabase. No ejecutar SQL de mutación en producción sin esa validación; PR #19 sigue DRAFT.
 
 ## Regla de mantenimiento de este archivo
 
