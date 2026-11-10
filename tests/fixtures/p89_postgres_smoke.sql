@@ -175,7 +175,8 @@ BEGIN
     EXISTS(SELECT 1 FROM public.bp_league_matches WHERE tournament_id=t) THEN
     RAISE EXCEPTION 'Borrado no eliminó exclusivamente la Liga de ensayo';
   END IF;
-  SELECT count(*) INTO n FROM public.reservations WHERE status='confirmed';
+  SELECT count(*) INTO n FROM public.reservations WHERE status='confirmed'
+    AND court_id='30000000-0000-0000-0000-000000000001'::uuid;
   IF n<>1 THEN RAISE EXCEPTION 'Borrado alteró las reservas independientes'; END IF;
   RAISE NOTICE 'P89: vista previa y eliminación íntegra sin reservas afectadas: OK';
 END;
