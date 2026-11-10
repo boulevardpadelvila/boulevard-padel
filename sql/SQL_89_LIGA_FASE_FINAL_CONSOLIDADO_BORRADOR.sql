@@ -9,6 +9,11 @@
 -- Próximos requisitos: ensayo SQL en BD aislada, verificación de permisos,
 -- revisión de transacciones concurrentes, integración Admin y pública, CI.
 -- La aprobación de tests JavaScript NO autoriza instalación.
+-- Protección transaccional: cualquier error revierte todas las etapas.
+-- lock_timeout evita interrumpir el turnero si otra operación usa blockouts.
+BEGIN;
+SET LOCAL lock_timeout = '5s';
+SET LOCAL statement_timeout = '90s';
 
 
 -- ========== ETAPA 2A: TABLA Y GENERACIÓN ==========
@@ -900,3 +905,5 @@ $function$
 
 
 -- NO INSTALAR: pendiente auditoría e integración de todas las etapas 2A–2C.
+
+COMMIT;
