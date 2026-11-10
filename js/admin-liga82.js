@@ -151,12 +151,10 @@
 
     table.replaceChildren(heading, scroll, referencias);
     if (report.complete) {
-      const note = report.champion
-        ? "Primera pareja: " +
-          name(report.champion) +
-          ". Confirmá la finalización desde Torneos."
-        : "Liga completa: empate en la primera posición. Martín debe definir el criterio antes de proclamar campeón.";
-      table.append(el("p", note, "bp-league__note"));
+      // P89: 1° de la fase regular no equivale a campeón de la Liga.
+      table.append(el("p",
+        "Tabla definitiva de fase regular. Campeón y subcampeón se deciden en la final.",
+        "bp-league__note"));
     } else
       table.append(
         el(
@@ -367,6 +365,15 @@
         pending: all.filter((p) => p.status === "pending").length,
       };
       render();
+      // P89: la fase final escucha solo la carga de una Liga válida.
+      // Esta notificación no escribe nada ni altera los 66 partidos regulares.
+      window.dispatchEvent(new CustomEvent("bp:league-loaded", {
+        detail: {
+          tournament: { ...current },
+          pairs: [...pairs.entries()],
+          matches: matchList.slice()
+        }
+      }));
     } catch (error) {
       if (seq !== generation) return;
       console.error("Error al cargar Liga", error);
