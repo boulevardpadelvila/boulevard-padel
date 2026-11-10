@@ -78,7 +78,7 @@ test("Resultado Liga es 2 sets más súper tie-break; no tercero normal",()=>{
   assert.match(admin,/inputs\.slice\(0,\s*split\s*\?\s*3\s*:\s*2\)/);
   assert.match(admin,/toggleThird/);
 });
-test("Vista pública Liga: fixture, tabla, campeón y RPC con información filtrada",()=>{
+test("Vista pública Liga: fixture, tabla clasificatoria y RPC con información filtrada",()=>{
   assert.match(publicHTML,/src="js\/torneos-liga-motor\.js"/);
   assert.match(publicHTML,/src="js\/torneos-liga-public82\.js"/);
   assert.match(publicHTML,/href="css\/torneos-liga82\.css"/);
@@ -90,7 +90,8 @@ test("Vista pública Liga: fixture, tabla, campeón y RPC con información filtr
   assert.match(publicJS,/t\.format\s*===\s*"league"/);
   assert.match(publicRender,/Calendario de Liga/);
   assert.match(publicRender,/Tabla general/);
-  assert.match(publicRender,/Campeones/);
+  assert.match(publicRender,/El campeón y subcampeón se definen en la final/i);
+  assert.doesNotMatch(publicRender,/results\.champion/);
   assert.doesNotMatch(publicRender,/contact_phone|teléfono|telefono/);
 });
 test("Todos los botones de Liga son simétricos en escritorio y móvil",()=>{
@@ -123,7 +124,9 @@ test("Liga protege el plantel y no permite finalizar con fechas pendientes",()=>
   assert.match(sql,/ends_on IS NOT NULL/);
   assert.match(sql,/scheduled_ends_at IS NOT NULL AND scheduled_ends_at>scheduled_at/);
   assert.match(create,/if \(t\.format === "league"\)/);
-  assert.match(create,/stats\.champion/);
+  assert.match(create,/bp_league_final_matches/);
+  assert.match(create,/Completá las dos semifinales de Liga/);
+  assert.match(create,/Cargá el resultado de la final/);
 });
 test("Confirmación para generar fixture usa diálogo del Admin, no confirmación de Chrome",()=>{
   assert.match(html,/id="bp-league-generate-dialog"/);
