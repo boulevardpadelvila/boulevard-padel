@@ -2,7 +2,7 @@
 
 > Fuente breve de continuidad. Leer este archivo PRIMERO al iniciar otro chat, después consultar el final de `BITACORA_DESARROLLO.md` y los archivos reales de la rama. No sustituye el código ni las pruebas.
 >
-> Actualizado: 10/11/2026 (hora argentina). Última etapa: SQL89 atómico + pruebas reales de Chromium aislado; CI 222 JS + 2 Chromium + PostgreSQL 17 OK. Consultar HEAD para SHA actualizado.
+> Actualizado: 10/11/2026 (hora argentina). Última etapa: paridad estructural ampliada del SQL89 con datos sintéticos (35 reservas, 4 fijos, 39 bloqueos), CI 222 JS + 2 Chromium + PostgreSQL 17 OK. Consultar HEAD.
 
 ## Cómo retomar en el próximo chat
 
@@ -21,9 +21,9 @@ Mensaje sugerido: **«JP, retomamos Boulevard Pádel. Leé ESTADO_ACTUAL.md en G
 
 ## Estado verificado
 
-- Última sincronización local reportada: `git pull --ff-only` avanzó `7f40652..86fca66` correctamente, sin conflictos. Cambios posteriores requieren nuevo pull.
+- Última sincronización local reportada: `git pull --ff-only` avanzó `86fca66..e86bc1d` correctamente, sin conflictos. Los cambios de paridad posteriores requieren otro pull.
 - Laptop: 201/201 verificados previamente; los cambios posteriores elevan la suite a **222/222 en GitHub Actions**, más **2/2 pruebas reales en Chromium móvil aislado**. Falta sincronizar y ejecutar localmente si se desea.
-- GitHub Actions: run **42803713743**, tres jobs en SUCCESS: **222/222 JavaScript**, **2/2 Chromium móvil** (Admin/publicación con cliente Supabase simulado) y **PostgreSQL 17 aislado** (migración atómica, smoke, concurrencia, temporada 12 parejas/66 partidos).
+- GitHub Actions: run **42805545210**, tres jobs SUCCESS: **222/222 JavaScript**, **2/2 Chromium móvil** y PostgreSQL 17 aislado (migración atómica, 39 bloqueos/35 reservas/4 turnos fijos sintéticos conservados, guardia de reservas, carrera INSERT y Liga 12 parejas/66 partidos).
 - SQL consolidado: `sql/SQL_89_LIGA_FASE_FINAL_CONSOLIDADO_BORRADOR.sql` (2A+2B+2C, con guardia de fixture reforzada). **BORRADOR; NO INSTALAR NI GUARDAR EN SUPABASE SQL EDITOR**.
 - Esquema y smoke test temporal: `tests/fixtures/p89_postgres_bootstrap.sql` y `tests/fixtures/p89_postgres_smoke.sql`. PostgreSQL 17 **sintético, efímero**, no es copia de Supabase.
 - En Supabase de producción, la Liga «SUMA 14 - Temporada 2027» sigue con **12 parejas aprobadas, 66 partidos regulares, 1 disputado**, inscripciones cerradas, NO publicada, sin tabla de fase final P89 (último SELECT 09/11).
@@ -63,10 +63,18 @@ Mensaje sugerido: **«JP, retomamos Boulevard Pádel. Leé ESTADO_ACTUAL.md en G
 - Advisors de seguridad muestran avisos previos en 2 vistas públicas y RPC SECURITY DEFINER existentes; la RPC `create_admin_booking_flexible` verifica `auth.uid()` e `is_admin()` internamente. Revisar como mantenimiento aparte; **no cambiar funciones de reservas como parte de SQL89**.
 - PR #19 sigue abierto como DRAFT. No se tocó `main`, Cloudflare ni la BD productiva.
 
+## Ensayo de paridad con esquema real (10/11/2026)
+
+- Se consultaron en **modo lectura** restricciones FK/CHECK/EXCLUDE, enums y disparadores de Supabase para las tablas afectadas o relacionadas con P89. Se creó `tests/fixtures/p89_live_schema_parity.sql` con **réplica sintética de las restricciones principales** (no es un volcado real ni una réplica completa de Supabase). Incluye exclusión GiST de reservas superpuestas, FK de reservas a turnos fijos y de bloqueos a partidos; 35 reservas, 4 turnos fijos y 39 bloqueos antiguos **ficticios**.
+- `tests/fixtures/p89_live_schema_postcheck.sql` verifica después de instalar SQL89 en PostgreSQL 17 descartable: **35 reservas, 4 vínculos fijos y 39 bloqueos íntegros**, protección de bloqueos antiguos frente a modificaciones/borrados y rechazo de nuevas reservas superpuestas. Los otros smoke tests siguen probando programación, resultados, borrado y clasificación.
+- **Confirmación de CI:** run **42805545210**: 222 JavaScript, 2 Chromium y trabajo SQL completo **SUCCESS**. El primer intento con la paridad detectó que el *fixture de prueba* de concurrencia omitía nombres obligatorios para las parejas; se corrigió el fixture, no se cambió una regla deportiva ni un dato productivo.
+- **Supabase:** `list_branches` devolvió cero ramas de prueba; no se creó ningún proyecto externo ni se copiaron datos personales. Falta la validación completa de autenticación y de un esquema exacto en staging antes del despliegue.
+- **Entorno productivo INTACTO.** No instalar SQL89 ni fusionar PR #19 todavía.
+
 ## Pendientes prioritarios
 
 1. **Concurrencia:** protegido y probado en PostgreSQL temporal el INSERT de un partido regular simultáneo a generar semifinales. **Comprobado por lectura** que `bp_reservation_blockout_guard` usa el mismo `pg_advisory_xact_lock(...,72119)` que la programación de partidos (bloqueo de cancha compartido). Faltan ensayos adicionales de corrección de marcadores/reglas de cierre y posibles interbloqueos entre RPC.
-2. Revisar diferencias entre **esquema simulado** del CI y Supabase real, privilegios/triggers/operaciones de borrado. No presentar el smoke test como certificación de producción.
+2. **Paridad ampliada de restricciones en CI aprobada** con 35 reservas/4 fijos/39 bloqueos sintéticos; aún faltan dependencias/triggers de toda la base real, pruebas E2E autenticadas y despliegue en staging. No presentar el ensayo como certificación de producción.
 3. **Admin fase final integrado EN DESARROLLO:** `js/admin-liga-final89-ui.js` + modales en `admin/index.html`. **Chromium móvil con datos ficticios: 1 test PASS** (generar, programar y cargar resultado); falta prueba completa del portal autenticado contra un Supabase clon/staging. No instalar todavía.
 4. **Público integrado EN DESARROLLO:** `js/torneos-liga-final89-public.js`, `css/torneos-liga-final89.css`, `index.html` y `js/torneos-public.js` consumen exclusivamente `bp_public_league_final89`; cuadro y marcadores, campeón/subcampeón únicamente al terminar y cerrar Liga; **8 tests DOM nuevos**. No publicado.
 5. **Probado en PostgreSQL temporal** 12 parejas / 66 encuentros / 11 Fechas: top 4 y semifinales correctas, fixture regular intacto. Pendientes: empate absoluto/criterio de intervención, pruebas reales de interfaz y seguridad completa del esquema productivo; preparar migración definitiva revisada. **Aplicar en Supabase productivo, fusionar PR o publicar SOLO tras verificar seguridad y consentimiento de publicación.**
