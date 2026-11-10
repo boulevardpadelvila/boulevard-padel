@@ -86,6 +86,8 @@ test("89 Admin: modales y acciones explícitas, estilo móvil independiente", ()
   assert.match(admin, /\.\.\/css\/admin-liga-final89-ui\.css/);
   assert.match(css, /@media \(max-width: 550px\)/);
   assert.match(css, /grid-template-columns: repeat\(2, minmax\(0, 1fr\)\)/);
+  assert.match(css, /\.bp-league-final__matches\s*\{[\s\S]*?grid-template-columns: repeat\(3, minmax\(0, 1fr\)\)/);
+  assert.match(css, /@media \(max-width: 900px\)\s*\{\s*\.bp-league-final__matches\s*\{\s*grid-template-columns: minmax\(0, 1fr\)/);
 });
 
 test("89 Admin: Martín resuelve empate sin alterar marcadores ni otros puestos",()=>{
