@@ -917,6 +917,158 @@ REVOKE ALL ON FUNCTION public.bp_admin_delete_tournament_safely(uuid,text)
 GRANT EXECUTE ON FUNCTION public.bp_admin_delete_tournament_safely(uuid,text)
   TO authenticated;
 
+-- ========== ETAPA 2F: EMPATE ABSOLUTO, DECISIÓN ADMINISTRATIVA ==========
+-- Solo se permite intervenir dentro de una IGUALDAD ABSOLUTA en los cinco
+-- criterios deportivos. Los puestos no empatados NUNCA pueden alterarse.
+-- Se guarda constancia del motivo y del administrador que tomó la decisión.
+CREATE TABLE public.bp_league_final_tiebreak_decisions89 (
+  tournament_id uuid PRIMARY KEY
+    REFERENCES public.bp_tournaments(id) ON DELETE CASCADE,
+  qualifier_ids uuid[] NOT NULL
+    CHECK (array_ndims(qualifier_ids)=1 AND cardinality(qualifier_ids)=4),
+  reason text NOT NULL CHECK (char_length(btrim(reason)) BETWEEN 10 AND 300),
+  decided_by uuid NOT NULL,
+  decided_at timestamptz NOT NULL DEFAULT now()
+);
+ALTER TABLE public.bp_league_final_tiebreak_decisions89 ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.bp_league_final_tiebreak_decisions89
+  FROM PUBLIC,anon,authenticated;
+GRANT SELECT ON public.bp_league_final_tiebreak_decisions89 TO authenticated;
+CREATE POLICY bp_lf_tiebreak_admin_read89
+  ON public.bp_league_final_tiebreak_decisions89 FOR SELECT TO authenticated
+  USING ((SELECT public.bp_tournament_is_admin()));
+
+CREATE OR REPLACE FUNCTION public.bp_league_prepare_final_manual89(
+  p_tournament_id uuid, p_qualifiers uuid[], p_reason text
+) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $lf$
+DECLARE
+  v_t public.bp_tournaments%ROWTYPE;
+  v_approved integer;
+  v_unique integer;
+  v_invalid integer;
+  v_valid boolean;
+  v_tie boolean;
+  v_regular integer;
+BEGIN
+  IF auth.uid() IS NULL OR NOT COALESCE(public.bp_tournament_is_admin(),false) THEN
+    RAISE EXCEPTION 'Solo administrador activo.' USING ERRCODE='42501';
+  END IF;
+  IF p_qualifiers IS NULL OR array_ndims(p_qualifiers)<>1
+    OR cardinality(p_qualifiers)<>4
+    OR NULLIF(btrim(p_reason),'') IS NULL
+    OR char_length(btrim(p_reason)) NOT BETWEEN 10 AND 300 THEN
+    RAISE EXCEPTION 'Elegí cuatro puestos y explicá el desempate (10 a 300 caracteres).'
+      USING ERRCODE='22023';
+  END IF;
+
+  SELECT * INTO v_t FROM public.bp_tournaments t
+    WHERE t.id=p_tournament_id FOR UPDATE;
+  IF NOT FOUND OR v_t.format<>'league' THEN
+    RAISE EXCEPTION 'Liga inexistente.' USING ERRCODE='P0002';
+  END IF;
+  IF v_t.status NOT IN('registration_closed','in_progress') THEN
+    RAISE EXCEPTION 'Estado de Liga no habilitado para semifinales.'
+      USING ERRCODE='23514';
+  END IF;
+  IF EXISTS(SELECT 1 FROM public.bp_league_final_matches
+            WHERE tournament_id=p_tournament_id) THEN
+    RAISE EXCEPTION 'Las semifinales ya fueron generadas.'
+      USING ERRCODE='23514';
+  END IF;
+
+  -- Mismo orden de bloqueo que el generador normal: torneo y luego partidos.
+  PERFORM 1 FROM public.bp_league_matches
+    WHERE tournament_id=p_tournament_id FOR SHARE;
+  SELECT count(*) INTO v_regular FROM public.bp_league_matches
+    WHERE tournament_id=p_tournament_id;
+  IF v_regular=0 OR EXISTS(
+    SELECT 1 FROM public.bp_league_matches
+    WHERE tournament_id=p_tournament_id AND match_status<>'played'
+  ) THEN
+    RAISE EXCEPTION 'Completá la fase regular antes de definir el desempate.'
+      USING ERRCODE='23514';
+  END IF;
+
+  -- RANK() usa exactamente los cinco criterios de Liga. Cada candidato
+  -- solo puede ocupar uno de los puestos cubiertos por su grupo empatado.
+  -- Esto evita promocionar una pareja con peor clasificación.
+  WITH per_pair AS (
+    SELECT m.pair1_id AS pair_id,
+      CASE WHEN m.winner_pair_id=m.pair1_id THEN 2
+           WHEN m.sets_pair1=1 THEN 1 ELSE 0 END AS points,
+      m.sets_pair1::int AS sf,m.sets_pair2::int AS sc,
+      ((m.sets->0->>0)::int+(m.sets->1->>0)::int) AS gf,
+      ((m.sets->0->>1)::int+(m.sets->1->>1)::int) AS gc
+    FROM public.bp_league_matches m
+    WHERE m.tournament_id=p_tournament_id AND m.match_status='played'
+    UNION ALL
+    SELECT m.pair2_id,
+      CASE WHEN m.winner_pair_id=m.pair2_id THEN 2
+           WHEN m.sets_pair2=1 THEN 1 ELSE 0 END,
+      m.sets_pair2::int,m.sets_pair1::int,
+      ((m.sets->0->>1)::int+(m.sets->1->>1)::int),
+      ((m.sets->0->>0)::int+(m.sets->1->>0)::int)
+    FROM public.bp_league_matches m
+    WHERE m.tournament_id=p_tournament_id AND m.match_status='played'
+  ), totals AS (
+    SELECT p.id AS pair_id,
+      coalesce(sum(s.points),0)::int AS points,
+      (coalesce(sum(s.sf),0)-coalesce(sum(s.sc),0))::int AS sd,
+      coalesce(sum(s.sf),0)::int AS sf,
+      (coalesce(sum(s.gf),0)-coalesce(sum(s.gc),0))::int AS gd,
+      coalesce(sum(s.gf),0)::int AS gf
+    FROM public.bp_tournament_pairs p
+    LEFT JOIN per_pair s ON s.pair_id=p.id
+    WHERE p.tournament_id=p_tournament_id AND p.status='approved'
+    GROUP BY p.id
+  ), ranked AS (
+    SELECT pair_id,
+      rank() OVER(ORDER BY points DESC,sd DESC,sf DESC,
+                 gd DESC,gf DESC)::int AS first_seed,
+      count(*) OVER(PARTITION BY points,sd,sf,gd,gf)::int AS group_size
+    FROM totals
+  ), picked AS (
+    SELECT q.pair_id,q.seed,r.first_seed,r.group_size
+    FROM unnest(p_qualifiers) WITH ORDINALITY AS q(pair_id,seed)
+    LEFT JOIN ranked r ON r.pair_id=q.pair_id
+  )
+  SELECT (SELECT count(*) FROM ranked),
+    (SELECT count(DISTINCT pair_id) FROM picked),
+    (SELECT count(*) FROM picked WHERE first_seed IS NULL),
+    (SELECT bool_and(
+      first_seed<=seed AND first_seed+group_size-1>=seed
+    ) FROM picked),
+    (SELECT coalesce(bool_or(group_size>1),false)
+      FROM ranked WHERE first_seed<=4)
+  INTO v_approved,v_unique,v_invalid,v_valid,v_tie;
+
+  IF v_approved<4 OR NOT v_tie OR v_unique<>4 OR v_invalid<>0
+    OR NOT COALESCE(v_valid,false) THEN
+    RAISE EXCEPTION 'La decisión solo puede ordenar parejas realmente empatadas por las cinco métricas.'
+      USING ERRCODE='23514';
+  END IF;
+
+  INSERT INTO public.bp_league_final_tiebreak_decisions89
+    (tournament_id,qualifier_ids,reason,decided_by)
+  VALUES(p_tournament_id,p_qualifiers,btrim(p_reason),auth.uid());
+
+  INSERT INTO public.bp_league_final_matches
+    (tournament_id,stage,slot,pair1_id,pair2_id)
+  VALUES(p_tournament_id,'semifinal',1,p_qualifiers[1],p_qualifiers[3]),
+        (p_tournament_id,'semifinal',2,p_qualifiers[2],p_qualifiers[4]),
+        (p_tournament_id,'final',1,NULL,NULL);
+  RETURN jsonb_build_object(
+    'created',true,'manual_tiebreak',true,'qualifiers',p_qualifiers,
+    'semifinal1',jsonb_build_array(p_qualifiers[1],p_qualifiers[3]),
+    'semifinal2',jsonb_build_array(p_qualifiers[2],p_qualifiers[4])
+  );
+END;
+$lf$;
+REVOKE ALL ON FUNCTION public.bp_league_prepare_final_manual89(uuid,uuid[],text)
+  FROM PUBLIC,anon,authenticated;
+GRANT EXECUTE ON FUNCTION public.bp_league_prepare_final_manual89(uuid,uuid[],text)
+  TO authenticated;
+
 -- NO INSTALAR: pendiente auditoría e integración de todas las etapas 2A–2C.
 
 COMMIT;
