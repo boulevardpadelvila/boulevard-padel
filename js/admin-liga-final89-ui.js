@@ -88,6 +88,46 @@
     }
   }
 
+  // Presentación del podio: trofeo vectorial idéntico al público.
+  function trophyIcon(rank) {
+    const ns = "http://www.w3.org/2000/svg";
+    const icon = document.createElementNS(ns, "svg");
+    for (const [key, value] of Object.entries({
+      viewBox: "0 0 24 24", fill: "none", stroke: "currentColor",
+      "stroke-width": "1.8", "stroke-linecap": "round",
+      "stroke-linejoin": "round", "aria-hidden": "true",
+      class: "bp-league-final__trophy bp-league-final__trophy--" + rank
+    })) icon.setAttribute(key, value);
+    for (const d of [
+      "M8 21h8", "M12 17v4", "M7 4h10v7a5 5 0 0 1-10 0V4Z",
+      "M7 6H4v3a3 3 0 0 0 3 3", "M17 6h3v3a3 3 0 0 1-3 3"
+    ]) {
+      const path = document.createElementNS(ns, "path");
+      path.setAttribute("d", d);
+      icon.append(path);
+    }
+    return icon;
+  }
+
+  function finalPodium(championId, runnerUpId) {
+    const podium = make("section", null, "bp-league-final__champions");
+    podium.setAttribute("aria-label", "Podio final de Liga");
+    for (const [rank, label, id] of [
+      ["gold", "Campeones", championId],
+      ["silver", "Subcampeones", runnerUpId]
+    ]) {
+      const card = make("div", null, "bp-league-final__champions-card bp-league-final__champions-card--" + rank);
+      const info = make("div", null, "bp-league-final__champions-info");
+      info.append(
+        make("span", label, "bp-league-final__champions-label"),
+        make("strong", pairName(id, "Por confirmar"), "bp-league-final__champions-name")
+      );
+      card.append(trophyIcon(rank), info);
+      podium.append(card);
+    }
+    return podium;
+  }
+
   function render() {
     if (!tournament) return;
     fixture.replaceChildren();
@@ -162,10 +202,11 @@
       const champion = championship.winner_pair_id;
       const runnerUp = championship.pair1_id === champion
         ? championship.pair2_id : championship.pair1_id;
-      fixture.append(make("p",
-        "Campeón: " + pairName(champion, "Por confirmar") +
-        " · Subcampeón: " + pairName(runnerUp, "Por confirmar"),
-        "bp-league-final__champions"));
+      if (champion && runnerUp && champion !== runnerUp &&
+          [championship.pair1_id, championship.pair2_id].includes(champion) &&
+          [championship.pair1_id, championship.pair2_id].includes(runnerUp)) {
+        fixture.append(finalPodium(champion, runnerUp));
+      }
     }
   }
 
