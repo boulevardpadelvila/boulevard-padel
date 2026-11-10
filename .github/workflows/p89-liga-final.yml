@@ -78,6 +78,8 @@ jobs:
         run: bash tests/fixtures/p89_postgres_race.sh
       - name: "No regresión: reservas y turnos fijos heredados"
         run: psql -X -v ON_ERROR_STOP=1 -f tests/fixtures/p89_live_schema_postcheck.sql
+      - name: "Empate absoluto: resolución manual por administrador y auditoría"
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/fixtures/p89_postgres_manual_tiebreak.sql
       - name: "Temporada completa ficticia: 12 parejas, 66 partidos, 11 Fechas"
         run: |
           node --check tests/fixtures/p89_postgres_12pairs.js
