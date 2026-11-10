@@ -69,8 +69,18 @@ test("P89 Chromium público móvil: cuadro y proclamación sólo con final ofici
   // Re-renderizar sustituye <details>; la nueva tarjeta empieza cerrada.
   await page.locator(".bp-public-league-final > summary").click();
   assert.equal(await page.locator(".bp-public-league-final__champions").count(),1);
-  assert.match(await page.locator(".bp-public-league-final__champions").innerText(),/Campeón: Ana y Sol/);
-  assert.match(await page.locator(".bp-public-league-final__champions").innerText(),/Subcampeón: Berta y Luz/);
+  const podium=page.locator(".bp-public-league-final__champions");
+  assert.equal(await podium.locator(".public-tournament-highlight__item--gold").count(),1);
+  assert.equal(await podium.locator(".public-tournament-highlight__item--silver").count(),1);
+  assert.equal(await podium.locator("svg.public-tournament-highlight__trophy").count(),2);
+  assert.match(await podium.innerText(),/Campeones[\\s\\S]*Ana y Sol/);
+  assert.match(await podium.innerText(),/Subcampeones[\\s\\S]*Berta y Luz/);
+  const widths=await page.evaluate(()=>{
+    const cards=[...document.querySelectorAll(".bp-public-league-final__champions .public-tournament-highlight__item")];
+    return cards.map(el=>Math.round(el.getBoundingClientRect().width));
+  });
+  assert.ok(widths.length===2&&widths.every(w=>w>0&&w<390),
+    "El podio debe mantener dos tarjetas legibles en móvil");
   const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1);
   assert.equal(overflow,false,"La fase final creó desplazamiento horizontal en móvil");
   await page.close();
