@@ -2,11 +2,11 @@
 
 > Fuente breve de continuidad. Leer este archivo PRIMERO al iniciar otro chat, después consultar el final de `BITACORA_DESARROLLO.md` y los archivos reales de la rama. No sustituye el código ni las pruebas.
 >
-> Actualizado: 10/11/2026 (hora argentina). Última etapa: prevuelo productivo 22/22 OK, roles PostgreSQL reales probados, procedimiento de despliegue escrito. CI 226 JS + 3 Chromium + PostgreSQL 17 OK. Consultar HEAD.
+> Actualizado: 10/11/2026 (hora argentina). **SQL89 ya INSTALADO en el único Supabase productivo**; respaldo privado interno verificado, 8 tablas con 0 filas anteriores alteradas. Frontend P89 aún por publicar/verificar en `main`. CI 226 JS + 3 Chromium + PostgreSQL 17 OK.
 
 ## Cómo retomar en el próximo chat
 
-Mensaje sugerido: **«JP, retomamos Boulevard Pádel. Leé ESTADO_ACTUAL.md en GitHub, verificá la rama y la última bitácora, y seguí desde el próximo paso. No modifiques producción.»**
+Mensaje sugerido: **«JP, retomamos Boulevard Pádel. Leé ESTADO_ACTUAL.md en GitHub y la última bitácora. SQL89 ya está instalado en el único Supabase; verificá main/Cloudflare y conservá las reservas y turnos fijos intactos.»**
 
 - Repositorio: `boulevardpadelvila/boulevard-padel`.
 - Rama activa: `desarrollo/liga-fase-final-20261109`.
@@ -15,13 +15,23 @@ Mensaje sugerido: **«JP, retomamos Boulevard Pádel. Leé ESTADO_ACTUAL.md en G
 - Supabase de producción: proyecto `boulevard-padel`. **Solo diagnósticos SELECT sin autorización adicional**. No ejecutar ni guardar SQL borrador.
 - Instrucción permanente: trabajar en pasos pequeños, con resultados verificables; avisar el comando exacto para laptop cuando corresponda, y esperar su salida antes de avanzar a la siguiente instrucción manual.
 
+## Estado actual definitivo (leer primero; reemplaza avisos históricos posteriores)
+
+- **Decisión del usuario (10/11/2026):** UN solo proyecto Supabase, sin ramas ni staging; autorizó implementar Liga y publicar con cuidado absoluto de no alterar reservas/turnero. Los torneos de prueba pueden eliminarse solo si se necesita; **no se eliminó ninguno**.
+- **Base productiva SQL89 INSTALADA:** migración `20261110121714 bp_sql89_liga_semifinales_final_y_desempate` aplicada con éxito. Existen tablas de semifinales/final y desempates; ambas vacías hasta iniciar fase final. **No volver a ejecutar el SQL89**.
+- **Respaldo interno privado:** migración `20261110121529 bp_sql89_private_safety_snapshots`, esquema `bp_p89_safety`; roles anon/authenticated sin acceso. Contiene instantáneas de 8 tablas previas y 4 definiciones de funciones. No es un respaldo externo ni recuperación PITR.
+- **Integridad confirmada tras migración:** `reservations` 35/35, `fixed_turn_requests` 4/4, `blockouts` 39/39, `weekly_hours` 7/7, `bp_league_matches` 66/66, torneos 4/4, parejas 38/38, settings 1/1. Comparación por ID y contenido JSONB: 0 filas eliminadas, nuevas o alteradas en todas esas tablas. Función `get_available_slots(date)` operativa: 9 horarios disponibles los días 11/11 y 14/11; se mantuvieron los triggers de reservas y turnos fijos. Cero bloqueos inválidos ni reservas superpuestas a bloqueos activos.
+- **Frontend aún sin fusionar a `main` al escribir:** PR #19 DRAFT, rama `desarrollo/liga-fase-final-20261109`. Falta publicar/confirmar Cloudflare y verificar interfaz con sesión real, sin escribir datos ficticios en producción.
+- **Test sintético CI validado:** 226/226 JavaScript, 3/3 Chromium móvil, PostgreSQL 17 con RLS, carreras, empate y no-regresión de reservas. Se mantiene un solo proyecto, sin staging.
+- Protocolo actualizado: `docs/P89_DESPLIEGUE_CONTROLADO.md`. Si se encuentran referencias antiguas a «NO instalar SQL89» más abajo, **son anotaciones HISTÓRICAS previas a la autorización y aplicación efectiva**.
+
 ## Objetivo que se está desarrollando
 
 **Parche 89: fase final de la modalidad Liga.** Al terminar TODOS los partidos de la fase regular, clasificar los cuatro mejores según las cinco métricas acordadas (puntos 2/1/0, diferencia de sets, sets a favor, diferencia de games, games a favor). Un empate absoluto que afecte el top 4 requiere resolución administrativa, sin desempate arbitrario. Semifinales **1° vs 3°** y **2° vs 4°**; final entre ganadores; **sin partido por tercer puesto**. Semifinales/final: dos o tres sets normales, sin súper tie-break. Campeón y subcampeón solo desde la final jugada y el cierre oficial, NO desde la tabla regular.
 
 ## Estado verificado
 
-- Última sincronización local reportada: `git pull --ff-only` avanzó `e0c6d0a..5bc110d` correctamente, sin conflictos. Cambios posteriores de ensayo de roles/preparación aún deben sincronizarse.
+- Última sincronización local reportada: `git pull --ff-only` avanzó `e0c6d0a..5bc110d` correctamente, sin conflictos. Las modificaciones y documentación posteriores de producción todavía NO están sincronizadas en la laptop.
 - Laptop: 201/201 verificados previamente; CI tiene ahora **226/226 JavaScript** y **3/3 Chromium móvil aislado**, falta sincronizar nuevo commit.
 - GitHub Actions: run **42812958161**, tres jobs SUCCESS: **226/226 JavaScript**, **3/3 Chromium móvil**, PostgreSQL 17 aislado (paridad 35/4/39, concurrencia, empate manual, roles reales anon/authenticated y RLS, 12 parejas/66 partidos).
 - SQL consolidado: `sql/SQL_89_LIGA_FASE_FINAL_CONSOLIDADO_BORRADOR.sql` (2A+2B+2C+2F desempate, con guardia de fixture reforzada). **BORRADOR; NO INSTALAR NI GUARDAR EN SUPABASE SQL EDITOR**.
@@ -105,7 +115,7 @@ Mensaje sugerido: **«JP, retomamos Boulevard Pádel. Leé ESTADO_ACTUAL.md en G
 
 ## Próximo paso técnico concreto
 
-**Última puerta de publicación: staging auténtico con login Supabase Auth, esquema fiel, reservas/fijos de ensayo y respaldo restaurable probado.** Revisar disponibilidad/costo de rama Supabase con el usuario antes de crearla. Validar SQL89 + login→RPC→Admin→público→reserva, hacer recuperación de prueba y solicitar autorización expresa de instalación y publicación. No ejecutar SQL de mutación en producción; PR #19 sigue DRAFT.
+**Siguiente paso: sincronizar y fusionar PR #19 a `main` tras CI verde (autorizado), comprobar despliegue real de Cloudflare si el acceso lo permite, y validar flujos de sitio/turnero sin generar ni alterar reservas reales.** SQL89 ya está instalado. No crear otro Supabase ni ejecutar nuevamente migraciones de Liga. Una vez estable, cerrar rama Git de desarrollo para mantener `main` como único flujo.
 
 ## Regla de mantenimiento de este archivo
 
