@@ -2,14 +2,14 @@
 
 > Fuente breve de continuidad. Leer este archivo PRIMERO al iniciar otro chat, después consultar el final de `BITACORA_DESARROLLO.md` y los archivos reales de la rama. No sustituye el código ni las pruebas.
 >
-> Actualizado: 10/11/2026 (hora argentina). **SQL89 INSTALADO en el único Supabase productivo y PR #19 FUSIONADO a main** (merge `91a67f9`). Respaldo privado verificado: 8 tablas sin filas anteriores alteradas. Cloudflare confirmado por el usuario mediante curl del módulo Admin y revisión visual del turnero y panel Admin. CI 226 JS + 3 Chromium + PostgreSQL 17 OK.
+> Actualizado: 10/11/2026 (hora argentina). **Liga P89 en el único Supabase productivo, PR #19 fusionado y `main` como única rama**. Auditoría deportiva real de «Apertura 2027» aprobada por lectura SQL: 5 parejas, 10 partidos regulares y 3 finales jugados, tabla 2/1/0 y 5 criterios coherentes. Podio oro/plata implementado en Admin y público solo para Liga cerrada; **pruebas de la actualización visual pendientes de verificar con `node --test`**. Turnero y reservas no tocados.
 
 ## Cómo retomar en el próximo chat
 
 Mensaje sugerido: **«JP, retomamos Boulevard Pádel. Leé ESTADO_ACTUAL.md en GitHub y la última bitácora. SQL89 ya está instalado en el único Supabase; verificá main/Cloudflare y conservá las reservas y turnos fijos intactos.»**
 
 - Repositorio: `boulevardpadelvila/boulevard-padel`.
-- **Única rama remota confirmada en GitHub: `main` (10/11/2026).** Las tres ramas antiguas `desarrollo/liga-fase-final-20261109`, `desarrollo/eliminatorias-generalizadas-20261107` y `desarrollo/torneos-20261102` fueron eliminadas remotamente. La rama P89 también se eliminó localmente; aún falta verificar si las otras dos tienen referencias locales.
+- **Rama única GitHub y laptop: `main` (10/11/2026).** Las tres ramas remotas fueron eliminadas; el usuario informó la eliminación local de `desarrollo/torneos-20261102` y había eliminado la rama P89. La salida de `git branch -a` previa mostró solo esa rama local antigua y `main`/`origin/main`, por lo que la limpieza de ramas quedó completada.
 - PR de Liga a `main`: **#19 FUSIONADO (10/11/2026)**; rama local P89 borrada con `git branch -d` y remota con `git push origin --delete`, ambas confirmadas.
 - Proyecto productivo: `https://boulevard-padel.pages.dev/`.
 - Supabase de producción: proyecto `boulevard-padel`. **Solo diagnósticos SELECT sin autorización adicional**. No ejecutar ni guardar SQL borrador.
@@ -40,6 +40,15 @@ Mensaje sugerido: **«JP, retomamos Boulevard Pádel. Leé ESTADO_ACTUAL.md en G
 - **Ramas Git históricas retiradas de GitHub tras auditoría:** `desarrollo/eliminatorias-generalizadas-20261107` y `desarrollo/torneos-20261102`. `search_branches` posterior confirmó únicamente `main`. Los commits antiguos no se fusionaron sobre producción; la funcionalidad válida ya existe en `main` y el helper experimental está archivado. El único proyecto Supabase permanece intacto.
 - **Auditoría cerrada sobre contenidos principales:** `desarrollo/torneos-20261102` tiene exactamente el mismo `sql/SQL_70_ELIMINACION_COMPLETA_TORNEOS.sql` y `tests/torneos-eliminacion70.test.js` que `main`, y el Admin actual conserva los RPC de eliminación. `desarrollo/eliminatorias-generalizadas-20261107` aportaba un helper experimental `analyzeKnockoutGroups` ausente en `main`; se archivó su código literal en `docs/ARCHIVO_ELIMINATORIAS_GENERALIZADAS_20261107.md` sin activarlo. No fusionar versiones antiguas: pueden romper lógica vigente. Las ramas antiguas pueden retirarse ordenadamente.
 - Próximo control: sincronizar `main` de la laptop con la bitácora de cierre y comprobar referencias locales mediante `git branch -a`. Si todavía existen ramas locales antiguas, verificar primero antes de borrarlas. No tocar reservas, horarios o turnos fijos.
+
+## Estado más reciente · Auditoría Apertura 2027 y presentación del podio (10/11/2026)
+
+- **SQL SOLO LECTURA, sin mutaciones:** torneo `Apertura 2027` con 5 parejas aprobadas, una rueda, **10 cruces únicos en 5 Fechas**, todos disputados. Tres partidos regulares llegaron al súper tie-break; un súper tie-break suma un set, no games. Suma de puntos oficiales **23** (20 por 10 ganadores y 3 por derrotas 2–1). Sin empates absolutos, 0 decisiones manuales de desempate.
+- **Comparación independiente SQL vs reglas del motor:** posiciones 1–5: puntos `6,6,5,3,3`; diferencia de sets `+4,+2,+1,-3,-4`; diferencia de games `+12,-2,-1,+3,-12`. Los empates a 6 y 3 puntos se resuelven correctamente por diferencia de sets antes de games. Cuatro partidos jugados por pareja; las cinco métricas de orden son Pts, diferencia de sets, sets a favor, diferencia de games y games a favor. La tabla refleja los marcadores.
+- **Fase final real:** semifinales 1° vs 3° y 2° vs 4° disputadas; final 7–5, 5–7, 7–5. RPC pública sanitizada `bp_public_league_final89` confirmó los dos finalistas, campeón y subcampeón; torneo `status=completed`, `is_published=true` según consulta posterior. No se modificaron resultados ni estado por el asistente.
+- **P90 visual en `main`:** `js/torneos-liga-final89-public.js` y `css/torneos-liga-final89.css` ahora reutilizan tarjetas oro/plata y trofeos vectoriales del estilo Eliminatorias; `js/admin-liga-final89-ui.js` y `css/admin-liga-final89-ui.css` incorporan las mismas tarjetas, de dos columnas también en celular. Exclusivamente lectura, sin nuevas RPC, tablas, cambios de reglas o turnero.
+- **Pruebas añadidas/actualizadas:** `tests/torneos-liga-apertura2027-auditoria.test.js` con marcadores **anonimizados** y comparación de clasificación, validación de sets, 10 cruces, semifinales y final; pruebas DOM público, Admin y Chromium móvil ajustadas al nuevo podio. Workflow P89 restringido a cambios de Liga en `main`. **Resultado de estas pruebas posteriores a P90 aún no verificado desde aquí:** ejecutar en laptop `node --test tests/*.test.js` tras sincronizar. No afirmar CI verde nuevo hasta confirmarlo.
+- **Protección:** reservas, solicitudes fijas, calendarios y datos del turnero no se leyeron ni modificaron en esta auditoría; no se creó proyecto ni rama, no se aplicó SQL de escritura. El histórico de seguridad de P89 sigue vigente y separado.
 
 ## Objetivo que se está desarrollando
 
@@ -131,7 +140,7 @@ Mensaje sugerido: **«JP, retomamos Boulevard Pádel. Leé ESTADO_ACTUAL.md en G
 
 ## Próximo paso técnico concreto
 
-**Siguiente paso: sincronizar la laptop mediante `git pull --ff-only` sobre `main` y luego comprobar `git branch -a` para confirmar la limpieza local.** En GitHub solo queda `main` (verificado). SQL89 está instalado y publicado; la disponibilidad pública y la interfaz Admin se comprobaron sin alterar registros. No crear proyectos/ramas Supabase ni repetir SQL89.
+**Siguiente paso: sincronizar `main` de la laptop con `git pull --ff-only`, luego ejecutar `node --test tests/*.test.js` y confirmar salida.** Verificar desde navegador que el podio dorado/plateado aparezca en el Admin y en la vista pública de «Apertura 2027» después del cierre oficial. No tocar reservas ni turnos fijos. Si hay fallos, corregir solo el módulo Torneos.
 
 ## Regla de mantenimiento de este archivo
 
