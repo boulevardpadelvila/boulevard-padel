@@ -87,3 +87,14 @@ test("89 Admin: modales y acciones explícitas, estilo móvil independiente", ()
   assert.match(css, /@media \(max-width: 550px\)/);
   assert.match(css, /grid-template-columns: repeat\(2, minmax\(0, 1fr\)\)/);
 });
+
+test("89 Admin: Martín resuelve empate sin alterar marcadores ni otros puestos",()=>{
+  assert.match(admin, /id="bp-league-final-tie-form"/);
+  assert.match(admin, /id="bp-league-final-tie-reason"/);
+  assert.match(finalUI, /bp_league_prepare_final_manual89/);
+  assert.match(finalUI, /sameMetrics\(row, other\)/);
+  assert.match(finalUI, /new Set\(selected\)\.size !== 4/);
+  assert.match(finalUI, /p_qualifiers: decision\.qualifiers/);
+  assert.match(finalUI, /p_reason: decision\.reason/);
+  assert.doesNotMatch(finalUI, /\.from\("bp_league_matches"\)/);
+});
