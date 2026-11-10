@@ -97,3 +97,10 @@ test("89 2D: solo una definición por cada función principal",()=>{
     assert.equal(count(new RegExp("CREATE OR REPLACE FUNCTION public\\."+name+"\\(","g")),1);
   }
 });
+
+test("89 2D: migración SQL atómica con espera máxima corta",()=>{
+  assert.match(sql,/\bBEGIN;\s*SET LOCAL lock_timeout = '5s';\s*SET LOCAL statement_timeout = '90s';/);
+  assert.match(sql,/\bCOMMIT;\s*$/);
+  assert.equal(count(/^BEGIN;$/gm),1);
+  assert.equal(count(/^COMMIT;$/gm),1);
+});
