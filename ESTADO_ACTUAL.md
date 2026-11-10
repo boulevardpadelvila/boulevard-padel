@@ -23,7 +23,7 @@ Mensaje sugerido: **«JP, retomamos Boulevard Pádel. Leé ESTADO_ACTUAL.md en G
 
 - Última sincronización local reportada: `git pull --ff-only` avanzó `40c2e90..2593bba` correctamente, sin conflictos.
 - Laptop: `node --test tests/*.test.js` **201/201 OK**, confirmadas por el usuario antes de ese pull (no cambió código de tests JS después).
-- GitHub Actions: run **42738603478**, `test` **201/201 OK** y `SQL89 PostgreSQL 17 aislado` **SUCCESS**.
+- GitHub Actions: run **42738603478** y posterior **42739721099**, `test` **201/201 OK**, `SQL89 PostgreSQL 17 aislado` **SUCCESS**, incluida prueba concurrente de INSERT durante generación de semifinales.
 - SQL consolidado: `sql/SQL_89_LIGA_FASE_FINAL_CONSOLIDADO_BORRADOR.sql` (2A+2B+2C, con guardia de fixture reforzada). **BORRADOR; NO INSTALAR NI GUARDAR EN SUPABASE SQL EDITOR**.
 - Esquema y smoke test temporal: `tests/fixtures/p89_postgres_bootstrap.sql` y `tests/fixtures/p89_postgres_smoke.sql`. PostgreSQL 17 **sintético, efímero**, no es copia de Supabase.
 - En Supabase de producción, la Liga «SUMA 14 - Temporada 2027» sigue con **12 parejas aprobadas, 66 partidos regulares, 1 disputado**, inscripciones cerradas, NO publicada, sin tabla de fase final P89 (último SELECT 09/11).
@@ -35,12 +35,12 @@ Mensaje sugerido: **«JP, retomamos Boulevard Pádel. Leé ESTADO_ACTUAL.md en G
 2. RPC Admin para generar fase final, programar/postergar/reprogramar 90 o 120 min, cargar marcadores, resolver finalistas.
 3. Guardián de bloqueos con cuarta referencia a partido final, verificación de cancha ocupada; guardia de cierre y consulta pública sanitizada.
 4. Previsualización y eliminación segura de torneo incluyen los tres encuentros finales y bloqueos, sin borrar reservas.
-5. Bloqueo de altas/bajas/cambios de identidad y resultado de partidos regulares al crear fase final.
+5. Bloqueo de altas/bajas/cambios de identidad y resultado de partidos regulares al crear fase final. El INSERT toma `FOR SHARE` del torneo para serializar contra la preparación de semifinales (`FOR UPDATE`).
 6. Pruebas SQL aisladas verificaron generación, cruces, agenda, superposición, marcadores, campeón, cierre, permisos básicos, y eliminación con reserva independiente conservada.
 
 ## Pendientes prioritarios
 
-1. **Auditar concurrencia real** entre `bp_league_prepare_final89`, `bp_league_save_result`, cambios del fixture y creación de reservas. La RPC regular `bp_league_save_result` bloquea el partido `FOR UPDATE` y no bloquea el torneo: evitar carreras y bloqueos cruzados; comprobar también INSERT concurrente.
+1. **Concurrencia:** protegido y probado en PostgreSQL temporal el INSERT de un partido regular simultáneo a generar semifinales. **Comprobado por lectura** que `bp_reservation_blockout_guard` usa el mismo `pg_advisory_xact_lock(...,72119)` que la programación de partidos (bloqueo de cancha compartido). Faltan ensayos adicionales de corrección de marcadores/reglas de cierre y posibles interbloqueos entre RPC.
 2. Revisar diferencias entre **esquema simulado** del CI y Supabase real, privilegios/triggers/operaciones de borrado. No presentar el smoke test como certificación de producción.
 3. Diseñar e integrar en Admin (móvil primero) creación de semifinales, programación y carga de resultados; mantener la UX simple para Martín.
 4. Render público de cuadro, resultados, campeón/subcampeón desde `bp_public_league_final89`, sin datos de contacto.
@@ -48,7 +48,7 @@ Mensaje sugerido: **«JP, retomamos Boulevard Pádel. Leé ESTADO_ACTUAL.md en G
 
 ## Próximo paso técnico concreto
 
-**Revisión de concurrencia SQL (solo lectura de la base real + análisis en rama) y registro de hallazgos.** No instalar ni ejecutar SQL de mutación. Posteriormente, correcciones y pruebas en PostgreSQL temporal. Mantener PR #19 como DRAFT.
+**Continuar con auditoría de RPC y siguientes escenarios concurrentes**, seguida de integración de UI Admin para semifinales/final en la rama. `ESTADO_ACTUAL.md` es el punto de entrada de los próximos chats. No ejecutar SQL de mutación en producción. Mantener PR #19 como DRAFT.
 
 ## Regla de mantenimiento de este archivo
 
