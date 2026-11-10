@@ -22,27 +22,64 @@
   font-size: .94rem;
   font-weight: 800;
 }
+/* Podio de Liga: mismo lenguaje visual que el de Eliminatorias (oro/plata).
+   Exclusivo de Liga para no modificar otras modalidades ni el turnero. */
 .public-tournaments .bp-public-league-final__champions {
-  margin-top: 16px;
-  padding: 15px;
-  border: 2px solid #a48335;
-  background: #00432e;
-  color: #fff;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin: 18px 0 4px;
+}
+.public-tournaments .bp-public-league-final__champions .public-tournament-highlight__item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  min-height: 156px;
+  padding: 18px 12px;
+  border: 1px solid transparent;
   border-radius: 13px;
   text-align: center;
-  line-height: 1.5;
-}
-.public-tournaments .bp-public-league-final__champions p {
-  margin: 6px 0;
   overflow-wrap: anywhere;
+  box-sizing: border-box;
 }
-.public-tournaments .bp-public-league-final__winner {
-  font-size: 1.03rem;
-  font-weight: 900;
+.public-tournaments .bp-public-league-final__champions .public-tournament-highlight__item--gold {
+  color: #9a6c0b;
+  border-color: #d6b85b;
+  background: linear-gradient(160deg, #fffdf4 0%, #f8edc7 100%);
 }
-.public-tournaments .bp-public-league-final__runnerup {
-  font-size: .94rem;
-  font-weight: 700;
+.public-tournaments .bp-public-league-final__champions .public-tournament-highlight__item--silver {
+  color: #61717b;
+  border-color: #adb8be;
+  background: linear-gradient(160deg, #ffffff 0%, #e9eef1 100%);
+}
+.public-tournaments .bp-public-league-final__champions .public-tournament-highlight__trophy {
+  width: 46px;
+  height: 46px;
+  flex: 0 0 auto;
+}
+.public-tournaments .bp-public-league-final__champions .public-tournament-highlight__trophy--gold {
+  color: #be921f;
+}
+.public-tournaments .bp-public-league-final__champions .public-tournament-highlight__trophy--silver {
+  color: #86969e;
+}
+.public-tournaments .bp-public-league-final__champions .public-tournament-highlight__label {
+  color: inherit;
+  font-size: .8rem;
+  font-weight: 800;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+}
+.public-tournaments .bp-public-league-final__champions .public-tournament-highlight__value {
+  display: block;
+  margin-top: 5px;
+  color: #213c2d;
+  font-size: clamp(.96rem, 1.8vw, 1.18rem);
+  font-weight: 800;
+  line-height: 1.3;
 }
 .public-tournaments .bp-public-league-final__pending {
   margin: 14px 0 0;
@@ -55,6 +92,22 @@
     grid-template-columns: minmax(0, 1fr);
   }
   .public-tournaments .bp-public-league-final__champions {
-    padding: 12px;
+    gap: 8px;
+  }
+  .public-tournaments .bp-public-league-final__champions .public-tournament-highlight__item {
+    min-height: 132px;
+    padding: 14px 7px;
+    gap: 7px;
+  }
+  .public-tournaments .bp-public-league-final__champions .public-tournament-highlight__trophy {
+    width: 36px;
+    height: 36px;
+  }
+  .public-tournaments .bp-public-league-final__champions .public-tournament-highlight__label {
+    font-size: .68rem;
+    letter-spacing: .035em;
+  }
+  .public-tournaments .bp-public-league-final__champions .public-tournament-highlight__value {
+    font-size: clamp(.77rem, 3.3vw, .96rem);
   }
 }
