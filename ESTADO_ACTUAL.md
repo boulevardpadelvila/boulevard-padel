@@ -2,15 +2,15 @@
 
 > Fuente breve de continuidad. Leer este archivo PRIMERO al iniciar otro chat, después consultar el final de `BITACORA_DESARROLLO.md` y los archivos reales de la rama. No sustituye el código ni las pruebas.
 >
-> Actualizado: 10/11/2026 (hora argentina). **SQL89 ya INSTALADO en el único Supabase productivo**; respaldo privado interno verificado, 8 tablas con 0 filas anteriores alteradas. Frontend P89 aún por publicar/verificar en `main`. CI 226 JS + 3 Chromium + PostgreSQL 17 OK.
+> Actualizado: 10/11/2026 (hora argentina). **SQL89 INSTALADO en el único Supabase productivo y PR #19 FUSIONADO a main** (merge `91a67f9`). Respaldo privado verificado: 8 tablas sin filas anteriores alteradas. Publicación efectiva de Cloudflare aún no verificable por HTTP desde este entorno. CI 226 JS + 3 Chromium + PostgreSQL 17 OK.
 
 ## Cómo retomar en el próximo chat
 
 Mensaje sugerido: **«JP, retomamos Boulevard Pádel. Leé ESTADO_ACTUAL.md en GitHub y la última bitácora. SQL89 ya está instalado en el único Supabase; verificá main/Cloudflare y conservá las reservas y turnos fijos intactos.»**
 
 - Repositorio: `boulevardpadelvila/boulevard-padel`.
-- Rama activa: `desarrollo/liga-fase-final-20261109`.
-- PR de la rama a `main`: **#19 (DRAFT / no fusionar)**.
+- Rama oficial: `main`. Rama histórica de desarrollo: `desarrollo/liga-fase-final-20261109` (ya fusionada).
+- PR de la rama a `main`: **#19 FUSIONADO (10/11/2026)**; `main` es rama oficial de trabajo. La rama temporal de desarrollo queda pendiente de eliminar una vez sincronizada la laptop.
 - Proyecto productivo: `https://boulevard-padel.pages.dev/`.
 - Supabase de producción: proyecto `boulevard-padel`. **Solo diagnósticos SELECT sin autorización adicional**. No ejecutar ni guardar SQL borrador.
 - Instrucción permanente: trabajar en pasos pequeños, con resultados verificables; avisar el comando exacto para laptop cuando corresponda, y esperar su salida antes de avanzar a la siguiente instrucción manual.
@@ -21,7 +21,7 @@ Mensaje sugerido: **«JP, retomamos Boulevard Pádel. Leé ESTADO_ACTUAL.md en G
 - **Base productiva SQL89 INSTALADA:** migración `20261110121714 bp_sql89_liga_semifinales_final_y_desempate` aplicada con éxito. Existen tablas de semifinales/final y desempates; ambas vacías hasta iniciar fase final. **No volver a ejecutar el SQL89**.
 - **Respaldo interno privado:** migración `20261110121529 bp_sql89_private_safety_snapshots`, esquema `bp_p89_safety`; roles anon/authenticated sin acceso. Contiene instantáneas de 8 tablas previas y 4 definiciones de funciones. No es un respaldo externo ni recuperación PITR.
 - **Integridad confirmada tras migración:** `reservations` 35/35, `fixed_turn_requests` 4/4, `blockouts` 39/39, `weekly_hours` 7/7, `bp_league_matches` 66/66, torneos 4/4, parejas 38/38, settings 1/1. Comparación por ID y contenido JSONB: 0 filas eliminadas, nuevas o alteradas en todas esas tablas. Función `get_available_slots(date)` operativa: 9 horarios disponibles los días 11/11 y 14/11; se mantuvieron los triggers de reservas y turnos fijos. Cero bloqueos inválidos ni reservas superpuestas a bloqueos activos.
-- **Frontend aún sin fusionar a `main` al escribir:** PR #19 DRAFT, rama `desarrollo/liga-fase-final-20261109`. Falta publicar/confirmar Cloudflare y verificar interfaz con sesión real, sin escribir datos ficticios en producción.
+- **Frontend FUSIONADO en `main`:** PR #19 merged 10/11/2026, commit `91a67f96a8c1d08871a0d890f01b270e08a6e15d`. Se comprobó `index.html` y `admin/index.html` de `main` con scripts P89. **Cloudflare Pages no verificable por HTTP desde este entorno** (sin resolución DNS); revisar visualmente el sitio y el Admin. El usuario debe sincronizar `main` en su laptop, después se puede borrar la rama de GitHub de desarrollo.
 - **Test sintético CI validado:** 226/226 JavaScript, 3/3 Chromium móvil, PostgreSQL 17 con RLS, carreras, empate y no-regresión de reservas. Se mantiene un solo proyecto, sin staging.
 - Protocolo actualizado: `docs/P89_DESPLIEGUE_CONTROLADO.md`. Si se encuentran referencias antiguas a «NO instalar SQL89» más abajo, **son anotaciones HISTÓRICAS previas a la autorización y aplicación efectiva**.
 
@@ -115,7 +115,7 @@ Mensaje sugerido: **«JP, retomamos Boulevard Pádel. Leé ESTADO_ACTUAL.md en G
 
 ## Próximo paso técnico concreto
 
-**Siguiente paso: sincronizar y fusionar PR #19 a `main` tras CI verde (autorizado), comprobar despliegue real de Cloudflare si el acceso lo permite, y validar flujos de sitio/turnero sin generar ni alterar reservas reales.** SQL89 ya está instalado. No crear otro Supabase ni ejecutar nuevamente migraciones de Liga. Una vez estable, cerrar rama Git de desarrollo para mantener `main` como único flujo.
+**Siguiente paso: el usuario debe cambiar su laptop a `main`, actualizarla y verificar `https://boulevard-padel.pages.dev/` y el Admin desde un navegador real.** SQL89 está instalado y PR #19 ya fusionado. Confirmar que Cloudflare publicó, que el turnero/reservas y turnos fijos siguen funcionando, sin hacer cambios a registros reales. Después borrar rama de desarrollo local y remota para conservar `main` como flujo único. No crear proyectos o ramas Supabase, ni ejecutar SQL89 otra vez.
 
 ## Regla de mantenimiento de este archivo
 
