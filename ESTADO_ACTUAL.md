@@ -2,7 +2,7 @@
 
 > Fuente breve de continuidad. Leer este archivo PRIMERO al iniciar otro chat, después consultar el final de `BITACORA_DESARROLLO.md` y los archivos reales de la rama. No sustituye el código ni las pruebas.
 >
-> Actualizado: 10/11/2026 (hora argentina). Última etapa: paridad estructural ampliada del SQL89 con datos sintéticos (35 reservas, 4 fijos, 39 bloqueos), CI 222 JS + 2 Chromium + PostgreSQL 17 OK. Consultar HEAD.
+> Actualizado: 10/11/2026 (hora argentina). Última etapa: ACL explícitas para RPC Admin existentes en SQL89; CI 223 JS + 2 Chromium + PostgreSQL 17 OK. Consultar HEAD.
 
 ## Cómo retomar en el próximo chat
 
@@ -21,9 +21,9 @@ Mensaje sugerido: **«JP, retomamos Boulevard Pádel. Leé ESTADO_ACTUAL.md en G
 
 ## Estado verificado
 
-- Última sincronización local reportada: `git pull --ff-only` avanzó `86fca66..e86bc1d` correctamente, sin conflictos. Los cambios de paridad posteriores requieren otro pull.
-- Laptop: 201/201 verificados previamente; los cambios posteriores elevan la suite a **222/222 en GitHub Actions**, más **2/2 pruebas reales en Chromium móvil aislado**. Falta sincronizar y ejecutar localmente si se desea.
-- GitHub Actions: run **42805545210**, tres jobs SUCCESS: **222/222 JavaScript**, **2/2 Chromium móvil** y PostgreSQL 17 aislado (migración atómica, 39 bloqueos/35 reservas/4 turnos fijos sintéticos conservados, guardia de reservas, carrera INSERT y Liga 12 parejas/66 partidos).
+- Última sincronización local reportada: `git pull --ff-only` avanzó `e86bc1d..8e29694` correctamente, sin conflictos. Los cambios de ACL posteriores requieren sincronización.
+- Laptop: 201/201 verificados previamente; los cambios posteriores elevan la suite a **223/223 en GitHub Actions**, más **2/2 pruebas reales en Chromium móvil aislado**. Falta sincronizar y repetir localmente si se desea.
+- GitHub Actions: run **42808877516**, tres jobs SUCCESS: **223/223 JavaScript**, **2/2 Chromium móvil** y PostgreSQL 17 aislado (migración atómica, 39 bloqueos/35 reservas/4 turnos fijos sintéticos conservados, guardia de reservas, ACL RPC admin, carrera INSERT y Liga 12 parejas/66 partidos).
 - SQL consolidado: `sql/SQL_89_LIGA_FASE_FINAL_CONSOLIDADO_BORRADOR.sql` (2A+2B+2C, con guardia de fixture reforzada). **BORRADOR; NO INSTALAR NI GUARDAR EN SUPABASE SQL EDITOR**.
 - Esquema y smoke test temporal: `tests/fixtures/p89_postgres_bootstrap.sql` y `tests/fixtures/p89_postgres_smoke.sql`. PostgreSQL 17 **sintético, efímero**, no es copia de Supabase.
 - En Supabase de producción, la Liga «SUMA 14 - Temporada 2027» sigue con **12 parejas aprobadas, 66 partidos regulares, 1 disputado**, inscripciones cerradas, NO publicada, sin tabla de fase final P89 (último SELECT 09/11).
@@ -70,6 +70,13 @@ Mensaje sugerido: **«JP, retomamos Boulevard Pádel. Leé ESTADO_ACTUAL.md en G
 - **Confirmación de CI:** run **42805545210**: 222 JavaScript, 2 Chromium y trabajo SQL completo **SUCCESS**. El primer intento con la paridad detectó que el *fixture de prueba* de concurrencia omitía nombres obligatorios para las parejas; se corrigió el fixture, no se cambió una regla deportiva ni un dato productivo.
 - **Supabase:** `list_branches` devolvió cero ramas de prueba; no se creó ningún proyecto externo ni se copiaron datos personales. Falta la validación completa de autenticación y de un esquema exacto en staging antes del despliegue.
 - **Entorno productivo INTACTO.** No instalar SQL89 ni fusionar PR #19 todavía.
+
+## Revisión de permisos previa a publicación (10/11/2026)
+
+- Se consultaron **en modo lectura** los permisos reales de `bp_admin_tournament_delete_preview(uuid)` y `bp_admin_delete_tournament_safely(uuid,text)`: anon sin EXECUTE, authenticated con EXECUTE, checks internos de Admin. Las dos RPC de trigger `bp_league_finish_guard` y `bp_tournament_blockout_integrity_guard` no permiten ejecución directa por anon/authenticated.
+- En el SQL89 **BORRADOR** se añadieron `REVOKE ALL FROM PUBLIC,anon,authenticated` y `GRANT EXECUTE TO authenticated` para las dos RPC de borrado, preservando explícitamente permisos actuales en cualquier instalación futura.
+- Se agregaron test estático y verificación de ACL por SQL en la base efímera. GitHub Actions **42808877516**: **223 JS, 2 Chromium, PostgreSQL 17 OK**. `main` y Supabase productivo intactos.
+- Pendiente auténtica validación E2E contra staging y un procedimiento de respaldo/recuperación verificable. **No publicar aún**.
 
 ## Pendientes prioritarios
 
