@@ -80,6 +80,8 @@ jobs:
         run: psql -X -v ON_ERROR_STOP=1 -f tests/fixtures/p89_live_schema_postcheck.sql
       - name: "Empate absoluto: resolución manual por administrador y auditoría"
         run: psql -X -v ON_ERROR_STOP=1 -f tests/fixtures/p89_postgres_manual_tiebreak.sql
+      - name: "Permisos reales PostgreSQL: authenticated / anon, RPC y RLS"
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/fixtures/p89_postgres_auth_roles.sql
       - name: "Temporada completa ficticia: 12 parejas, 66 partidos, 11 Fechas"
         run: |
           node --check tests/fixtures/p89_postgres_12pairs.js
