@@ -11,7 +11,8 @@ const sql=source.split("\n").filter(line=>!line.trim().startsWith("--")).join("\
 
 test("P89: el prevuelo consulta 22 controles y no escribe producción",()=>{
   assert.match(sql,/^\s*WITH checks AS\s*\(/i);
-  assert.equal((sql.match(/UNION ALL SELECT/g)||[]).length,22);
+  // 22 controles = SELECT inicial + 20 UNION ALL SELECT en checks + 1 control final.
+  assert.equal((sql.match(/UNION ALL SELECT/g)||[]).length,21);
   assert.match(sql,/SELECT 'RESULTADO GENERAL'/);
   assert.match(sql,/DETENER INSTALACIÓN/);
   assert.doesNotMatch(sql,/\b(?:INSERT\s+INTO|UPDATE\s+\S+\s+SET|DELETE\s+FROM|ALTER\s+TABLE|CREATE\s+TABLE|DROP\s+TABLE|TRUNCATE|CALL|DO\s*\$|GRANT|REVOKE)\b/i);
