@@ -9,7 +9,7 @@
 Mensaje sugerido: **«JP, retomamos Boulevard Pádel. Leé ESTADO_ACTUAL.md en GitHub y la última bitácora. SQL89 ya está instalado en el único Supabase; verificá main/Cloudflare y conservá las reservas y turnos fijos intactos.»**
 
 - Repositorio: `boulevardpadelvila/boulevard-padel`.
-- Rama oficial: `main`. Rama P89 `desarrollo/liga-fase-final-20261109` **eliminada local y remota el 10/11/2026** tras fusionar PR #19. **Existen otras dos ramas Git históricas aún pendientes de revisión, ver abajo**.
+- **Única rama remota confirmada en GitHub: `main` (10/11/2026).** Las tres ramas antiguas `desarrollo/liga-fase-final-20261109`, `desarrollo/eliminatorias-generalizadas-20261107` y `desarrollo/torneos-20261102` fueron eliminadas remotamente. La rama P89 también se eliminó localmente; aún falta verificar si las otras dos tienen referencias locales.
 - PR de Liga a `main`: **#19 FUSIONADO (10/11/2026)**; rama local P89 borrada con `git branch -d` y remota con `git push origin --delete`, ambas confirmadas.
 - Proyecto productivo: `https://boulevard-padel.pages.dev/`.
 - Supabase de producción: proyecto `boulevard-padel`. **Solo diagnósticos SELECT sin autorización adicional**. No ejecutar ni guardar SQL borrador.
@@ -37,9 +37,9 @@ Mensaje sugerido: **«JP, retomamos Boulevard Pádel. Leé ESTADO_ACTUAL.md en G
 ## Limpieza de ramas Git (10/11/2026)
 
 - **Confirmado**: el usuario ejecutó `git branch -d desarrollo/liga-fase-final-20261109` (eliminada localmente; apuntaba a `5bc110d`) y `git push origin --delete desarrollo/liga-fase-final-20261109` (borrada en GitHub). La búsqueda posterior en GitHub confirmó que esa rama ya no existe.
-- **Ramas Git remotas históricas descubiertas al verificar**: `desarrollo/eliminatorias-generalizadas-20261107` (1 commit por delante de `main`, 258 por detrás) y `desarrollo/torneos-20261102` (7 commits por delante de `main`, 357 por detrás). No confundir con ramas de Supabase: sigue habiendo **un solo proyecto Supabase y sin staging**.
+- **Ramas Git históricas retiradas de GitHub tras auditoría:** `desarrollo/eliminatorias-generalizadas-20261107` y `desarrollo/torneos-20261102`. `search_branches` posterior confirmó únicamente `main`. Los commits antiguos no se fusionaron sobre producción; la funcionalidad válida ya existe en `main` y el helper experimental está archivado. El único proyecto Supabase permanece intacto.
 - **Auditoría cerrada sobre contenidos principales:** `desarrollo/torneos-20261102` tiene exactamente el mismo `sql/SQL_70_ELIMINACION_COMPLETA_TORNEOS.sql` y `tests/torneos-eliminacion70.test.js` que `main`, y el Admin actual conserva los RPC de eliminación. `desarrollo/eliminatorias-generalizadas-20261107` aportaba un helper experimental `analyzeKnockoutGroups` ausente en `main`; se archivó su código literal en `docs/ARCHIVO_ELIMINATORIAS_GENERALIZADAS_20261107.md` sin activarlo. No fusionar versiones antiguas: pueden romper lógica vigente. Las ramas antiguas pueden retirarse ordenadamente.
-- Antes de seguir: sincronizar `main` de la laptop con los últimos cambios de bitácora; luego completar la auditoría de las dos ramas históricas y retirarlas de forma ordenada. No tocar reservas, horarios o turnos fijos.
+- Próximo control: sincronizar `main` de la laptop con la bitácora de cierre y comprobar referencias locales mediante `git branch -a`. Si todavía existen ramas locales antiguas, verificar primero antes de borrarlas. No tocar reservas, horarios o turnos fijos.
 
 ## Objetivo que se está desarrollando
 
@@ -131,7 +131,7 @@ Mensaje sugerido: **«JP, retomamos Boulevard Pádel. Leé ESTADO_ACTUAL.md en G
 
 ## Próximo paso técnico concreto
 
-**Siguiente paso: eliminar ordenadamente las dos ramas Git antiguas**, comenzando por la remota `desarrollo/eliminatorias-generalizadas-20261107`, cuyo código único ya se archivó en `docs/ARCHIVO_ELIMINATORIAS_GENERALIZADAS_20261107.md`. Luego retirar `desarrollo/torneos-20261102`, sin fusionar versiones viejas; finalmente revisar `git branch -a` y sincronizar `main`. No crear ramas/proyectos Supabase, no ejecutar SQL89 otra vez ni modificar reservas.
+**Siguiente paso: sincronizar la laptop mediante `git pull --ff-only` sobre `main` y luego comprobar `git branch -a` para confirmar la limpieza local.** En GitHub solo queda `main` (verificado). SQL89 está instalado y publicado; la disponibilidad pública y la interfaz Admin se comprobaron sin alterar registros. No crear proyectos/ramas Supabase ni repetir SQL89.
 
 ## Regla de mantenimiento de este archivo
 
