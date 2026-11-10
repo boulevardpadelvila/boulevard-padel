@@ -154,6 +154,10 @@
       if (seq !== requestId) return;
       if (error) throw error;
       finalMatches = data || [];
+      // Bloquear botones de corrección regular después de generar SF1/SF2.
+      window.dispatchEvent(new CustomEvent("bp:league-final-state", {
+        detail: { tournamentId: tournament.id, locked: finalMatches.length > 0 }
+      }));
       render();
     } catch (err) {
       if (seq !== requestId) return;
