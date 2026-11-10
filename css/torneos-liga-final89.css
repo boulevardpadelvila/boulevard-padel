@@ -1,0 +1,60 @@
+/* Boulevard Pádel · P89 · Fase final pública de Liga.
+ * Solo estilos de torneos, sin afectar el turnero ni la navegación.
+ */
+.public-tournaments .bp-public-league-final__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+  gap: 12px;
+  margin-top: 14px;
+}
+.public-tournaments .bp-public-league-final__match {
+  margin: 0;
+  min-width: 0;
+}
+.public-tournaments .bp-public-league-final__stage {
+  margin: 0 0 8px;
+  padding: 9px 12px;
+  background: #00432e;
+  color: #fff;
+  border-bottom: 3px solid #a48335;
+  border-radius: 8px;
+  text-align: center;
+  font-size: .94rem;
+  font-weight: 800;
+}
+.public-tournaments .bp-public-league-final__champions {
+  margin-top: 16px;
+  padding: 15px;
+  border: 2px solid #a48335;
+  background: #00432e;
+  color: #fff;
+  border-radius: 13px;
+  text-align: center;
+  line-height: 1.5;
+}
+.public-tournaments .bp-public-league-final__champions p {
+  margin: 6px 0;
+  overflow-wrap: anywhere;
+}
+.public-tournaments .bp-public-league-final__winner {
+  font-size: 1.03rem;
+  font-weight: 900;
+}
+.public-tournaments .bp-public-league-final__runnerup {
+  font-size: .94rem;
+  font-weight: 700;
+}
+.public-tournaments .bp-public-league-final__pending {
+  margin: 14px 0 0;
+  font-size: .86rem;
+  line-height: 1.45;
+  color: #526b55;
+}
+@media (max-width: 650px) {
+  .public-tournaments .bp-public-league-final__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .public-tournaments .bp-public-league-final__champions {
+    padding: 12px;
+  }
+}

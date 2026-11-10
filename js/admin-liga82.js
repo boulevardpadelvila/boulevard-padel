@@ -22,6 +22,7 @@
     pairs = new Map(),
     generation = 0,
     busy = false,
+    regularLocked = false,
     active = null;
 
   const el = (tag, value, cls = "") => {
@@ -151,12 +152,10 @@
 
     table.replaceChildren(heading, scroll, referencias);
     if (report.complete) {
-      const note = report.champion
-        ? "Primera pareja: " +
-          name(report.champion) +
-          ". Confirmá la finalización desde Torneos."
-        : "Liga completa: empate en la primera posición. Martín debe definir el criterio antes de proclamar campeón.";
-      table.append(el("p", note, "bp-league__note"));
+      // P89: 1° de la fase regular no equivale a campeón de la Liga.
+      table.append(el("p",
+        "Tabla definitiva de fase regular. Campeón y subcampeón se deciden en la final.",
+        "bp-league__note"));
     } else
       table.append(
         el(
@@ -245,7 +244,7 @@
         );
         result.type = "button";
         result.disabled =
-          current?.status === "completed" || m.round_number == null;
+          current?.status === "completed" || m.round_number == null || regularLocked;
         result.addEventListener("click", () => openResult(m));
         buttons.append(plan, result);
         card.append(buttons);
@@ -320,6 +319,7 @@
       seq = ++generation;
     current = null;
     active = null;
+    regularLocked = false;
     if (!id) {
       updateVisible(false);
       return;
@@ -367,6 +367,15 @@
         pending: all.filter((p) => p.status === "pending").length,
       };
       render();
+      // P89: la fase final escucha solo la carga de una Liga válida.
+      // Esta notificación no escribe nada ni altera los 66 partidos regulares.
+      window.dispatchEvent(new CustomEvent("bp:league-loaded", {
+        detail: {
+          tournament: { ...current },
+          pairs: [...pairs.entries()],
+          matches: matchList.slice()
+        }
+      }));
     } catch (error) {
       if (seq !== generation) return;
       console.error("Error al cargar Liga", error);
@@ -378,6 +387,13 @@
       fixture.replaceChildren();
     }
   }
+  // P89: la fase final notifica cuándo cerrar edición de marcadores regulares.
+  // La guardia SQL es la protección definitiva; esto evita errores de UX.
+  window.addEventListener("bp:league-final-state", (event) => {
+    if (!current || event.detail?.tournamentId !== current.id) return;
+    regularLocked = Boolean(event.detail.locked);
+    renderMatches();
+  });
   select.addEventListener("change", load);
   // El selector se llena de forma asíncrona; incluso con una sola Liga debe
   // abrirse el panel sin obligar a cambiar manualmente de torneo.
@@ -623,7 +639,7 @@
   $("bp-league-result-cancel").addEventListener("click", () => rd.close());
   rf.addEventListener("submit", async (ev) => {
     ev.preventDefault();
-    if (!active || busy) return;
+    if (!active || busy || regularLocked) return;
     const match = active;
     try {
       const first = inputs
