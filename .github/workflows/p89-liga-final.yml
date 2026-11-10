@@ -68,12 +68,16 @@ jobs:
           psql --version
       - name: "Montar dependencias de ensayo"
         run: psql -X -v ON_ERROR_STOP=1 -f tests/fixtures/p89_postgres_bootstrap.sql
+      - name: "Paridad ampliada con restricciones y reservas ficticias"
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/fixtures/p89_live_schema_parity.sql
       - name: "Compilar y aplicar SQL89 SOLO en Postgres temporal"
         run: psql -X -v ON_ERROR_STOP=1 -f sql/SQL_89_LIGA_FASE_FINAL_CONSOLIDADO_BORRADOR.sql
       - name: "Pruebas reales de RPC, bloqueos, fase final y borrado"
         run: psql -X -v ON_ERROR_STOP=1 -f tests/fixtures/p89_postgres_smoke.sql
       - name: "Concurrencia: INSERT regular frente a creación de semifinales"
         run: bash tests/fixtures/p89_postgres_race.sh
+      - name: "No regresión: reservas y turnos fijos heredados"
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/fixtures/p89_live_schema_postcheck.sql
       - name: "Temporada completa ficticia: 12 parejas, 66 partidos, 11 Fechas"
         run: |
           node --check tests/fixtures/p89_postgres_12pairs.js
