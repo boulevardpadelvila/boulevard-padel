@@ -23,6 +23,9 @@ jobs:
           node --check js/torneos-liga-final89.js
           node --check js/admin-liga82.js
           node --check js/admin-liga-final89-ui.js
+          node --check js/torneos-liga-final89-public.js
+          node --check js/torneos-public.js
+          node --check tests/torneos-liga-final89-public.test.js
           node --check tests/torneos-liga-final89.test.js
           node --check tests/torneos-liga-final89-admin.test.js
       - name: "Suite completa"
