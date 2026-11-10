@@ -51,6 +51,8 @@ test("P89 Chromium público móvil: cuadro y proclamación sólo con final ofici
     const block=BPLeagueFinalPublic89.finalBlock(t,p,data);
     document.getElementById("t").append(block);
   });
+  // En el sitio la fase final es una tarjeta plegable (details).
+  await page.locator(".bp-public-league-final > summary").click();
   assert.equal(await page.locator(".bp-public-league-final__match").count(),3);
   assert.match(await page.locator("#t").innerText(),/Ganador semifinal 1/);
   assert.match(await page.locator("#t").innerText(),/12\/01\/2027/);
