@@ -202,3 +202,70 @@ test("P89 Chromium Admin móvil: generar, programar y cargar resultado sin tocar
   assert.equal(forbidden.length,0);
   await page.close();
 });
+
+test("P89 Chromium Admin: empate absoluto permite 5° por 4° solo con motivo",async()=>{
+  const page=await browser.newPage({viewport:{width:390,height:844},
+    locale:"es-AR",timezoneId:"America/Argentina/Cordoba"});
+  await page.setContent(adminFixtureHtml());
+  await page.addStyleTag({path:src("css/admin-liga-final89-ui.css")});
+  await page.evaluate(()=>{
+    const tournament={id:"liga-fixture-89",name:"Liga empatada de ensayo",
+      format:"league",status:"in_progress",settings:{legs:1}};
+    const pairs=[1,2,3,4,5].map(i=>["p"+i,"Pareja "+i]);
+    const rows=pairs.map(([pairId])=>({
+      pairId,points:4,setDifference:0,setsFor:4,gameDifference:0,
+      gamesFor:24,tied:true
+    }));
+    window.P89tie={tournament,pairs,rows,finals:[],calls:[]};
+    window.BPLeagueEngine={standings:()=>({complete:true,rows})};
+    window.BPLeagueFinal89={planFinalPhase:()=>({ready:false,reason:"ranking_tie"})};
+    window.BPTournamentEngine={evaluateSets:()=>({winnerSide:1})};
+    window.supabaseClient={
+      from:(name)=>{
+        if(name!=="bp_league_final_matches")throw Error("Tabla inesperada");
+        return {select:()=>({eq:()=>Promise.resolve({data:P89tie.finals,error:null})})};
+      },
+      rpc:async(name,args)=>{
+        P89tie.calls.push({name,args});
+        if(name!=="bp_league_prepare_final_manual89")
+          throw Error("No puede haber sorteo automático con empate");
+        const q=args.p_qualifiers;
+        P89tie.finals=[
+          {id:"sf1",stage:"semifinal",slot:1,pair1_id:q[0],pair2_id:q[2],
+           match_status:"pending",schedule_status:"unscheduled"},
+          {id:"sf2",stage:"semifinal",slot:2,pair1_id:q[1],pair2_id:q[3],
+           match_status:"pending",schedule_status:"unscheduled"},
+          {id:"final",stage:"final",slot:1,pair1_id:null,pair2_id:null,
+           match_status:"pending",schedule_status:"unscheduled"}
+        ];
+        return {error:null};
+      }
+    };
+    document.getElementById("bp-league-refresh").addEventListener("click",()=>{
+      dispatchEvent(new CustomEvent("bp:league-loaded",{detail:{
+        tournament:P89tie.tournament,pairs:P89tie.pairs,
+        matches:[{id:"r1",match_status:"played"}]
+      }}));
+    });
+  });
+  await page.addScriptTag({path:src("js/admin-liga-final89-ui.js")});
+  await page.locator("#bp-league-refresh").click();
+  await page.locator("#bp-league-final-tie-form:visible").waitFor();
+  assert.equal(await page.locator("#bp-league-final-generate").isVisible(),false);
+  assert.equal(await page.locator("#bp-league-final-tie-seed-4 option").count(),5);
+  await page.locator("#bp-league-final-tie-seed-4").selectOption("p5");
+  await page.locator("#bp-league-final-tie-reason").fill(
+    "Sorteo presencial entre cinco parejas empatadas");
+  await page.locator("#bp-league-final-tie-save").click();
+  assert.equal(await page.locator("#bp-league-final-generate-dialog").evaluate(e=>e.open),true);
+  await page.locator("#bp-league-final-generate-confirm").click();
+  await page.waitForFunction(()=>P89tie.calls.length===1);
+  const calls=await page.evaluate(()=>P89tie.calls);
+  assert.equal(calls[0].name,"bp_league_prepare_final_manual89");
+  assert.deepEqual(calls[0].args.p_qualifiers,["p1","p2","p3","p5"]);
+  assert.match(calls[0].args.p_reason,/Sorteo presencial/);
+  await page.locator("#bp-league-final-fixture article").first().waitFor();
+  assert.equal(await page.locator("#bp-league-final-fixture article").count(),3);
+  assert.equal(await page.locator("#bp-league-final-tie-form").isVisible(),false);
+  await page.close();
+});
