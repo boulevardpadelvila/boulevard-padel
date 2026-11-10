@@ -181,11 +181,10 @@
 
       rankingBody.append(referencias);
     }
+    // P89: la primera posición de la tabla regular NO otorga el título.
+    // Los ganadores se muestran desde la final, no desde standings().champion.
     const text = results.complete
-      ? results.champion
-        ? (t.status === "completed" ? "🏆 Campeones: " : "Primera posición: ") +
-          (pairs.get(results.champion) || "Pareja")
-        : "Empate en el primer puesto: la organización debe resolverlo."
+      ? "Tabla final de fase regular. El campeón y subcampeón se definen en la final."
       : "Tabla provisoria. Victoria: 2 pts; derrota 2–1: 1 pt; derrota 2–0: 0 pts.";
     rankingBody.append(make("p", "bp-public-league__note", text));
     standings.append(rankingBody);
