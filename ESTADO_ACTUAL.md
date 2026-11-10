@@ -9,8 +9,8 @@
 Mensaje sugerido: **«JP, retomamos Boulevard Pádel. Leé ESTADO_ACTUAL.md en GitHub y la última bitácora. SQL89 ya está instalado en el único Supabase; verificá main/Cloudflare y conservá las reservas y turnos fijos intactos.»**
 
 - Repositorio: `boulevardpadelvila/boulevard-padel`.
-- Rama oficial: `main`. Rama histórica de desarrollo: `desarrollo/liga-fase-final-20261109` (ya fusionada).
-- PR de la rama a `main`: **#19 FUSIONADO (10/11/2026)**; `main` es rama oficial de trabajo. La rama temporal de desarrollo queda pendiente de eliminar una vez sincronizada la laptop.
+- Rama oficial: `main`. Rama P89 `desarrollo/liga-fase-final-20261109` **eliminada local y remota el 10/11/2026** tras fusionar PR #19. **Existen otras dos ramas Git históricas aún pendientes de revisión, ver abajo**.
+- PR de Liga a `main`: **#19 FUSIONADO (10/11/2026)**; rama local P89 borrada con `git branch -d` y remota con `git push origin --delete`, ambas confirmadas.
 - Proyecto productivo: `https://boulevard-padel.pages.dev/`.
 - Supabase de producción: proyecto `boulevard-padel`. **Solo diagnósticos SELECT sin autorización adicional**. No ejecutar ni guardar SQL borrador.
 - Instrucción permanente: trabajar en pasos pequeños, con resultados verificables; avisar el comando exacto para laptop cuando corresponda, y esperar su salida antes de avanzar a la siguiente instrucción manual.
@@ -33,6 +33,13 @@ Mensaje sugerido: **«JP, retomamos Boulevard Pádel. Leé ESTADO_ACTUAL.md en G
 - Admin: el usuario ingresó a Torneos y Campeonatos, seleccionó la Liga y confirmó que todo se ve correctamente (parejas, partidos y posiciones). No modificó resultados ni generó semifinales.
 - SQL89 instalado, PR #19 fusionado y frontend servido por Cloudflare; **verificación visual/read-only aprobada**. La creación/cancelación de reservas y el flujo completo de fase final con sesión de Martín siguen sin una prueba manual en producción; no afirmar que esos flujos ya fueron ejercitados.
 - Próximo paso acordado: eliminar la rama de Git **local y remota** `desarrollo/liga-fase-final-20261109` de manera ordenada, sin borrar historial fusionado; mantener `main` como única rama de trabajo. No borrar el respaldo privado `bp_p89_safety`.
+
+## Limpieza de ramas Git (10/11/2026)
+
+- **Confirmado**: el usuario ejecutó `git branch -d desarrollo/liga-fase-final-20261109` (eliminada localmente; apuntaba a `5bc110d`) y `git push origin --delete desarrollo/liga-fase-final-20261109` (borrada en GitHub). La búsqueda posterior en GitHub confirmó que esa rama ya no existe.
+- **Ramas Git remotas históricas descubiertas al verificar**: `desarrollo/eliminatorias-generalizadas-20261107` (1 commit por delante de `main`, 258 por detrás) y `desarrollo/torneos-20261102` (7 commits por delante de `main`, 357 por detrás). No confundir con ramas de Supabase: sigue habiendo **un solo proyecto Supabase y sin staging**.
+- Esas dos ramas Git contienen divergencias históricas: la primera difiere en `js/torneos-motor.js` y la segunda en `js/admin-torneos.js`, HTML, bitácora y un SQL70 antiguo. **No eliminarlas sin comprobar que sus únicas aportaciones estén preservadas o sean obsoletas**. No fusionar por defecto: podrían reintroducir código antiguo sobre un sistema funcional.
+- Antes de seguir: sincronizar `main` de la laptop con los últimos cambios de bitácora; luego completar la auditoría de las dos ramas históricas y retirarlas de forma ordenada. No tocar reservas, horarios o turnos fijos.
 
 ## Objetivo que se está desarrollando
 
@@ -124,7 +131,7 @@ Mensaje sugerido: **«JP, retomamos Boulevard Pádel. Leé ESTADO_ACTUAL.md en G
 
 ## Próximo paso técnico concreto
 
-**Siguiente paso: borrar primero la rama local `desarrollo/liga-fase-final-20261109` desde `main` con `git branch -d`; al confirmar su salida, borrar la remota GitHub y sincronizar `main`.** La disponibilidad y visualización del Admin ya fueron verificadas por el usuario. No crear proyectos o ramas Supabase, no repetir SQL89 y no tocar reservas reales.
+**Siguiente paso: sincronizar la laptop en `main` y revisar las dos ramas Git históricas `desarrollo/eliminatorias-generalizadas-20261107` y `desarrollo/torneos-20261102` antes de eliminarlas**, porque contienen commits divergentes antiguos. La rama P89 ya se borró local y remotamente. Cloudflare, disponibilidad y Admin fueron verificados por el usuario; no se alteraron reservas ni turnos fijos. No crear ramas/proyectos Supabase ni repetir SQL89.
 
 ## Regla de mantenimiento de este archivo
 
