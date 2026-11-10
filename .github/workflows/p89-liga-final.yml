@@ -80,3 +80,23 @@ jobs:
           node tests/fixtures/p89_postgres_12pairs.js > /tmp/p89_12pairs.sql
           psql -X -v ON_ERROR_STOP=1 -f /tmp/p89_12pairs.sql
           psql -X -v ON_ERROR_STOP=1 -f tests/fixtures/p89_postgres_12pairs_check.sql
+
+  browser-chromium:
+    name: "P89 UI móvil Chromium aislado"
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: "Instalar Chromium SOLO en el runner descartable"
+        run: |
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: "Pruebas reales de Admin y público en Chromium móvil"
+        run: |
+          node --check tests/torneos-liga-final89-browser.test.cjs
+          node --test tests/torneos-liga-final89-browser.test.cjs
