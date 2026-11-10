@@ -18,6 +18,50 @@
       hour: "2-digit", minute: "2-digit", hourCycle: "h23"
     }).format(new Date(iso));
   }
+  // El mismo trofeo vectorial del cuadro eliminatorio, sin dependencias
+  // nuevas ni imágenes externas. Oro y plata se distinguen mediante CSS.
+  function trophyIcon(rank) {
+    const ns = "http://www.w3.org/2000/svg";
+    const icon = document.createElementNS(ns, "svg");
+    for (const [key, value] of Object.entries({
+      viewBox: "0 0 24 24", fill: "none", stroke: "currentColor",
+      "stroke-width": "1.8", "stroke-linecap": "round",
+      "stroke-linejoin": "round", "aria-hidden": "true",
+      class: "public-tournament-highlight__trophy public-tournament-highlight__trophy--" + rank
+    })) icon.setAttribute(key, value);
+    for (const d of [
+      "M8 21h8", "M12 17v4", "M7 4h10v7a5 5 0 0 1-10 0V4Z",
+      "M7 6H4v3a3 3 0 0 0 3 3", "M17 6h3v3a3 3 0 0 1-3 3"
+    ]) {
+      const path = document.createElementNS(ns, "path");
+      path.setAttribute("d", d);
+      icon.append(path);
+    }
+    return icon;
+  }
+
+  function podium(championName, runnerUpName) {
+    const winners = make("div",
+      "public-tournament-highlight bp-public-league-final__champions");
+    for (const [rank, label, value] of [
+      ["gold", "Campeones", championName],
+      ["silver", "Subcampeones", runnerUpName]
+    ]) {
+      const card = make("div", "public-tournament-highlight__item " +
+        "public-tournament-highlight__item--" + rank);
+      const info = make("div", "public-tournament-highlight__text");
+      info.append(
+        make("span", "public-tournament-highlight__label", label),
+        make("strong",
+          "public-tournament-highlight__value bp-public-league-final__" +
+          (rank === "gold" ? "winner" : "runnerup"), value)
+      );
+      card.append(trophyIcon(rank), info);
+      winners.append(card);
+    }
+    return winners;
+  }
+
   function finalBlock(tournament, regularReport, finalReport) {
     if (!tournament || tournament.format !== "league" ||
         !regularReport || !finalReport ||
@@ -79,12 +123,10 @@
         champion && runnerUp && champion !== runnerUp &&
         [championship.pair1_id, championship.pair2_id].includes(champion) &&
         [championship.pair1_id, championship.pair2_id].includes(runnerUp)) {
-      const winners = make("div", "bp-public-league-final__champions");
-      winners.append(
-        make("p", "bp-public-league-final__winner", "Campeón: " + name(champion, "Pareja campeona")),
-        make("p", "bp-public-league-final__runnerup", "Subcampeón: " + name(runnerUp, "Pareja subcampeona"))
-      );
-      body.append(winners);
+      body.append(podium(
+        name(champion, "Pareja campeona"),
+        name(runnerUp, "Pareja subcampeona")
+      ));
     } else {
       body.append(make("p", "bp-public-league-final__pending",
         "El campeón y subcampeón se confirmarán al finalizar la final y cerrar oficialmente la Liga."));
