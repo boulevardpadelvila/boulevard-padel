@@ -3,8 +3,9 @@
 -- ⚠ NO INSTALAR EN SUPABASE. NO EJECUTAR NI GUARDAR EN SQL EDITOR.
 -- NO ES UNA MIGRACIÓN DEFINITIVA NI VALIDADA TRANSACCIONALMENTE.
 -- Se preservan intactos los tres borradores de origen.
--- Ajuste de auditoría: proteger INSERT/UPDATE estructural de fase regular
--- cuando la fase final ya existe, además de DELETE y corrección de marcadores.
+-- Ajustes de auditoría: proteger INSERT/UPDATE estructural de fase regular
+-- cuando la fase final ya existe, además de DELETE/corrección de marcadores;
+-- INSERT del fixture serializado contra generación de semifinales.
 -- Próximos requisitos: ensayo SQL en BD aislada, verificación de permisos,
 -- revisión de transacciones concurrentes, integración Admin y pública, CI.
 -- La aprobación de tests JavaScript NO autoriza instalación.
@@ -530,6 +531,13 @@ CREATE OR REPLACE FUNCTION public.bp_league_final_lock_regular89()
 RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $lf$
 BEGIN
   IF TG_OP='INSERT' THEN
+    -- Serializar altas del fixture contra bp_league_prepare_final89.
+    -- El generador bloquea el torneo FOR UPDATE; esta toma FOR SHARE
+    -- antes de consultar si existen semifinales, evitando altas fantasma.
+    -- No se exige este bloqueo para UPDATE de resultados, para no invertir
+    -- el orden con bp_league_save_result (que bloquea primero el partido).
+    PERFORM 1 FROM public.bp_tournaments t
+      WHERE t.id=NEW.tournament_id FOR SHARE;
     IF EXISTS(SELECT 1 FROM public.bp_league_final_matches f
       WHERE f.tournament_id=NEW.tournament_id) THEN
       RAISE EXCEPTION 'La fase final ya fue creada; no se puede agregar un partido regular.'
