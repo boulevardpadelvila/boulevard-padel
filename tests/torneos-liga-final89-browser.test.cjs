@@ -82,6 +82,11 @@ function adminFixtureHtml() {
   <button id="bp-league-refresh" type="button">Actualizar</button>
   <section id="bp-league-final-panel" hidden>
   <button id="bp-league-final-generate" type="button">Generar semifinales</button>
+  <form id="bp-league-final-tie-form" hidden>
+    <div id="bp-league-final-tie-selects"></div>
+    <textarea id="bp-league-final-tie-reason" minlength="10" maxlength="300" required></textarea>
+    <button id="bp-league-final-tie-save" type="submit">Confirmar clasificación</button>
+  </form>
   <p id="bp-league-final-message"></p>
   <div id="bp-league-final-fixture"></div></section>
   <dialog id="bp-league-final-generate-dialog">
