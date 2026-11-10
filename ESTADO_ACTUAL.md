@@ -2,7 +2,16 @@
 
 > Fuente breve de continuidad. Leer este archivo PRIMERO al iniciar otro chat, después consultar el final de `BITACORA_DESARROLLO.md` y los archivos reales de la rama. No sustituye el código ni las pruebas.
 >
-> Actualizado: 10/11/2026 (hora argentina). **Liga P89 en el único Supabase productivo, PR #19 fusionado y `main` como única rama**. Auditoría deportiva real de «Apertura 2027» aprobada por lectura SQL: 5 parejas, 10 partidos regulares y 3 finales jugados, tabla 2/1/0 y 5 criterios coherentes. Podio oro/plata implementado en Admin y público solo para Liga cerrada; **pruebas de la actualización visual pendientes de verificar con `node --test`**. Turnero y reservas no tocados.
+> Actualizado: 10/11/2026 (hora argentina). **MÓDULO TORNEOS Y CAMPEONATOS FINALIZADO en su alcance funcional actual, validado por el usuario en producción.** `main` es la única rama; el único Supabase productivo permanece sin ramas. La Liga «Apertura 2027» fue auditada por lectura SQL (5 parejas, 10 regulares, 3 cruces finales), con puntos, desempates y campeón/subcampeón correctos; podio oro/plata correcto en Admin y público. El usuario confirmó visualmente que las 3 tarjetas de semifinales y final del Admin ya ocupan todo el ancho. La suite de 230 pruebas Node pasó antes del último ajuste aislado de CSS; no se ha confirmado una nueva ejecución completa posterior al último CSS. **Sin cambios en reservas ni turnos fijos.**
+
+## Cierre funcional de Torneos — 10/11/2026 (confirmado por el usuario)
+
+- **Estado: FINALIZADO para el alcance aprobado.** El usuario verificó que todo funciona y dio conformidad para cerrar. Se comprobaron Admin y sitio público, aspecto del podio (campeones/subcampeones) y la distribución a lo ancho de las tarjetas SF1/SF2/Final en el Admin.
+- **Reglas:** Liga con fase regular, posiciones, puntajes 2/1/0, desempates, semifinales y final. La auditoría de «Apertura 2027» confirma la correspondencia de los 10 marcadores con la tabla y la final oficial. El usuario probó restricciones de scores, súper tie-break habilitado solo con 1–1, publicación pública y bloqueos del turnero al programar.
+- **Calidad:** 230/230 pruebas Node informadas como aprobadas por el usuario antes del último ajuste exclusivamente CSS. No se recibió salida de la suite Node después de ese ajuste; el usuario **sí confirmó visualmente el resultado en producción**. No confundir validación visual con una segunda pasada de tests.
+- **Preservación:** NO tocar más el módulo sin nuevo pedido concreto. Solo `main`, un proyecto Supabase, sin nueva SQL ni ramas, y reservas/turnos fijos conservados.
+- **Evoluciones futuras separadas del cierre:** el caso particular de empate de posiciones para un torneo de 7 parejas en grupos de 3 y 4 queda como *pendiente diferido de reglas*, no bloquea este cierre; se retomará solo si el usuario lo solicita. No presentar tareas históricas marcadas «desarrollo» como pendientes activos cuando ya fueron publicadas.
+- **Siguiente acción:** ninguna en Torneos. Al hacer el próximo trabajo local, sincronizar `main` si hay cambios nuevos de documentación.
 
 ## Cómo retomar en el próximo chat
 
@@ -141,7 +150,7 @@ Mensaje sugerido: **«JP, retomamos Boulevard Pádel. Leé ESTADO_ACTUAL.md en G
 
 ## Próximo paso técnico concreto
 
-**Siguiente paso: ejecutar `git pull --ff-only` en la laptop y comprobar en el navegador que las tres tarjetas de Semifinal 1, Semifinal 2 y Final ocupen horizontalmente las tres columnas disponibles del Admin.** Luego ejecutar `node --test tests/*.test.js` para verificar no regresión tras el CSS. El podio oro/plata ya se vio bien en las capturas del usuario, tanto en público como en Admin. No tocar reservas ni turnos fijos.
+**Módulo Torneos FINALIZADO por conformidad del usuario (10/11/2026).** No hay acciones funcionales pendientes dentro del alcance aprobado. La corrección final de tres columnas en el Admin fue confirmada visualmente en producción. La última suite informada fue 230/230 antes del CSS final; nueva ejecución completa tras CSS no confirmada y no bloquea el cierre visual. Al retomar el proyecto por otro motivo, sincronizar `main` con la documentación. Preservar turnero, reservas y turnos fijos.
 
 ## Regla de mantenimiento de este archivo
 
