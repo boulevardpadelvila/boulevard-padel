@@ -2,7 +2,7 @@
 
 > Fuente breve de continuidad. Leer este archivo PRIMERO al iniciar otro chat, después consultar el final de `BITACORA_DESARROLLO.md` y los archivos reales de la rama. No sustituye el código ni las pruebas.
 >
-> Actualizado: 10/11/2026 (hora argentina). Última etapa: desempate absoluto administrado y auditado en Liga; CI 225 JS + 3 Chromium + PostgreSQL 17 OK. Consultar HEAD.
+> Actualizado: 10/11/2026 (hora argentina). Última etapa: prevuelo productivo 22/22 OK, roles PostgreSQL reales probados, procedimiento de despliegue escrito. CI 226 JS + 3 Chromium + PostgreSQL 17 OK. Consultar HEAD.
 
 ## Cómo retomar en el próximo chat
 
@@ -21,9 +21,9 @@ Mensaje sugerido: **«JP, retomamos Boulevard Pádel. Leé ESTADO_ACTUAL.md en G
 
 ## Estado verificado
 
-- Última sincronización local reportada: `git pull --ff-only` avanzó `8e29694..e0c6d0a` correctamente, sin conflictos. Cambios posteriores de desempate manual aún requieren sincronización.
-- Laptop: 201/201 verificados previamente; la suite actual CI tiene **225/225 JavaScript** y **3/3 Chromium móvil aislado**. Falta sincronizar y repetir localmente si se desea.
-- GitHub Actions: run **42811132379**, tres jobs SUCCESS: **225/225 JavaScript**, **3/3 Chromium móvil**, PostgreSQL 17 aislado (migración atómica; paridad 35 reservas/4 fijos/39 bloqueos; desempate circular de 5 parejas por 4 lugares; 12 parejas/66 partidos; concurrencia).
+- Última sincronización local reportada: `git pull --ff-only` avanzó `e0c6d0a..5bc110d` correctamente, sin conflictos. Cambios posteriores de ensayo de roles/preparación aún deben sincronizarse.
+- Laptop: 201/201 verificados previamente; CI tiene ahora **226/226 JavaScript** y **3/3 Chromium móvil aislado**, falta sincronizar nuevo commit.
+- GitHub Actions: run **42812958161**, tres jobs SUCCESS: **226/226 JavaScript**, **3/3 Chromium móvil**, PostgreSQL 17 aislado (paridad 35/4/39, concurrencia, empate manual, roles reales anon/authenticated y RLS, 12 parejas/66 partidos).
 - SQL consolidado: `sql/SQL_89_LIGA_FASE_FINAL_CONSOLIDADO_BORRADOR.sql` (2A+2B+2C+2F desempate, con guardia de fixture reforzada). **BORRADOR; NO INSTALAR NI GUARDAR EN SUPABASE SQL EDITOR**.
 - Esquema y smoke test temporal: `tests/fixtures/p89_postgres_bootstrap.sql` y `tests/fixtures/p89_postgres_smoke.sql`. PostgreSQL 17 **sintético, efímero**, no es copia de Supabase.
 - En Supabase de producción, la Liga «SUMA 14 - Temporada 2027» sigue con **12 parejas aprobadas, 66 partidos regulares, 1 disputado**, inscripciones cerradas, NO publicada, sin tabla de fase final P89 (último SELECT 09/11).
@@ -86,6 +86,15 @@ Mensaje sugerido: **«JP, retomamos Boulevard Pádel. Leé ESTADO_ACTUAL.md en G
 - `tests/fixtures/p89_postgres_manual_tiebreak.sql` modela cinco parejas con empate absoluto en 10 partidos; valida rechazo automático, bloqueo a no admins, duplicados y motivo corto, resolución manual, auditoría y conservación de resultados. `tests/torneos-liga-final89-browser.test.cjs` incluye ahora una tercera prueba con el puesto 5° elegido en lugar del 4° por decisión documentada. **CI 42811132379: 225 JS + 3 Chromium + SQL SUCCESS.**
 - **No se instaló ni desplegó en producción.** PR #19 DRAFT. Falta staging autenticado/copia exacta + plan de respaldo y publicación.
 
+## Prevuelo + roles PostgreSQL + plan de despliegue (10/11/2026)
+
+- Consulta `sql/SQL_89_PREVUELO_SOLO_LECTURA.sql`, únicamente SELECT de catálogos/privilegios: **22 de 22 controles OK en Supabase productivo** a 10/11/2026. Confirmó dependencias, tres triggers críticos, exclusión GiST de reservas, permisos admin, existencia de turnos fijos y ausencia de P89 instalado. Repetir justo antes de aplicar SQL; si algo cambia, detener.
+- `tests/fixtures/p89_postgres_auth_roles.sql`: prueba con `SET ROLE authenticated` y `SET ROLE anon` (NO login GoTrue). Authenticated Admin genera 3 partidos y los lee por RLS; Authenticated no Admin rechazado; anon no ejecuta RPC Admin ni lee tabla privada, sí consume la RPC sanitizada. **PostgreSQL 17 efímero OK**.
+- `tests/torneos-liga-final89-prevuelo.test.js`: control estático que impide que el prevuelo contenga INSERT/UPDATE/DELETE/ALTER/GRANT/REVOKE. CI **226 JS, 3 Chromium, SQL OK** run **42812958161**.
+- Procedimiento de publicación y recuperación: `docs/P89_DESPLIEGUE_CONTROLADO.md` con puertas de aprobación, comprobaciones de turnero, backups, abortos y coordinación entre SQL/Frontend. No se ha realizado **respaldo restaurado** ni prueba E2E completa con login real.
+- **Límite:** staging real en Supabase puede generar costo; no se creó una rama ni proyecto, ni se incurrió en cargos. Requiere costo conocido y aprobación explícita antes de usarlo.
+- **Producción no modificada, PR #19 DRAFT.**
+
 ## Pendientes prioritarios
 
 1. **Concurrencia:** protegido y probado en PostgreSQL temporal el INSERT de un partido regular simultáneo a generar semifinales. **Comprobado por lectura** que `bp_reservation_blockout_guard` usa el mismo `pg_advisory_xact_lock(...,72119)` que la programación de partidos (bloqueo de cancha compartido). Faltan ensayos adicionales de corrección de marcadores/reglas de cierre y posibles interbloqueos entre RPC.
@@ -96,7 +105,7 @@ Mensaje sugerido: **«JP, retomamos Boulevard Pádel. Leé ESTADO_ACTUAL.md en G
 
 ## Próximo paso técnico concreto
 
-**Siguiente etapa: validar migración SQL89 contra copia completa del esquema y comprobar login Admin/RPC/Reserva real en entorno de staging; después preparar una instalación con respaldo, verificación post-migración y publicación controlada.** Chromium aislado ya prueba los módulos, pero NO es una prueba integral contra Supabase. No ejecutar SQL de mutación en producción sin esa validación; PR #19 sigue DRAFT.
+**Última puerta de publicación: staging auténtico con login Supabase Auth, esquema fiel, reservas/fijos de ensayo y respaldo restaurable probado.** Revisar disponibilidad/costo de rama Supabase con el usuario antes de crearla. Validar SQL89 + login→RPC→Admin→público→reserva, hacer recuperación de prueba y solicitar autorización expresa de instalación y publicación. No ejecutar SQL de mutación en producción; PR #19 sigue DRAFT.
 
 ## Regla de mantenimiento de este archivo
 
