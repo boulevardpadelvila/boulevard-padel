@@ -20,6 +20,11 @@
   let requestId = 0;
   let busy = false;
   let active = null;
+  let pendingTieDecision = null;
+  const tieForm = $("bp-league-final-tie-form");
+  const tieSelects = $("bp-league-final-tie-selects");
+  const tieReason = $("bp-league-final-tie-reason");
+  const tieSave = $("bp-league-final-tie-save");
 
   const make = (tag, label, className = "") => {
     const node = document.createElement(tag);
@@ -56,15 +61,46 @@
   const canEdit = () => tournament &&
     ["registration_closed", "in_progress"].includes(tournament.status);
 
+  const metrics = (row) => [
+    row.points, row.setDifference, row.setsFor, row.gameDifference, row.gamesFor
+  ];
+  const sameMetrics = (a, b) =>
+    metrics(a).every((value, index) => value === metrics(b)[index]);
+
+  // Los selectores ofrecen únicamente parejas que coinciden en los cinco
+  // criterios con la posición elegida. Incluye empates 4°/5° por el cupo.
+  function populateTieOptions() {
+    const { rows } = window.BPLeagueEngine.standings(
+      [...pairs.keys()], regularMatches);
+    tieSelects.replaceChildren();
+    for (let i = 0; i < 4; i++) {
+      const row = rows[i];
+      const label = make("label", "Puesto " + (i + 1));
+      const select = document.createElement("select");
+      select.id = "bp-league-final-tie-seed-" + (i + 1);
+      select.required = true;
+      for (const candidate of rows.filter((other) => sameMetrics(row, other))) {
+        select.add(new Option(pairName(candidate.pairId), candidate.pairId));
+      }
+      select.value = row.pairId;
+      label.append(select);
+      tieSelects.append(label);
+    }
+  }
+
   function render() {
     if (!tournament) return;
     fixture.replaceChildren();
     const finalPlayed = finalMatches.some((m) =>
       m.stage === "final" && m.match_status === "played");
     const plan = planning.planFinalPhase([...pairs.keys()], regularMatches);
-    generate.hidden = finalMatches.length > 0;
+    generate.hidden = finalMatches.length > 0 || plan.reason === "ranking_tie";
     generate.disabled = busy || !canEdit() || !plan.ready ||
       finalMatches.length > 0;
+    tieForm.hidden = finalMatches.length > 0 ||
+      plan.reason !== "ranking_tie" || !canEdit();
+    if (!tieForm.hidden && !tieSelects.childElementCount)
+      populateTieOptions();
 
     if (!plan.ready && !finalMatches.length) {
       const message = plan.reason === "ranking_tie"
@@ -140,6 +176,10 @@
     regularMatches = detail?.matches || [];
     finalMatches = [];
     active = null;
+    pendingTieDecision = null;
+    tieSelects.replaceChildren();
+    tieReason.value = "";
+    tieForm.hidden = true;
     section.hidden = true;
     if (!tournament?.settings || !regularMatches.length) return;
     const report = window.BPLeagueEngine.standings([...pairs.keys()], regularMatches);
@@ -182,22 +222,54 @@
   const generateDialog = $("bp-league-final-generate-dialog");
   generate.addEventListener("click", () => {
     if (busy || !canEdit()) return;
+    pendingTieDecision = null;
     $("bp-league-final-generate-description").textContent =
       "¿Generar las dos semifinales de «" + tournament.name + "»? Se enfrentarán 1° contra 3° y 2° contra 4°. No se alterará ningún partido regular.";
     generateDialog.showModal();
   });
-  $("bp-league-final-generate-cancel").addEventListener("click", () =>
-    generateDialog.close());
+  $("bp-league-final-generate-cancel").addEventListener("click", () => {
+    pendingTieDecision = null;
+    generateDialog.close();
+  });
+  tieForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    if (busy || !canEdit() || tieForm.hidden || finalMatches.length) return;
+    const selected = [...tieSelects.querySelectorAll("select")]
+      .map((item) => item.value);
+    const reason = tieReason.value.trim();
+    if (selected.length !== 4 || new Set(selected).size !== 4) {
+      showMessage("Cada puesto necesita una pareja diferente. Revisá las empatadas.", true);
+      return;
+    }
+    if (reason.length < 10 || reason.length > 300) {
+      showMessage("Explicá cómo se resolvió el empate (10 a 300 caracteres).", true);
+      return;
+    }
+    pendingTieDecision = { qualifiers: selected, reason };
+    $("bp-league-final-generate-description").textContent =
+      "¿Confirmás el orden elegido por Martín? 1° " + pairName(selected[0]) +
+      ", 2° " + pairName(selected[1]) + ", 3° " + pairName(selected[2]) +
+      ", 4° " + pairName(selected[3]) +
+      ". Se guardará el motivo y quedará congelada la fase regular.";
+    generateDialog.showModal();
+  });
   $("bp-league-final-generate-confirm").addEventListener("click", async () => {
     if (busy || !canEdit()) return;
     generateDialog.close();
     busy = true;
     generate.disabled = true;
+    tieSave.disabled = true;
     const id = tournament.id;
+    const decision = pendingTieDecision;
+    pendingTieDecision = null;
     try {
-      const { error } = await supabaseClient.rpc("bp_league_prepare_final89", {
-        p_tournament_id: id
-      });
+      const rpcName = decision
+        ? "bp_league_prepare_final_manual89" : "bp_league_prepare_final89";
+      const params = decision
+        ? { p_tournament_id: id, p_qualifiers: decision.qualifiers,
+            p_reason: decision.reason }
+        : { p_tournament_id: id };
+      const { error } = await supabaseClient.rpc(rpcName, params);
       if (error) throw error;
       if (tournament?.id === id) refresh();
     } catch (err) {
@@ -205,6 +277,7 @@
       showMessage(err.message || "No se pudieron generar las semifinales.", true);
     } finally {
       busy = false;
+      tieSave.disabled = false;
       // No pisar el mensaje de error ni reactivar el botón tras una RPC
       // exitosa hasta que la recarga confirme los tres partidos.
     }
