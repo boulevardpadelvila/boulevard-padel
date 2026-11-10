@@ -1,86 +1,56 @@
-# Boulevard Pádel · Parche 89 · Procedimiento de instalación controlada
+# Boulevard Pádel · Parche 89 · Instalación y verificación
 
-**Estado:** PREPARACIÓN — no ejecutar aún en producción.  
-**Rama:** `desarrollo/liga-fase-final-20261109` · PR #19 **DRAFT**.  
-**Última revisión:** 10/11/2026.
+**Estado actualizado:** SQL 89 INSTALADO en el único Supabase productivo el 10/11/2026.  
+**Decisión del cliente:** un solo proyecto, sin ramas ni staging. Se autorizaron cambios de Liga, con prohibición de alterar reservas, turnos fijos y turnero ya operativo.  
+**Frontend:** pendiente de confirmar publicación de `main` y acceso real a Cloudflare Pages (actualizar al verificar).
 
-## Regla central
+## Migraciones efectivas en Supabase
 
-La publicación de la fase final de Liga **no puede comprometer el turnero**.
-Nunca borrar, recrear, mover ni limpiar automáticamente los datos de `reservations`,
-`fixed_turn_requests`, `blockouts`, `weekly_hours` o los 66 partidos regulares
-del torneo ya existente.
+- `20261110121529` — `bp_sql89_private_safety_snapshots`. Respaldo privado dentro de **la misma base**.
+- `20261110121714` — `bp_sql89_liga_semifinales_final_y_desempate`. Aplica la lógica de semifinales, final, programación, resultados, cierre, lectura pública y desempate manual con auditoría.
+- SQL exacto utilizado: `sql/SQL_89_LIGA_FASE_FINAL_CONSOLIDADO_BORRADOR.sql` (fuente histórica probada; **NO volver a ejecutarlo**). Se instaló como migración Supabase. La denominación `BORRADOR` es previa a la autorización final.
+- No se eliminaron torneos de prueba.
 
-## 1. Puertas de aprobación — TODAS necesarias
+## Respaldo privado (mismo proyecto, no rama)
 
-- [x] Suite JavaScript en GitHub Actions y motor de Liga, 12 parejas/66 partidos.
-- [x] Pruebas de Chromium móvil con Admin y público utilizando datos ficticios.
-- [x] PostgreSQL 17 efímero: fase final, programaciones 90/120 min,
-      concurrencia, empate absoluto administrado y no regresión 35/4/39.
-- [x] Prueba de permisos en PostgreSQL **con SET ROLE authenticated y anon**;
-      verifica Admin, no Admin, RLS y RPC pública, pero NO login real de Supabase Auth.
-- [x] Prevuelo de catálogos de Supabase productivo **22/22 OK**, solo SELECT,
-      ejecutado 10/11/2026 y guardado en `sql/SQL_89_PREVUELO_SOLO_LECTURA.sql`.
-- [ ] **Staging verdadero**: esquema íntegro, autenticación y sesión Admin válidas,
-      operaciones de programación y lectura pública; sin datos personales de clientes.
-- [ ] Validar plan de backup y **restauración practicable** del esquema y datos
-      afectados, sin perder reservas que entren después de obtener el respaldo.
-- [ ] Autorización expresa del usuario para instalar SQL89 y fusionar/publicar.
-- [ ] Confirmar cualquier costo de staging/ramas de Supabase **antes de crearlas**.
+Esquema: `bp_p89_safety`. Restringido: roles `anon` y `authenticated` **sin USAGE** y todas las tablas con RLS. Contiene instantáneas de `reservations`, `fixed_turn_requests`, `blockouts`, `weekly_hours`, `bp_league_matches`, `bp_tournaments`, `bp_tournament_pairs`, `bp_league_settings`, más las definiciones de cuatro RPC y tres restricciones previas.
 
-## 2. Orden recomendado cuando existan staging, respaldo y autorización
+Comprobación de registros *antes/después* de migrar (10/11/2026):
 
-1. Ejecutar `sql/SQL_89_PREVUELO_SOLO_LECTURA.sql`: `RESULTADO GENERAL = OK`.
-   Si devuelve REVISAR, **detenerse**; buscar el cambio de esquema.
-2. Tomar inventario de conteos (sin datos personales en logs): reservas por
-   estado y origen, turnos fijos por estado, bloqueos por tipo y estado,
-   `bp_league_matches` por torneo y estado; verificar que coincidan con el
-   inventario posterior. Las cifras 35/4/39/66 son una instantánea antigua,
-   **no un número inmutable**.
-3. Verificar un respaldo recuperable con la infraestructura correspondiente
-   y ensayar la recuperación **fuera de producción**. No basta con un export
-   del esquema si se pretende recuperar datos.
-4. Instalar SQL89 en una sola transacción en staging. El borrador tiene
-   `BEGIN/COMMIT`, `lock_timeout='5s'`, `statement_timeout='90s'`.
-   Evitar horas activas del turnero por las modificaciones de `blockouts`.
-5. Iniciar sesión como Admin de prueba. Verificar generar semifinales,
-   resolver empate, programar 90/120, colisión con reserva, postergación,
-   resultado a tres sets, cierre y consulta pública.
-6. Verificar como visitante anónimo: la RPC pública devuelve solo torneo
-   publicado y ningún teléfono; RPC Admin no ejecutables.
-7. Repetir el inventario. Comprobar que las reservas reales y los turnos
-   fijos conservaron IDs, estados, vínculos y horarios, y que no hay bloqueos
-   huérfanos.
-8. **Solo luego de aprobar esos controles**, autorizar ejecución controlada
-   de migración en producción. Verificar primero base y backend. Publicar
-   frontend desde `main` tras esa confirmación, no antes.
-9. Probar nuevamente reservas normales, turnos fijos, Admin, Liga y público
-   en producción; comprobar errores y devolver PR #19 a cerrado/fusionado
-   únicamente si todo está confirmado.
+| Tabla | Respaldo | Producción | Eliminados | Nuevos | Alterados |
+|---|---:|---:|---:|---:|---:|
+| `reservations` | 35 | 35 | 0 | 0 | 0 |
+| `fixed_turn_requests` | 4 | 4 | 0 | 0 | 0 |
+| `blockouts` | 39 | 39 | 0 | 0 | 0 |
+| `weekly_hours` | 7 | 7 | 0 | 0 | 0 |
+| `bp_league_matches` | 66 | 66 | 0 | 0 | 0 |
+| `bp_tournaments` | 4 | 4 | 0 | 0 | 0 |
+| `bp_tournament_pairs` | 38 | 38 | 0 | 0 | 0 |
+| `bp_league_settings` | 1 | 1 | 0 | 0 | 0 |
 
-## 3. Condiciones de aborto y recuperación
+La comparación se realizó por ID y por valor JSONB de **cada fila completa**; en `blockouts` se excluyó únicamente la nueva columna vacía para partidos finales. Ningún dato original fue cambiado.
 
-- **Falla de lock timeout o un error antes de COMMIT:** la transacción
-  se revierte; no forzar la migración ni deshabilitar restricciones.
-- **Pruebas de reserva/fijo o cambios inesperados en sus registros:** detener
-  publicación, analizar diferencia y no aceptar el PR hasta corregir.
-- **SQL ya confirmado (COMMIT):** no confiar en revertir el commit Git para
-  deshacer la base de datos; eso NO revierte funciones, tablas o triggers.
-  Se necesita un procedimiento de recuperación específico, probado y
-  coordinado para no sobrescribir nuevas reservas recibidas entretanto.
-- **Interfaz no publicada pero esquema P89 instalado:** no ejecutar SQL
-  de limpieza destructiva; mantener cierre de Liga restringido y terminar
-  verificación/puesta en servicio cuando se resuelva el problema.
-- Mantener el servidor público viejo operativo hasta confirmar el nuevo
-  en `main`; comprobar también la página pública de reservas.
+**Importante:** este respaldo es una copia interna que protege frente a errores lógicos acotados, **no equivale a una copia externa/PITR** frente a una pérdida total de la base. Nunca restaurar tablas enteras a ciegas: se podrían pisar reservas nuevas o ediciones legítimas posteriores. Debe recuperarse de manera selectiva y verificada.
 
-## 4. Estado actual y limitaciones
+## Comprobaciones posteriores a la instalación
 
-No existe una rama staging de Supabase creada para P89 en este trabajo.
-Las pruebas PostgreSQL reproducen las restricciones principales, **pero no
-reemplazan el esquema íntegro, GoTrue ni PostgREST**. No se realizó aún una
-restauración completa verificada. No publicar bajo la única evidencia de
-tests sintéticos.
+- La función existente `get_available_slots(date)` sigue respondiendo: 9 horarios para el 11/11/2026 y 9 para el 14/11/2026, una cancha; prueba de solo lectura, no se creó ninguna reserva.
+- Conservados triggers `bp_reservation_blockout_guard_trg`, `bp_validate_fixed_period_trg` y guardia de bloqueos.
+- Cero bloqueos de torneo inválidos, cero reservas superpuestas a bloqueos activos.
+- RLS y privilegios correctos: `anon` no genera semifinales ni lee tabla privada; `authenticated` puede invocar RPC, su lógica interna comprueba admin activo; lectura pública autorizada.
+- Las tablas `bp_league_final_matches` y `bp_league_final_tiebreak_decisions89` existen y están inicialmente vacías.
+- Migración y pruebas sintéticas GitHub Actions (226 JS + 3 Chromium + PostgreSQL 17) aprobadas en rama de desarrollo.
 
-**Control de cambios:** registrar toda aprobación e instalación real en
-`BITACORA_DESARROLLO.md` y resumir estado en `ESTADO_ACTUAL.md`.
+## Verificación que todavía corresponde
+
+- Confirmar `main` actualizado y que Cloudflare Pages efectivamente publicó la versión nueva; no asumir despliegue solo por fusionar GitHub.
+- Validar en navegador real con Martín, especialmente Admin, inicio de sesión, y compatibilidad móvil.
+- Verificar reserva pública y turno fijo existentes desde sus flujos habituales, **sin crear datos ficticios ni cancelar reservas reales**.
+- Cuando la fase regular esté terminada, generar semifinales en el Admin; no hay que borrar los 66 partidos actuales.
+- Conservar el respaldo privado hasta tener varias jornadas de operación confirmadas.
+
+## Condiciones de recuperación
+
+Si aparece una falla de reservas o turnos fijos, **detener cambios** y comprobar su causa. La reversión del frontend en GitHub **no revierte** el esquema ni las funciones de Supabase. Las definiciones anteriores de las cuatro funciones y restricciones modificadas están archivadas en `bp_p89_safety`; para restaurar debe prepararse una migración inversa específica y auditada, sin sobrescribir registros nuevos.
+
+**Historial único:** `BITACORA_DESARROLLO.md`. **Resumen de continuidad:** `ESTADO_ACTUAL.md`.
