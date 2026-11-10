@@ -22,6 +22,7 @@
     pairs = new Map(),
     generation = 0,
     busy = false,
+    regularLocked = false,
     active = null;
 
   const el = (tag, value, cls = "") => {
@@ -243,7 +244,7 @@
         );
         result.type = "button";
         result.disabled =
-          current?.status === "completed" || m.round_number == null;
+          current?.status === "completed" || m.round_number == null || regularLocked;
         result.addEventListener("click", () => openResult(m));
         buttons.append(plan, result);
         card.append(buttons);
@@ -318,6 +319,7 @@
       seq = ++generation;
     current = null;
     active = null;
+    regularLocked = false;
     if (!id) {
       updateVisible(false);
       return;
@@ -385,6 +387,13 @@
       fixture.replaceChildren();
     }
   }
+  // P89: la fase final notifica cuándo cerrar edición de marcadores regulares.
+  // La guardia SQL es la protección definitiva; esto evita errores de UX.
+  window.addEventListener("bp:league-final-state", (event) => {
+    if (!current || event.detail?.tournamentId !== current.id) return;
+    regularLocked = Boolean(event.detail.locked);
+    renderMatches();
+  });
   select.addEventListener("change", load);
   // El selector se llena de forma asíncrona; incluso con una sola Liga debe
   // abrirse el panel sin obligar a cambiar manualmente de torneo.
@@ -630,7 +639,7 @@
   $("bp-league-result-cancel").addEventListener("click", () => rd.close());
   rf.addEventListener("submit", async (ev) => {
     ev.preventDefault();
-    if (!active || busy) return;
+    if (!active || busy || regularLocked) return;
     const match = active;
     try {
       const first = inputs
