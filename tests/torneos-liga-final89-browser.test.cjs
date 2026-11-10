@@ -73,8 +73,8 @@ test("P89 Chromium público móvil: cuadro y proclamación sólo con final ofici
   assert.equal(await podium.locator(".public-tournament-highlight__item--gold").count(),1);
   assert.equal(await podium.locator(".public-tournament-highlight__item--silver").count(),1);
   assert.equal(await podium.locator("svg.public-tournament-highlight__trophy").count(),2);
-  assert.match(await podium.innerText(),/Campeones[\\s\\S]*Ana y Sol/);
-  assert.match(await podium.innerText(),/Subcampeones[\\s\\S]*Berta y Luz/);
+  assert.match(await podium.innerText(),/Campeones[\s\S]*Ana y Sol/);
+  assert.match(await podium.innerText(),/Subcampeones[\s\S]*Berta y Luz/);
   const widths=await page.evaluate(()=>{
     const cards=[...document.querySelectorAll(".bp-public-league-final__champions .public-tournament-highlight__item")];
     return cards.map(el=>Math.round(el.getBoundingClientRect().width));
