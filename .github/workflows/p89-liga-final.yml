@@ -21,3 +21,45 @@ jobs:
           node --check tests/torneos-liga-final89.test.js
       - name: "Suite completa"
         run: node --test tests/*.test.js
+
+  sql-postgresql17:
+    name: "SQL89 PostgreSQL 17 aislado"
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    permissions:
+      contents: read
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: p89test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: p89_ci_only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d p89test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      PGHOST: localhost
+      PGPORT: "5432"
+      PGDATABASE: p89test
+      PGUSER: postgres
+      PGPASSWORD: p89_ci_only
+    steps:
+      - uses: actions/checkout@v4
+      - name: "Cliente PostgreSQL para base temporal"
+        run: |
+          if ! command -v psql >/dev/null 2>&1; then
+            sudo apt-get update -qq
+            sudo apt-get install -y postgresql-client
+          fi
+          psql --version
+      - name: "Montar dependencias de ensayo"
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/fixtures/p89_postgres_bootstrap.sql
+      - name: "Compilar y aplicar SQL89 SOLO en Postgres temporal"
+        run: psql -X -v ON_ERROR_STOP=1 -f sql/SQL_89_LIGA_FASE_FINAL_CONSOLIDADO_BORRADOR.sql
+      - name: "Pruebas reales de RPC, bloqueos, fase final y borrado"
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/fixtures/p89_postgres_smoke.sql
