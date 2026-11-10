@@ -57,6 +57,7 @@
   /* SQL 71: sólo datos sanitizados de torneos visibles y fases publicadas. */
   let publicFollowupByTournament = new Map();
   let publicLeagueByTournament = new Map();
+  let publicLeagueFinalByTournament = new Map();
 
   function status(text) {
     feedback.textContent = text;
@@ -934,6 +935,30 @@
     return reports;
   }
 
+  // P89: fase final pública de Liga, siempre por RPC sanitaria.
+  // Si el SQL89 aún no está instalado, este módulo solo queda en desarrollo;
+  // nunca consulta directamente tablas administrativas.
+  async function fetchPublishedLeagueFinals(tournaments) {
+    const leagues = tournaments.filter((t) => t.format === "league");
+    const reports = new Map();
+    for (let i = 0; i < leagues.length; i += 4) {
+      const batch = await Promise.all(
+        leagues.slice(i, i + 4).map(async (t) => {
+          const { data, error } = await supabaseClient.rpc(
+            "bp_public_league_final89",
+            { p_tournament_id: t.id },
+          );
+          if (error) throw error;
+          return { id: t.id, data };
+        }),
+      );
+      for (const item of batch)
+        if (item.data?.tournament_id === item.id)
+          reports.set(item.id, item.data);
+    }
+    return reports;
+  }
+
   // Programación: todos los partidos del fixture publicado, sin marcadores.
   // Resultados oficiales y tablas quedan exclusivamente en "Seguimiento".
   function publishedFixtureBlock(t) {
@@ -1103,6 +1128,11 @@
         publicLeagueByTournament.get(t.id),
       ) || [])
         card.append(block);
+      const finalBlock = window.BPLeagueFinalPublic89?.finalBlock(
+        t, publicLeagueByTournament.get(t.id),
+        publicLeagueFinalByTournament.get(t.id),
+      );
+      if (finalBlock) card.append(finalBlock);
     } else card.append(detailBlock(t));
     const eliminatorias = knockoutBlock(t);
     if (eliminatorias) card.append(eliminatorias);
@@ -1231,6 +1261,7 @@
       publishedFixtureByTournament = new Map();
       publicFollowupByTournament = new Map();
       publicLeagueByTournament = new Map();
+      publicLeagueFinalByTournament = new Map();
       const notices = [];
       try {
         publishedGroupsByTournament =
@@ -1267,6 +1298,13 @@
         notices.push(
           "No se pudieron cargar los partidos y posiciones de Liga.",
         );
+      }
+      try {
+        publicLeagueFinalByTournament =
+          await fetchPublishedLeagueFinals(tournamentsCache);
+      } catch (error) {
+        console.error("No se pudo consultar la fase final pública de Liga", error);
+        notices.push("No se pudo cargar la fase final de Liga.");
       }
       status(
         notices.length
