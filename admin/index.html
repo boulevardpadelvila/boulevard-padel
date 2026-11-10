@@ -1363,6 +1363,20 @@
                       En estos partidos, el tercer set es normal.</p>
                     <button type="button" id="bp-league-final-generate"
                       class="torneos-outline">Generar semifinales</button>
+                    <form id="bp-league-final-tie-form" class="bp-league-final__tie" hidden>
+                      <h5>Resolver empate absoluto</h5>
+                      <p>Solo podés decidir el orden entre parejas empatadas en los
+                        cinco criterios deportivos. Los demás puestos quedan fijos.</p>
+                      <div id="bp-league-final-tie-selects" class="bp-league-final__seeds"></div>
+                      <label for="bp-league-final-tie-reason">
+                        Motivo de la decisión (queda registrado)
+                      </label>
+                      <textarea id="bp-league-final-tie-reason" rows="3"
+                        minlength="10" maxlength="300" required
+                        placeholder="Ej.: Sorteo presencial con las parejas empatadas"></textarea>
+                      <button id="bp-league-final-tie-save" type="submit"
+                        class="torneos-outline">Confirmar clasificación</button>
+                    </form>
                     <p id="bp-league-final-message" role="status"
                       aria-live="polite"></p>
                     <div id="bp-league-final-fixture" class="bp-league-final__matches"></div>
