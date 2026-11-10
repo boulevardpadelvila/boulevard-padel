@@ -98,3 +98,17 @@ test("89 Admin: Martín resuelve empate sin alterar marcadores ni otros puestos"
   assert.match(finalUI, /p_reason: decision\.reason/);
   assert.doesNotMatch(finalUI, /\.from\("bp_league_matches"\)/);
 });
+
+test("89 Admin: podio oficial oro/plata con trofeos y sin asignación automática al primero", () => {
+  assert.match(finalUI, /function finalPodium\(championId, runnerUpId\)/);
+  assert.match(finalUI, /tournament\.status === "completed"/);
+  assert.match(finalUI, /championship\?\.match_status === "played"/);
+  assert.match(finalUI, /championship\.winner_pair_id/);
+  assert.match(finalUI, /champion && runnerUp && champion !== runnerUp/);
+  assert.match(finalUI, /bp-league-final__champions-card--" \+ rank/);
+  assert.match(finalUI, /"gold", "Campeones"/);
+  assert.match(finalUI, /"silver", "Subcampeones"/);
+  assert.match(css, /\.bp-league-final__trophy--gold/);
+  assert.match(css, /\.bp-league-final__trophy--silver/);
+  assert.doesNotMatch(finalUI, /report\.champion/);
+});
