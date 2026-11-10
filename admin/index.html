@@ -29,6 +29,7 @@
     <link rel="stylesheet" href="../css/admin-eliminatorias66.css" />
     <link rel="stylesheet" href="../css/admin-eliminatorias68.css" />
     <link rel="stylesheet" href="../css/admin-liga82.css" />
+    <link rel="stylesheet" href="../css/admin-liga-final89-ui.css" />
     <link rel="stylesheet" href="../css/torneos-tablas83.css" />
     <link rel="stylesheet" href="../css/torneos-rivales86.css" />
     <link rel="stylesheet" href="../css/torneos-tablas87.css" />
@@ -1353,6 +1354,19 @@
                   <p id="bp-league-message" role="status" aria-live="polite"></p>
                   <div id="bp-league-standings"></div>
                   <div id="bp-league-fixture"></div>
+                  <!-- P89: fase final independiente de los encuentros regulares. -->
+                  <section id="bp-league-final-panel" class="bp-league-final"
+                    aria-labelledby="bp-league-final-title" hidden>
+                    <h4 id="bp-league-final-title">Fase final · Liga</h4>
+                    <p class="bp-league__help">Clasifican los primeros 4.
+                      Semifinales: 1° vs 3° y 2° vs 4°. Ganadores a la final.
+                      En estos partidos, el tercer set es normal.</p>
+                    <button type="button" id="bp-league-final-generate"
+                      class="torneos-outline">Generar semifinales</button>
+                    <p id="bp-league-final-message" role="status"
+                      aria-live="polite"></p>
+                    <div id="bp-league-final-fixture" class="bp-league-final__matches"></div>
+                  </section>
                 </section>
               </section>
             </div>
@@ -1422,6 +1436,80 @@
               <div class="admin-save-dialog__actions">
                 <button type="button" class="secondary" id="bp-league-schedule-cancel">Volver</button>
                 <button type="submit" class="primary" id="bp-league-schedule-save">Guardar horario</button>
+              </div>
+            </form>
+          </dialog>
+          <!-- P89: confirmación antes de generar semifinales. -->
+          <dialog id="bp-league-final-generate-dialog"
+            class="admin-save-dialog bp-league__dialog"
+            aria-labelledby="bp-league-final-generate-title">
+            <div class="admin-save-dialog__body">
+              <h2 id="bp-league-final-generate-title">Generar semifinales</h2>
+              <p id="bp-league-final-generate-description"></p>
+              <p class="admin-save-dialog__hint">Se conservan todos los
+                partidos y resultados de la fase regular.</p>
+              <div class="admin-save-dialog__actions">
+                <button id="bp-league-final-generate-cancel" type="button"
+                  class="secondary">Volver</button>
+                <button id="bp-league-final-generate-confirm" type="button"
+                  class="primary">Generar semifinales</button>
+              </div>
+            </div>
+          </dialog>
+          <dialog id="bp-league-final-schedule-dialog"
+            class="admin-save-dialog bp-league__dialog"
+            aria-labelledby="bp-league-final-schedule-title">
+            <form id="bp-league-final-schedule-form" class="admin-save-dialog__body">
+              <h2 id="bp-league-final-schedule-title">Programar semifinal/final</h2>
+              <p id="bp-league-final-schedule-rivals"></p>
+              <div class="bp-league__form">
+                <label for="bp-league-final-day">Fecha
+                  <input id="bp-league-final-day" type="date" required />
+                </label>
+                <label for="bp-league-final-time">Horario
+                  <select id="bp-league-final-time" required></select>
+                </label>
+                <label for="bp-league-final-duration">Duración
+                  <select id="bp-league-final-duration">
+                    <option value="90">90 minutos</option>
+                    <option value="120">120 minutos</option>
+                  </select>
+                </label>
+                <label for="bp-league-final-court">Cancha (detalle opcional)
+                  <input id="bp-league-final-court" type="text" maxlength="100"
+                    placeholder="Ej.: Cancha principal" />
+                </label>
+                <label class="bp-league__check">
+                  <input id="bp-league-final-postpone" type="checkbox" />
+                  Postergar y liberar el horario existente
+                </label>
+              </div>
+              <p id="bp-league-final-schedule-error" class="torneo-dialog__error"
+                role="alert"></p>
+              <div class="admin-save-dialog__actions">
+                <button type="button" class="secondary"
+                  id="bp-league-final-schedule-cancel">Volver</button>
+                <button type="submit" class="primary"
+                  id="bp-league-final-schedule-save">Guardar horario</button>
+              </div>
+            </form>
+          </dialog>
+          <dialog id="bp-league-final-result-dialog"
+            class="admin-save-dialog bp-league__dialog"
+            aria-labelledby="bp-league-final-result-title">
+            <form id="bp-league-final-result-form" class="admin-save-dialog__body">
+              <h2 id="bp-league-final-result-title">Cargar resultado de semifinal/final</h2>
+              <p id="bp-league-final-result-rivals"></p>
+              <div id="bp-league-final-sets" class="bp-league__sets"></div>
+              <p class="bp-league__footnote">Si quedan 1–1 en sets,
+                el tercer set es normal (6–0 a 6–4, 7–5 o 7–6).</p>
+              <p id="bp-league-final-result-error" class="torneo-dialog__error"
+                role="alert"></p>
+              <div class="admin-save-dialog__actions">
+                <button id="bp-league-final-result-cancel" type="button"
+                  class="secondary">Volver</button>
+                <button id="bp-league-final-result-save" type="submit"
+                  class="primary">Guardar resultado</button>
               </div>
             </form>
           </dialog>
@@ -1677,7 +1765,9 @@
     <script src="../js/admin-grupos.js" defer></script>
     <script src="../js/torneos-motor.js" defer></script>
     <script src="../js/torneos-liga-motor.js" defer></script>
+    <script src="../js/torneos-liga-final89.js" defer></script>
     <script src="../js/admin-liga82.js" defer></script>
+    <script src="../js/admin-liga-final89-ui.js" defer></script>
     <script src="../js/admin-resultados.js" defer></script>
     <script src="../js/admin-eliminatorias.js" defer></script>
     <script src="../js/admin-eliminatorias-partidos68.js" defer></script>
