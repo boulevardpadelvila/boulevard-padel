@@ -904,6 +904,19 @@ $function$
 ;
 
 
+-- Mantener explícitos los permisos ya vigentes en producción para
+-- las dos RPC administrativas existentes que se redefinen arriba.
+-- CREATE OR REPLACE preserva ACL normalmente; este bloque evita
+-- depender de los privilegios iniciales del entorno.
+REVOKE ALL ON FUNCTION public.bp_admin_tournament_delete_preview(uuid)
+  FROM PUBLIC,anon,authenticated;
+GRANT EXECUTE ON FUNCTION public.bp_admin_tournament_delete_preview(uuid)
+  TO authenticated;
+REVOKE ALL ON FUNCTION public.bp_admin_delete_tournament_safely(uuid,text)
+  FROM PUBLIC,anon,authenticated;
+GRANT EXECUTE ON FUNCTION public.bp_admin_delete_tournament_safely(uuid,text)
+  TO authenticated;
+
 -- NO INSTALAR: pendiente auditoría e integración de todas las etapas 2A–2C.
 
 COMMIT;
