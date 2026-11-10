@@ -75,6 +75,7 @@
     if (tournament.status === "completed" &&
         finalReport.status === "completed" &&
         championship?.match_status === "played" &&
+        championship.winner_pair_id === champion &&
         champion && runnerUp && champion !== runnerUp &&
         [championship.pair1_id, championship.pair2_id].includes(champion) &&
         [championship.pair1_id, championship.pair2_id].includes(runnerUp)) {
