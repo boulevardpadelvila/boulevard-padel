@@ -853,22 +853,37 @@
       action: async () => {
         await adminSession();
         if (t.format === "league") {
-          const [matchRes,pairRes] = await Promise.all([
+          // P89: el primero de la tabla no es el campeón: deben disputarse
+          // dos semifinales y la final (1º vs 3º; 2º vs 4º).
+          // Contar en servidor evita perder partidos por límite de 1000 filas.
+          const [total, played, finals] = await Promise.all([
             supabaseClient.from("bp_league_matches")
-              .select("pair1_id,pair2_id,match_status,sets")
-              .eq("tournament_id",t.id),
-            supabaseClient.from("bp_tournament_pairs")
-              .select("id").eq("tournament_id",t.id).eq("status","approved")
+              .select("id", { count: "exact", head: true })
+              .eq("tournament_id", t.id),
+            supabaseClient.from("bp_league_matches")
+              .select("id", { count: "exact", head: true })
+              .eq("tournament_id", t.id).eq("match_status", "played"),
+            supabaseClient.from("bp_league_final_matches")
+              .select("stage,slot,match_status,pair1_id,pair2_id,winner_pair_id")
+              .eq("tournament_id", t.id),
           ]);
-          if(matchRes.error||pairRes.error)
-            throw new Error("No se pudo verificar la tabla final de Liga.");
-          const stats=window.BPLeagueEngine.standings(
-            (pairRes.data||[]).map(p=>p.id),matchRes.data||[]
-          );
-          if(!stats.complete)
-            throw new Error("Completá todos los resultados antes de finalizar la Liga.");
-          if(!stats.champion)
-            throw new Error("Hay empate en el primer puesto. Martín debe resolverlo antes de finalizar.");
+          if (total.error || played.error || finals.error ||
+              total.count == null || played.count == null)
+            throw new Error("No se pudo verificar la fase final de Liga.");
+          if (total.count < 1 || total.count !== played.count)
+            throw new Error("Completá la fase regular antes de finalizar la Liga.");
+          const matches = finals.data || [];
+          const sf1 = matches.find((m) => m.stage === "semifinal" && m.slot === 1);
+          const sf2 = matches.find((m) => m.stage === "semifinal" && m.slot === 2);
+          const final = matches.find((m) => m.stage === "final" && m.slot === 1);
+          if (matches.length !== 3 || sf1?.match_status !== "played" ||
+              sf2?.match_status !== "played")
+            throw new Error("Completá las dos semifinales de Liga.");
+          if (final?.match_status !== "played" ||
+              final.pair1_id !== sf1.winner_pair_id ||
+              final.pair2_id !== sf2.winner_pair_id ||
+              ![final.pair1_id,final.pair2_id].includes(final.winner_pair_id))
+            throw new Error("Cargá el resultado de la final para definir Campeón y Subcampeón.");
         }
         const { data, error } = await supabaseClient
           .from("bp_tournaments")
@@ -909,8 +924,8 @@
       return;
     }
 
-    const totalMatches = Number(preview.group_matches) + Number(preview.knockout_matches) + Number(preview.league_matches || 0);
-    const totalResults = Number(preview.group_results) + Number(preview.knockout_results) + Number(preview.league_results || 0);
+    const totalMatches = Number(preview.group_matches) + Number(preview.knockout_matches) + Number(preview.league_matches || 0) + Number(preview.league_final_matches || 0);
+    const totalResults = Number(preview.group_results) + Number(preview.knockout_results) + Number(preview.league_results || 0) + Number(preview.league_final_results || 0);
     const publicNotice = preview.is_published
       ? " También dejará de aparecer inmediatamente en la página pública."
       : "";
