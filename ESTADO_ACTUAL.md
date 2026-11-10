@@ -38,7 +38,7 @@ Mensaje sugerido: **«JP, retomamos Boulevard Pádel. Leé ESTADO_ACTUAL.md en G
 
 - **Confirmado**: el usuario ejecutó `git branch -d desarrollo/liga-fase-final-20261109` (eliminada localmente; apuntaba a `5bc110d`) y `git push origin --delete desarrollo/liga-fase-final-20261109` (borrada en GitHub). La búsqueda posterior en GitHub confirmó que esa rama ya no existe.
 - **Ramas Git remotas históricas descubiertas al verificar**: `desarrollo/eliminatorias-generalizadas-20261107` (1 commit por delante de `main`, 258 por detrás) y `desarrollo/torneos-20261102` (7 commits por delante de `main`, 357 por detrás). No confundir con ramas de Supabase: sigue habiendo **un solo proyecto Supabase y sin staging**.
-- Esas dos ramas Git contienen divergencias históricas: la primera difiere en `js/torneos-motor.js` y la segunda en `js/admin-torneos.js`, HTML, bitácora y un SQL70 antiguo. **No eliminarlas sin comprobar que sus únicas aportaciones estén preservadas o sean obsoletas**. No fusionar por defecto: podrían reintroducir código antiguo sobre un sistema funcional.
+- **Auditoría cerrada sobre contenidos principales:** `desarrollo/torneos-20261102` tiene exactamente el mismo `sql/SQL_70_ELIMINACION_COMPLETA_TORNEOS.sql` y `tests/torneos-eliminacion70.test.js` que `main`, y el Admin actual conserva los RPC de eliminación. `desarrollo/eliminatorias-generalizadas-20261107` aportaba un helper experimental `analyzeKnockoutGroups` ausente en `main`; se archivó su código literal en `docs/ARCHIVO_ELIMINATORIAS_GENERALIZADAS_20261107.md` sin activarlo. No fusionar versiones antiguas: pueden romper lógica vigente. Las ramas antiguas pueden retirarse ordenadamente.
 - Antes de seguir: sincronizar `main` de la laptop con los últimos cambios de bitácora; luego completar la auditoría de las dos ramas históricas y retirarlas de forma ordenada. No tocar reservas, horarios o turnos fijos.
 
 ## Objetivo que se está desarrollando
@@ -131,7 +131,7 @@ Mensaje sugerido: **«JP, retomamos Boulevard Pádel. Leé ESTADO_ACTUAL.md en G
 
 ## Próximo paso técnico concreto
 
-**Siguiente paso: sincronizar la laptop en `main` y revisar las dos ramas Git históricas `desarrollo/eliminatorias-generalizadas-20261107` y `desarrollo/torneos-20261102` antes de eliminarlas**, porque contienen commits divergentes antiguos. La rama P89 ya se borró local y remotamente. Cloudflare, disponibilidad y Admin fueron verificados por el usuario; no se alteraron reservas ni turnos fijos. No crear ramas/proyectos Supabase ni repetir SQL89.
+**Siguiente paso: eliminar ordenadamente las dos ramas Git antiguas**, comenzando por la remota `desarrollo/eliminatorias-generalizadas-20261107`, cuyo código único ya se archivó en `docs/ARCHIVO_ELIMINATORIAS_GENERALIZADAS_20261107.md`. Luego retirar `desarrollo/torneos-20261102`, sin fusionar versiones viejas; finalmente revisar `git branch -a` y sincronizar `main`. No crear ramas/proyectos Supabase, no ejecutar SQL89 otra vez ni modificar reservas.
 
 ## Regla de mantenimiento de este archivo
 
