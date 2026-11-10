@@ -51,6 +51,10 @@ BEGIN
   OR NOT has_table_privilege('authenticated','public.bp_league_final_matches','SELECT')
   OR has_function_privilege('anon','public.bp_league_prepare_final89(uuid)','EXECUTE')
   OR has_function_privilege('anon','public.bp_league_final_save_result89(uuid,jsonb)','EXECUTE')
+  OR has_function_privilege('anon','public.bp_admin_tournament_delete_preview(uuid)','EXECUTE')
+  OR has_function_privilege('anon','public.bp_admin_delete_tournament_safely(uuid,text)','EXECUTE')
+  OR NOT has_function_privilege('authenticated','public.bp_admin_tournament_delete_preview(uuid)','EXECUTE')
+  OR NOT has_function_privilege('authenticated','public.bp_admin_delete_tournament_safely(uuid,text)','EXECUTE')
   OR NOT has_function_privilege('anon','public.bp_public_league_final89(uuid)','EXECUTE') THEN
     RAISE EXCEPTION 'Permisos de roles incorrectos';
   END IF;
