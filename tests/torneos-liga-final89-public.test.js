@@ -22,10 +22,18 @@ function fakeDom() {
       this.className = "";
       this.textContent = "";
       this.children = [];
+      this.attributes = {};
     }
     append(...children) { this.children.push(...children); }
+    setAttribute(name, value) {
+      this.attributes[name] = String(value);
+      if (name === "class") this.className = String(value);
+    }
   }
-  const context = { document: { createElement: (tag) => new Element(tag) }, Intl, Date };
+  const context = { document: {
+    createElement: (tag) => new Element(tag),
+    createElementNS: (_ns, tag) => new Element(tag)
+  }, Intl, Date };
   context.globalThis = context;
   vm.runInNewContext(publicUI, context, { filename: "torneos-liga-final89-public.js" });
   const text = (node) => !node ? "" : String(node.textContent || "") +
@@ -67,6 +75,9 @@ test("P89 público: scripts y CSS en orden; carga únicamente mediante RPC sanit
   assert.match(main, /window\.BPLeagueFinalPublic89\?\.finalBlock/);
   assert.doesNotMatch(publicUI, /supabaseClient|contact_phone|phone|email|innerHTML/);
   assert.match(css, /@media \(max-width: 650px\)/);
+  assert.match(css, /public-tournament-highlight__item--gold/);
+  assert.match(css, /public-tournament-highlight__item--silver/);
+  assert.match(css, /grid-template-columns: repeat\(2, minmax\(0, 1fr\)\)/);
 });
 
 test("P89 público: no mostrar fase final si falta RPC, torneo o partidos", () => {
@@ -127,8 +138,13 @@ test("P89 público: al cerrar oficialmente la Liga sí anuncia campeón y subcam
   report.champion_pair_id = "a"; report.runner_up_pair_id = "b";
   const dom = finalBlock(completed, regularReport, report);
   assert.equal(nodes(dom, "bp-public-league-final__champions").length, 1);
-  assert.match(text(dom), /Campeón: Ana y Sol/);
-  assert.match(text(dom), /Subcampeón: Berta y Luz/);
+  assert.equal(nodes(dom, "public-tournament-highlight__item--gold").length, 1);
+  assert.equal(nodes(dom, "public-tournament-highlight__item--silver").length, 1);
+  assert.equal(nodes(dom, "public-tournament-highlight__trophy").length, 2);
+  assert.equal(nodes(dom, "bp-public-league-final__winner").length, 1);
+  assert.equal(nodes(dom, "bp-public-league-final__runnerup").length, 1);
+  assert.match(text(dom), /Campeones Ana y Sol/);
+  assert.match(text(dom), /Subcampeones Berta y Luz/);
   assert.match(text(dom), /6–4 · 4–6 · 6–3/);
 });
 
