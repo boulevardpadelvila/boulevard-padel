@@ -309,8 +309,14 @@ BEGIN
       WHERE tournament_id=v_m.tournament_id AND stage='semifinal' AND slot=1;
     SELECT winner_pair_id INTO v_sf2 FROM public.bp_league_final_matches
       WHERE tournament_id=v_m.tournament_id AND stage='semifinal' AND slot=2;
+    -- La final mantiene ambos IDs NULL hasta contar con DOS ganadores:
+    -- el CHECK bp_lf_participants no admite un solo finalista persistido.
     UPDATE public.bp_league_final_matches SET
-      pair1_id=v_sf1,pair2_id=v_sf2,updated_at=now()
+      pair1_id=CASE WHEN v_sf1 IS NOT NULL AND v_sf2 IS NOT NULL
+        THEN v_sf1 ELSE NULL END,
+      pair2_id=CASE WHEN v_sf1 IS NOT NULL AND v_sf2 IS NOT NULL
+        THEN v_sf2 ELSE NULL END,
+      updated_at=now()
       WHERE id=v_final.id AND match_status='pending';
     -- Conservar día/hora de la final si Martín la programó anticipadamente.
   END IF;
