@@ -1,0 +1,23 @@
+name: "Parche 89 · Liga · pruebas de desarrollo"
+on:
+  push:
+    branches:
+      - "desarrollo/liga-fase-final-20261109"
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: "Sintaxis JS P89"
+        run: |
+          node --check js/torneos-liga-final89.js
+          node --check tests/torneos-liga-final89.test.js
+      - name: "Suite completa"
+        run: node --test tests/*.test.js
