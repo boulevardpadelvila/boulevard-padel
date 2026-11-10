@@ -104,3 +104,10 @@ test("89 2D: migración SQL atómica con espera máxima corta",()=>{
   assert.equal(count(/^BEGIN;$/gm),1);
   assert.equal(count(/^COMMIT;$/gm),1);
 });
+
+test("89 2D: reemplazo de RPC administrativas no abre permisos al público",()=>{
+  assert.match(sql,/REVOKE ALL ON FUNCTION public\.bp_admin_tournament_delete_preview\(uuid\)\s+FROM PUBLIC,anon,authenticated/);
+  assert.match(sql,/GRANT EXECUTE ON FUNCTION public\.bp_admin_tournament_delete_preview\(uuid\)\s+TO authenticated/);
+  assert.match(sql,/REVOKE ALL ON FUNCTION public\.bp_admin_delete_tournament_safely\(uuid,text\)\s+FROM PUBLIC,anon,authenticated/);
+  assert.match(sql,/GRANT EXECUTE ON FUNCTION public\.bp_admin_delete_tournament_safely\(uuid,text\)\s+TO authenticated/);
+});
