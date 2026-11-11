@@ -52,6 +52,12 @@
 - **Futuro sujeto a autorización de Martín:** pulir textos, quitar lenguaje de prototipo y preparar una presentación formal y profesional compartible con jugadores inscriptos. **No realizar aún estos cambios ni añadir acceso al sitio público.** El simulador sigue sin conexión a Supabase y sin capacidad de escritura.
 - **Seguridad/preservación:** por esta confirmación no se modificaron `admin/index.html`, simulador, CSS, JS, SQL, Supabase, reservas, turnos fijos ni torneos. Solo documentación de continuidad.
 
+## Referencia WPC Rafaela — no descartar (10/11/2026)
+
+- **Decisión del usuario:** NO descartar WPC Rafaela como referencia deportiva/visual para Boulevard Pádel. Mantener su tabla de posiciones y publicación de torneos como material de comparación futura, especialmente estadísticas de sets y games, porcentajes y STB (súper tie-break).
+- **Estado:** referencia pendiente de análisis con Martín; NO copiar automáticamente sus reglas de puntuación, desempates o contabilización de STB. Confirmar su significado exacto y reglamento antes de cualquier adopción.
+- **Protección:** esto no reabre cambios funcionales; reservas, torneos, SQL y frontend siguen intactos.
+
 ## Cómo retomar en el próximo chat
 
 Mensaje sugerido: **«JP, retomamos Boulevard Pádel. Leé ESTADO_ACTUAL.md en GitHub y la última bitácora. SQL89 ya está instalado en el único Supabase; verificá main/Cloudflare y conservá las reservas y turnos fijos intactos.»**
