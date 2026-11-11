@@ -3569,3 +3569,9 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 - **Pendientes explícitos:** Martín todavía debe revisar/autorizar las llaves, los cupos por grupo, los pases directos y el criterio de sembrado en casos complejos. En grupos de cuatro, los cuatro partidos determinan los resultados, pero el orden deportivo en la tabla no debe fijar automáticamente el 2° por ser perdedor de ganadores. No modificar lo aprobado en el módulo actual antes de cerrar reglas.
 - **Evolución futura, solo si Martín autoriza:** transformar el simulador actual en una presentación formal para compartir con inscriptos, con textos profesionales y sin avisos internos de prototipo; evaluar qué exhibir públicamente. No publicar aún un reglamento oficial ni modificar el motor o SQL.
 - **Preservación de datos:** actualización solo documental; sin escrituras en Supabase ni alteración de reservas reales, turnos fijos, fixtures o resultados.
+
+### 10/11/2026 — WPC Rafaela queda como referencia abierta
+
+- El usuario pidió expresamente **no descartar WPC Rafaela** como referencia para seguir estudiando las tablas y criterios de clasificación de Boulevard Pádel. Conservar como línea de investigación futura el sitio de posiciones de WPC Rafaela (ejemplo ya examinado: https://torneoswpcrafaela.com.ar/posiciones_equipos.php?idtorneo=1671), sus indicadores de sets/games, porcentajes y columna STB.
+- **Pendiente de verificación deportiva:** no asumir que las fórmulas, puntuaciones, criterio STB o jerarquía de desempates de WPC deban copiarse a BP sin aprobación de Martín. Comparar antes de decidir.
+- **Sin modificaciones funcionales:** se documentó únicamente el punto pendiente, sin tocar Supabase ni reservas reales.
