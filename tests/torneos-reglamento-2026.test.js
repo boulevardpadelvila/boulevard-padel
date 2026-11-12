@@ -78,3 +78,20 @@ test("desempate directo y empate múltiple pendiente de Martín",()=>{
   assert.equal(resolved.qualificationReady,true);
   assert.deepEqual(resolved.qualified,["b","a"]);
 });
+
+test("Liga: todo tercer set normal, ganador 2 puntos y perdedor 2-1 un punto",()=>{
+ const matches=[
+  {pair1:"a",pair2:"b",sets:[[6,2],[2,6],[7,5]]},
+  {pair1:"c",pair2:"d",sets:[[6,4],[6,2]]},
+  {pair1:"a",pair2:"c",sets:[[6,3],[6,3]]},
+  {pair1:"b",pair2:"d",sets:[[6,1],[6,0]]}
+ ];
+ const table=rules.leagueStandings(["a","b","c","d"],matches);
+ assert.equal(table.complete,true);
+ assert.equal(table.rows.reduce((n,x)=>n+x.points,0),9);
+ assert.equal(table.rows.find(x=>x.pairId==="a").points,4);
+ assert.equal(table.rows.find(x=>x.pairId==="b").points,3);
+ assert.throws(()=>rules.leagueStandings(["a","b","c","d"],[
+  {pair1:"a",pair2:"b",sets:[[6,3],[3,6],[10,8]]}
+ ]),/normal inválido/);
+});
