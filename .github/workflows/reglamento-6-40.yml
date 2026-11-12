@@ -1,0 +1,23 @@
+name: Reglamento Torneos 6-40 (aislado)
+on:
+  push:
+    branches:
+      - desarrollo/reglamento-6-40-20261112
+  pull_request:
+    paths:
+      - 'js/torneos-reglamento-2026.js'
+      - 'tests/torneos-reglamento-2026.test.js'
+      - '.github/workflows/reglamento-6-40.yml'
+  workflow_dispatch:
+jobs:
+  pruebas:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Pruebas de regresión Node sin tocar producción
+        run: node --test tests/*.test.js
