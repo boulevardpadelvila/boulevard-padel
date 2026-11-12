@@ -1040,3 +1040,14 @@
     padding: 10px;
   }
 }
+
+/* Reglamentación 2026 · Publicación anticipada de posibles eliminatorias */
+.bp-public-knockout-preview__body{padding:14px 16px}
+.bp-public-knockout-preview__note{margin:0 0 12px;color:#61756d;font-size:.9rem}
+.bp-public-knockout-preview__round{margin:0 0 16px}
+.bp-public-knockout-preview__round-title{margin:0 0 8px;color:#00432e}
+.bp-public-knockout-preview__matches{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr));gap:9px}
+.bp-public-knockout-preview__match{border:1px solid #c8dcd4;border-radius:10px;padding:9px 12px;background:#f7faf8;min-width:0}
+.bp-public-knockout-preview__match small{font-weight:700;color:#426858}
+.bp-public-knockout-preview__match p{margin:4px 0;font-weight:600;overflow-wrap:anywhere}
+@media(max-width:500px){.bp-public-knockout-preview__body{padding:12px}.bp-public-knockout-preview__matches{grid-template-columns:1fr}}
