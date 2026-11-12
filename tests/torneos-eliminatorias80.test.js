@@ -78,7 +78,7 @@ test("Cuatro clasificadas: 1A-vs-2B, 1B-vs-2A y una final", () => {
   assert.deepEqual(plan.quarterfinals, []);
   assert.deepEqual(plan.semifinals, [
     ["c", "f"],
-    ["e", "a"],
+    ["e", "d"],
   ]);
   assert.equal(new Set(plan.semifinals.flat()).size, 4);
   assert.deepEqual(plan.final, [
@@ -111,7 +111,7 @@ test("Admin habilita cuatro clasificadas y selecciona dos semifinales sin bye", 
   const js = read("js/admin-eliminatorias.js");
   assert.match(js, /function qualifiersFour\(data\)/);
   assert.match(js, /function renderFour\(\)/);
-  assert.match(js, /members\.length === 4 && summary\.complete/);
+  assert.match(js, /const selected=t\.table\.slice\(0,2\)/);
   assert.doesNotMatch(js, /summary\.decisiveFour\s*=/);
   assert.match(js, /model\.mode === "four"/);
   assert.match(js, /direct_semifinal_pair_id:null/);
@@ -182,7 +182,7 @@ test("SQL80 valida cuatro sin alterar la protección histórica de siete y sin b
   assert.equal((sql.match(/DROP TRIGGER/g) || []).length, 1);
 });
 
-test("El cálculo real del Admin clasifica 2+2 por A3 y puntos del grupo de 3", () => {
+test("El cálculo real del Admin usa la tabla y games para zona de cuatro", () => {
   const admin = read("js/admin-eliminatorias.js");
   const start = admin.indexOf(
     "  function standings(members, matches, allResults) {",
@@ -240,7 +240,7 @@ test("El cálculo real del Admin clasifica 2+2 por A3 y puntos del grupo de 3", 
   const results = [
     result("mA1", "ga", "a", "b", win1.sets),
     result("mA2", "ga", "c", "d", win1.sets),
-    result("mA3", "ga", "a", "c", win2.sets),
+    result("mA3", "ga", "a", "c", [[2,6],[2,6]]),
     result("mA4", "ga", "b", "d", win2.sets),
     result("mB1", "gb", "e", "f", win1.sets),
     result("mB2", "gb", "e", "g", win1.sets),
@@ -251,7 +251,7 @@ test("El cálculo real del Admin clasifica 2+2 por A3 y puntos del grupo de 3", 
     list.map((x) => [x.pairId, x.groupNumber, x.rank]),
     [
       ["c", 1, 1],
-      ["a", 1, 2],
+      ["d", 1, 2],
       ["e", 2, 1],
       ["f", 2, 2],
     ],
