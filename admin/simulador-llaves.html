@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="dark light" />
-    <title>Boulevard Pádel | Simulador de llaves (prototipo)</title>
+    <title>Boulevard Pádel | Simulador de llaves</title>
     <style>
       :root {
         color-scheme: dark;
@@ -322,7 +322,7 @@
             a 40 parejas
           </p>
         </div>
-        <span class="chip">VISTA PREVIA · PENDIENTE DE APROBACIÓN</span>
+        <span class="chip">REGLAMENTO APROBADO · IMPLEMENTACIÓN EN DESARROLLO</span>
       </header>
       <section class="control" aria-label="Elegir cantidad de parejas">
         <div class="control-head">
@@ -372,14 +372,9 @@
         </div>
       </section>
       <div class="notice">
-        <strong>Reglamento ilustrativo para revisión de Martín</strong>
+        <strong>Reglamento deportivo aprobado · 12/11/2026</strong>
         <p>
-          Los tamaños de grupo, la cantidad de clasificadas y el número de
-          previas siguen el patrón del PDF de 6 a 40 parejas. Los cruces de 6 a
-          14 reflejan las llaves de sus láminas. Desde 15 parejas, la ubicación
-          exacta en las llaves es una simulación automática; los criterios de
-          clasificación, desempates y pases directos requieren aprobación del
-          organizador. No muestra resultados reales ni modifica reservas.
+          Este simulador presenta las llaves aprobadas de 6 a 40 parejas, con grupos de 3 y 4, clasificación 2/3 y prioridad de pases directos para los primeros de las zonas de cuatro. Se está integrando al sistema; esta vista no registra resultados reales, no programa cancha ni modifica reservas.
         </p>
       </div>
       <div class="actions">
@@ -390,7 +385,7 @@
       </div>
       <p class="fine">
         Simulador de consulta para Martín, enlazado solo desde el Admin; no es
-        todavía un reglamento aprobado ni aparece en el sitio público. La página
+        todavía un sistema de competición operable ni aparece en el sitio público. La página
         estática puede abrirse mediante su dirección directa, sin iniciar
         sesión. No consulta Supabase ni modifica datos.
       </p>
@@ -711,7 +706,7 @@
         $("bracketTitle").textContent =
           `Llave de ${n} parejas · ${p.q} clasificadas`;
         $("roundText").textContent =
-          `${d.pre.length ? "Ronda preliminar → " : ""}${p.base === 4 ? "Semifinales" : p.base === 8 ? "Cuartos de final" : "Octavos de final"} → Final${d.illustrative ? " · cruces ilustrativos" : ""}`;
+          `${d.pre.length ? "Ronda preliminar → " : ""}${p.base === 4 ? "Semifinales" : p.base === 8 ? "Cuartos de final" : "Octavos de final"} → Final`;
         draw(p);
       }
       $("pairs").addEventListener("input", render);
