@@ -223,7 +223,7 @@ test("panel resultados: cuatro parejas y marcadores legacy compatibles con vista
   assert.match(rendered, /Grupo A · 4 parejas/);
   assert.match(
     rendered,
-    /Grupo completo|empate|desempate/i,
+    /puestos empatados que requieren definicion/i,
   );
   assert.ok(!rendered.includes("inconsistentes"));
 });
