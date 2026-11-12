@@ -1,6 +1,6 @@
 /* Boulevard Pádel · Parche 82 · Liga dentro del panel Torneos.
    Utiliza RPC administrativas; nunca modifica partidos mediante SQL cliente.
-   Motor 2-1-0, dos sets + súper tie-break. */
+   Motor 2-1-0, siempre al mejor de tres sets normales. */
 (() => {
   "use strict";
   const $ = (id) => document.getElementById(id);
@@ -608,19 +608,19 @@
     inputs = [];
     for (let i = 0; i < 3; i++) {
       const row = el("div", null, "bp-league__set");
-      row.append(el("strong", i === 2 ? "Súper tie-break" : "Set " + (i + 1)));
+      row.append(el("strong", "Set " + (i + 1)));
       const fields = [];
       for (let side = 0; side < 2; side++) {
         const input = document.createElement("input");
         input.type = "number";
         input.min = "0";
-        input.max = "99";
+        input.max = "7";
         input.step = "1";
         input.inputMode = "numeric";
         input.placeholder = "Pareja " + (side + 1);
         input.setAttribute(
           "aria-label",
-          (i === 2 ? "Súper tie-break" : "Set " + (i + 1)) +
+          ("Set " + (i + 1)) +
             " pareja " +
             (side + 1),
         );
