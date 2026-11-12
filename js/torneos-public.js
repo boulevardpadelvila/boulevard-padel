@@ -290,65 +290,48 @@
       b.gamesFor += g2;
       b.gamesAgainst += g1;
       winner.won++;
-      winner.points += 3;
+      winner.points += 2;
       (winner.id === a.id ? b : a).lost++;
     }
     for (const row of rows) {
       row.difference = row.setsFor - row.setsAgainst;
       row.gameDifference = row.gamesFor - row.gamesAgainst;
     }
-    rows.sort(
-      (a, b) =>
-        b.points - a.points ||
-        b.difference - a.difference ||
-        b.setsFor - a.setsFor ||
-        a.name.localeCompare(b.name, "es-AR"),
-    );
-    const full =
-      counted === groupMatches.length &&
-      groupMatches.length === (group.pairs.length === 3 ? 3 : 4);
-    let decided = false;
-    // En torneos de dos grupos, A3 (ganadores vs. ganadores) define
-    // al primero y segundo del grupo de cuatro; A4 define tercero y cuarto.
-    if (twoGroupMode && group.pairs.length === 4 && full) {
-      const placeFrom = (number) => {
-        const m = groupMatches.find(
-          (x) => x.round_number === 2 && x.match_number === number,
-        );
-        if (
-          !m ||
-          !m.winner_pair_id ||
-          !m.resolved_pair1_id ||
-          !m.resolved_pair2_id
-        )
-          return null;
-        const loser =
-          m.winner_pair_id === m.resolved_pair1_id
-            ? m.resolved_pair2_id
-            : m.resolved_pair1_id;
-        return [m.winner_pair_id, loser];
-      };
-      const pairFinal = placeFrom(1),
-        consolation = placeFrom(2);
-      const ids =
-        pairFinal && consolation ? [...pairFinal, ...consolation] : [];
-      if (
-        ids.length === 4 &&
-        new Set(ids).size === 4 &&
-        ids.every((id) => byId.has(id))
-      ) {
-        const rank = new Map(ids.map((id, index) => [id, index]));
-        rows.sort((a, b) => rank.get(a.id) - rank.get(b.id));
-        decided = true;
-      }
+    // Reglamento: puntos 2/0, diferencia de sets, diferencia de games.
+    // Si persiste empate de exactamente dos parejas, usar duelo directo.
+    const compare=(a,b)=>b.points-a.points||
+      b.difference-a.difference||b.gameDifference-a.gameDifference;
+    rows.sort(compare);
+    const winners=new Map();
+    for(const m of groupMatches){
+      const a=m.resolved_pair1_id||m.pair1_id,
+        b=m.resolved_pair2_id||m.pair2_id;
+      if(a&&b&&m.winner_pair_id&&[a,b].includes(m.winner_pair_id))
+        winners.set([a,b].sort().join("|"),m.winner_pair_id);
     }
-    let tied = false;
+    const unresolved=new Set();
+    for(let i=0;i<rows.length;){
+      let j=i+1;
+      while(j<rows.length&&compare(rows[i],rows[j])===0)j++;
+      if(j-i===2){
+        const key=[rows[i].id,rows[i+1].id].sort().join("|");
+        const win=winners.get(key);
+        if(win&&rows[i].id!==win){
+          [rows[i],rows[i+1]]=[rows[i+1],rows[i]];
+        }else if(!win){
+          unresolved.add(rows[i].id);unresolved.add(rows[i+1].id);
+        }
+      }else if(j-i>2){
+        for(let k=i;k<j;k++)unresolved.add(rows[k].id);
+      }
+      i=j;
+    }
+    const full=counted===groupMatches.length&&
+      groupMatches.length===(group.pairs.length===3?3:4);
+    const decided=false; // no adjudicación por la ronda A3/A4
+    const tied=unresolved.size>0;
     const tableRows = rows.map((row, i) => {
-      const same = !decided && i > 0 && equalStanding(row, rows[i - 1]);
-      const nextSame =
-        !decided && i < rows.length - 1 && equalStanding(row, rows[i + 1]);
-      tied ||= same || nextSame;
-      const position = same || nextSame ? "=" : String(i + 1);
+      const position=unresolved.has(row.id)?"=":String(i+1);
       return [
         position,
         row.name,
