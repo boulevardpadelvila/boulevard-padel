@@ -1,11 +1,11 @@
 /* Boulevard Pádel · Liga — motor deportivo puro (sin Supabase).
-   Reglamento provisional hasta revisión de Martín:
+   Reglamento confirmado el 12/11/2026:
    - Una única rueda, todos contra todos; las Fechas las organiza Martín.
    - 2 puntos al ganador, 1 al perdedor que ganó un set, 0 al perdedor 2-0.
-   - Dos sets normales; con 1-1, súper tie-break a 10 (mín. 2 diferencia).
+   - Todos los partidos al mejor de tres sets normales, incluso la fase regular.
    - Tabla: puntos, diferencia de sets, sets a favor; después diferencia
      de games y games a favor. Empate absoluto de 1º no da campeón automático.
-   - Súper tie-break cuenta como set, NO como games.
+   - Solo en registros históricos el súper tie-break cuenta como set, no como games.
  */
 (function(root,factory){
   "use strict";
@@ -67,14 +67,21 @@
     return true;
   }
 
-  function analyzeScore(sets){
-    const result=classic.evaluateSets({sets},"super_tb");
+  // Para ingresar resultados NUEVOS exigimos sets normales. Los partidos
+  // históricos anteriores al reglamento (con STB) se siguen leyendo sin
+  // modificar marcadores ni sumar los puntos del STB como games.
+  function analyzeScore(sets,{historical=false}={}){
+    const legacySTB=historical&&Array.isArray(sets)&&sets.length===3&&
+      Array.isArray(sets[2])&&Math.max(...sets[2])>7;
+    const result=classic.evaluateSets({sets},legacySTB?"super_tb":"three_sets");
+    const normalSets=legacySTB?sets.slice(0,2):sets;
     return {
       ...result,
       winnerSide:result.winnerSide,
       loserSets:result.winnerSide===1?result.side2Sets:result.side1Sets,
-      games1:sets.slice(0,2).reduce((a,row)=>a+row[0],0),
-      games2:sets.slice(0,2).reduce((a,row)=>a+row[1],0)
+      games1:normalSets.reduce((a,row)=>a+row[0],0),
+      games2:normalSets.reduce((a,row)=>a+row[1],0),
+      historicalSTB:legacySTB
     };
   }
 
@@ -92,7 +99,7 @@
       const p1=records.get(match.pair1_id||match.pair1Id),
         p2=records.get(match.pair2_id||match.pair2Id);
       if(!p1||!p2||p1===p2)throw Error("Partido de Liga con parejas inválidas.");
-      const r=analyzeScore(match.sets);
+      const r=analyzeScore(match.sets,{historical:true});
       const winner=r.winnerSide===1?p1:p2,loser=r.winnerSide===1?p2:p1;
       p1.played++;p2.played++;winner.won++;loser.lost++;
       winner.points+=2;
