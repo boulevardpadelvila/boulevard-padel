@@ -26,7 +26,7 @@ const win3 = {
   ],
 };
 
-test("Grupo de 4: A3 ganador es primero y A3 perdedor segundo, aunque A4 gane 3 puntos", () => {
+test("Legado A3/A4 se conserva, pero la clasificación nueva usa la tabla 2-0", () => {
   const ids = ["a", "b", "c", "d"];
   const results = { A1: win1, A2: win1, A3: win2, A4: win2 };
   // A1 gana a, A2 gana c. A3 gana c y a queda segundo.
@@ -39,7 +39,7 @@ test("Grupo de 4: A3 ganador es primero y A3 perdedor segundo, aunque A4 gane 3 
   ]);
   const points = motor.calculateGroupStandings(ids, results);
   assert.equal(points.complete, true);
-  assert.ok(points.table.filter((p) => p.points === 3).length >= 2);
+  assert.ok(points.table.filter((p) => p.points === 2).length >= 2);
 });
 test("Grupo de cuatro incompleto o cruce inválido NO habilita puestos", () => {
   assert.throws(
@@ -112,7 +112,7 @@ test("Admin habilita cuatro clasificadas y selecciona dos semifinales sin bye", 
   assert.match(js, /function qualifiersFour\(data\)/);
   assert.match(js, /function renderFour\(\)/);
   assert.match(js, /members\.length === 4 && summary\.complete/);
-  assert.match(js, /motor\.decisiveFourPlacings\(ids, mapped\)/);
+  assert.doesNotMatch(js, /summary\.decisiveFour\s*=/);
   assert.match(js, /model\.mode === "four"/);
   assert.match(js, /direct_semifinal_pair_id:null/);
   assert.match(js, /quarterfinals:\[\]/);
@@ -147,10 +147,7 @@ test("Público muestra las semifinales directas sin alterar cuadro previo ni pod
     src,
     /function standingsForGroup\(group, groupMatches, twoGroupMode = false\)/,
   );
-  assert.match(
-    src,
-    /const pairFinal\s*=\s*placeFrom\(1\)\s*,\s*consolation\s*=\s*placeFrom\(2\)/,
-  );
+  assert.doesNotMatch(src, /const pairFinal\s*=\s*placeFrom\(1\)/);
   assert.match(src, /Grupo completo\. Clasifican dos parejas\./);
 });
 test("SQL80 valida cuatro sin alterar la protección histórica de siete y sin borrar datos", () => {
