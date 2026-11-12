@@ -54,7 +54,7 @@ test("tres parejas: todos contra todos y solo dos clasifican", () => {
   assert.equal(t.qualifyingPlaces, 2);
   assert.deepEqual(
     t.table.map((x) => x.points),
-    [6, 3, 0],
+    [4, 2, 0],
   );
   assert.deepEqual(t.qualifiedPairIds, ["a", "b"]);
 });
@@ -70,7 +70,7 @@ test("cuatro parejas: dos cruces, ganadores y perdedores dependientes", () => {
   assert.equal(matches[3].pair2, "p4");
 });
 
-test("ejemplo de Martín: 6,3,3,0 con desempate por sets a favor", () => {
+test("grupo de 4: 4,2,2,0 con desempate por games", () => {
   // A1 P1 gana P2 2-0, A2 P3 gana P4 2-1,
   // A3 P3 gana P1 2-0, A4 P4 gana P2 2-1.
   const result = calculateGroupStandings(["p1", "p2", "p3", "p4"], {
@@ -87,7 +87,7 @@ test("ejemplo de Martín: 6,3,3,0 con desempate por sets a favor", () => {
   );
   assert.deepEqual(
     result.table.map((x) => x.points),
-    [6, 3, 3, 0],
+    [4, 2, 2, 0],
   );
   assert.deepEqual(
     result.table.map((x) => x.setDifference),
@@ -102,9 +102,9 @@ test("ejemplo de Martín: 6,3,3,0 con desempate por sets a favor", () => {
 test("sin inventar cuarto desempate: un empate absoluto bloquea orden de semillas", () => {
   // Grupo de 3: un ciclo con tres triunfos 2-0 genera triple empate.
   const t = calculateGroupStandings(["a", "b", "c"], {
-    A1: r20,
-    A2: r02,
-    A3: r20,
+    A1: {sets:[[6,0],[6,0]]},
+    A2: {sets:[[0,6],[0,6]]},
+    A3: {sets:[[6,0],[6,0]]},
   });
   assert.equal(t.complete, true);
   assert.equal(t.boundaryTie, true);
