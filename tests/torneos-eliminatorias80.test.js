@@ -78,7 +78,7 @@ test("Cuatro clasificadas: 1A-vs-2B, 1B-vs-2A y una final", () => {
   assert.deepEqual(plan.quarterfinals, []);
   assert.deepEqual(plan.semifinals, [
     ["c", "f"],
-    ["e", "d"],
+    ["e", "a"],
   ]);
   assert.equal(new Set(plan.semifinals.flat()).size, 4);
   assert.deepEqual(plan.final, [
