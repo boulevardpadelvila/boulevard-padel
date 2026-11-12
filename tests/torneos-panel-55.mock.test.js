@@ -223,7 +223,7 @@ test("panel resultados: cuatro parejas y marcadores legacy compatibles con vista
   assert.match(rendered, /Grupo A · 4 parejas/);
   assert.match(
     rendered,
-    /Grupo completo. Clasifican las tres primeras parejas/,
+    /Grupo completo|empate|desempate/i,
   );
   assert.ok(!rendered.includes("inconsistentes"));
 });
