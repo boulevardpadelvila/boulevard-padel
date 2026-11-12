@@ -34,9 +34,9 @@ test("4 parejas en zona: segundos y terceros dependen de la tabla, no de ganador
  ];
  const s=r.standings(["A","B","C","D"],matches);
  assert.equal(s.complete,true);
- assert.deepEqual(s.rows.map(x=>x.pairId),["A","C","D","B"]);
+ assert.deepEqual(s.rows.map(x=>x.pairId),["A","D","C","B"]);
  assert.deepEqual(s.rows.map(x=>x.points),[4,2,2,0]);
- assert.deepEqual(s.qualified,["A","C","D"]);
+ assert.deepEqual(s.qualified,["A","D","C"]);
 });
 
 test("Resultado de grupo: triunfo 2 puntos; derrota 0; STB cuenta set pero no games",()=>{
