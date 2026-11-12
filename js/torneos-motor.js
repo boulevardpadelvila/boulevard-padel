@@ -1,11 +1,12 @@
 /* Boulevard Pádel — motor deportivo puro, sin acceso a Supabase.
- * Reglas confirmadas el 02/11/2026:
+ * Reglas nuevas confirmadas el 12/11/2026:
  * - 3 parejas: todos contra todos (3 encuentros), clasifican 2.
  * - 4 parejas: 2 cruces iniciales, ganadores vs ganadores y perdedores vs perdedores (4 encuentros), clasifican 3.
- * - Ganar 3 puntos, perder 0. Desempates: puntos, diferencia de sets, sets a favor.
+ * - Ganar 2 puntos, perder 0. Desempates: puntos, diferencia de sets,
+ *   diferencia de games, enfrentamiento directo (solo 2 parejas), Martín.
  * No inventar un cuarto desempate: informar empates completos.
- * - Grupos y eliminatorias anteriores a cuartos: 1-1 -> super tie-break a 10 puntos.
- * - Cuartos, semifinal y final: 1-1 -> tercer set normal.
+ * - Solo grupos: 1-1 -> súper tie-break a 10 puntos.
+ * - TODAS las eliminatorias: 1-1 -> tercer set normal.
  * - Datos previos a esta regla se muestran en modo legacy; nunca se transforman solos.
  * Los W.O. no se resuelven aquí hasta definir la asignación de sets.
  */
@@ -18,7 +19,7 @@
   "use strict";
 
   const REQUIRED_WINS = 2;
-  const pointsPerWin = 3;
+  const pointsPerWin = 2;
 
   function checkPairs(pairIds) {
     if (!Array.isArray(pairIds) || ![3, 4].includes(pairIds.length)) {
@@ -85,35 +86,13 @@
   // Modos explícitos: super_tb (grupos y eliminatorias previas a cuartos),
   // three_sets (cuartos, semifinal, final) y legacy (solo lectura de registros previos).
   function scoringModeForStage(stage) {
-    const key = String(stage || "")
-      .toLowerCase()
-      .replace(/[-\s]/g, "_");
-    if (
-      [
-        "group",
-        "groups",
-        "preliminary",
-        "play_in",
-        "round_of_64",
-        "round_of_32",
-        "round_of_16",
-        "round_of_8_preliminary",
-      ].includes(key)
-    )
-      return "super_tb";
-    if (
-      [
-        "quarterfinal",
-        "quarterfinals",
-        "semifinal",
-        "semifinals",
-        "final",
-      ].includes(key)
-    )
+    const key=String(stage||"").toLowerCase().replace(/[-\s]/g,"_");
+    if(["group","groups"].includes(key))return "super_tb";
+    if(["preliminary","play_in","round_of_64","round_of_32",
+        "round_of_16","round_of_8_preliminary","quarterfinal",
+        "quarterfinals","semifinal","semifinals","final"].includes(key))
       return "three_sets";
-    throw new Error(
-      "Etapa desconocida: se debe indicar el formato antes de cargar el resultado.",
-    );
+    throw new Error("Etapa desconocida: indicar el formato antes de cargar el resultado.");
   }
   function validRegularSet(a, b) {
     if (![a, b].every((n) => Number.isSafeInteger(n) && n >= 0)) return false;
@@ -228,23 +207,16 @@
     );
   }
 
-  function compareStats(a, b) {
-    return (
-      b.points - a.points ||
-      b.setDifference - a.setDifference ||
-      b.setsFor - a.setsFor
-    );
+  function compareStats(a,b) {
+    return b.points-a.points || b.setDifference-a.setDifference ||
+      (b.gameDifference??0)-(a.gameDifference??0);
   }
-  function equalStats(a, b) {
-    return (
-      a.points === b.points &&
-      a.setDifference === b.setDifference &&
-      a.setsFor === b.setsFor
-    );
+  function equalStats(a,b) {
+    return a.points===b.points && a.setDifference===b.setDifference &&
+      a.gameDifference===b.gameDifference;
   }
 
-  // Los games solo son criterio informativo: el orden oficial de grupos
-  // conserva puntos, diferencia de sets y sets a favor.
+  // Los games normales desempatan después de la diferencia de sets.
   // El súper tie-break define un set, pero NO agrega games.
   function countNormalGames(sets, format = "legacy") {
     if (!Array.isArray(sets)) return [0, 0];
@@ -274,8 +246,7 @@
     "PJ: Partidos jugados · PG: Ganados · PP: Perdidos · " +
     "SF: Sets a favor · SC: Sets en contra · Dif.: Diferencia de sets · " +
     "GF: Games a favor · GC: Games en contra · Dif.G: Diferencia de games · " +
-    "Pts: Puntos. Orden estadístico: Pts, Dif. y SF; " +
-    "los games se muestran como información, no desempatan. " +
+    "Pts: Puntos. Orden: Pts, Dif. sets, Dif. games, enfrentamiento directo. " +
     "El súper tie-break cuenta como set, no como games.";
 
   const standingsLegendItems = [
@@ -292,8 +263,8 @@
   ];
 
   const standingsLegendNote =
-    "Orden estadístico: Pts, Dif. y SF. " +
-    "Los games son informativos y no desempatan. " +
+    "Orden: Pts, Dif. sets, Dif. games, enfrentamiento directo; " +
+    "igualdad final a decisión de Martín. " +
     "El súper tie-break cuenta como set, no como games.";
 
   function calculateGroupStandings(pairIds, results = {}) {
@@ -318,6 +289,7 @@
       ]),
     );
     let playedMatches = 0;
+    const directResults=new Map();
     const resolved = resolveGroupFixture(fixture, results);
     const order = fixture.map((match) => match.code);
     for (const code of order) {
@@ -359,6 +331,7 @@
       winner.won++;
       winner.points += pointsPerWin;
       loser.lost++;
+      directResults.set([match.pair1,match.pair2].sort().join('|'),winner.pairId);
       playedMatches++;
     }
     const table = [...rows.values()];
@@ -366,17 +339,31 @@
       row.setDifference = row.setsFor - row.setsAgainst;
       row.gameDifference = row.gamesFor - row.gamesAgainst;
     }
-    table.sort(compareStats); // mantiene el orden de entrada SOLO para visualizar empate total.
-    const fullTies = [];
-    for (let i = 1; i < table.length; i++) {
-      if (equalStats(table[i - 1], table[i]))
-        fullTies.push([table[i - 1].pairId, table[i].pairId]);
+    table.sort(compareStats);
+    const fullTies=[];
+    for(let i=0;i<table.length;){
+      let j=i+1;
+      while(j<table.length&&equalStats(table[i],table[j]))j++;
+      if(j-i===2){
+        const pair=[table[i].pairId,table[i+1].pairId].sort().join("|");
+        const winner=directResults.get(pair);
+        if(winner&&table[i].pairId!==winner){
+          [table[i],table[i+1]]=[table[i+1],table[i]];
+        }else if(!winner){
+          fullTies.push([table[i].pairId,table[i+1].pairId]);
+        }
+      }else if(j-i>2){
+        // Un triple empate no se decide con duelos parciales ni IDs.
+        for(let k=i+1;k<j;k++)fullTies.push([table[k-1].pairId,table[k].pairId]);
+      }
+      i=j;
     }
     const qualifyingPlaces = pairIds.length === 3 ? 2 : 3;
     const complete = playedMatches === fixture.length;
     const boundaryTie =
       complete &&
-      equalStats(table[qualifyingPlaces - 1], table[qualifyingPlaces]);
+      fullTies.some(pair=>pair.includes(table[qualifyingPlaces-1].pairId)&&
+        pair.includes(table[qualifyingPlaces].pairId));
     return {
       table,
       qualifyingPlaces,
