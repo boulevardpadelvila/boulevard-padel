@@ -99,6 +99,12 @@ jobs:
           node tests/fixtures/p89_postgres_12pairs.js > /tmp/p89_12pairs.sql
           psql -X -v ON_ERROR_STOP=1 -f /tmp/p89_12pairs.sql
           psql -X -v ON_ERROR_STOP=1 -f tests/fixtures/p89_postgres_12pairs_check.sql
+      - name: "Compilar SQL91 de Liga en PostgreSQL descartable"
+        run: psql -X -v ON_ERROR_STOP=1 -f sql/SQL_91_REGLAMENTO_LIGA_3_SETS.sql
+      - name: "Verificar que Liga nueva exige tercer set normal"
+        run: |
+          psql -X -v ON_ERROR_STOP=1 -c "SELECT (pg_get_functiondef('public.bp_league_save_result(uuid,jsonb)'::regprocedure) LIKE '%tercer set normal%') AS acepta_normal;"
+
 
   browser-chromium:
     name: "P89 UI móvil Chromium aislado"
