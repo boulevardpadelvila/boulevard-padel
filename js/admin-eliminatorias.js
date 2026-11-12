@@ -175,8 +175,6 @@
       });
     } else throw Error("Cada grupo debe contener tres o cuatro parejas.");
     const summary = motor.calculateGroupStandings(ids, mapped);
-    if (members.length === 4 && summary.complete)
-      summary.decisiveFour = motor.decisiveFourPlacings(ids, mapped);
     return summary;
   }
   function qualifiers(data) {
@@ -224,9 +222,9 @@
       throw Error("No se pudieron determinar siete clasificados únicos.");
     return out;
   }
-  // Parche 80: en dos grupos de 3/4 parejas clasifican dos por grupo.
-  // En los de 4 el orden oficial proviene de Ganadores vs Ganadores (A3):
-  // vencedor 1º; derrotado 2º. A4 define los puestos 3º y 4º.
+  // Reglamento 2026: para DOS grupos, clasifican los dos primeros de cada uno.
+  // El orden lo determinan puntos, diferencia de sets, games y enfrentamiento
+  // directo; nunca se fija el 2º por perder el cruce entre ganadores.
   function qualifiersFour(data) {
     if (data.groups.length !== 2)
       throw Error("Se requieren exactamente dos grupos para las semifinales directas.");
@@ -244,11 +242,9 @@
       const members = data.assignments
         .filter((a) => a.group_id === group.id).map((a) => a.pair_id);
       const t = standings(members,data.matches.filter((m)=>m.group_id===group.id),data.results);
-      if (!t.complete || (members.length === 3 && !t.seedingReady))
+      if (!t.complete || !t.seedingReady)
         throw Error("El grupo "+letter(group.group_number)+" tiene resultados o desempates pendientes.");
-      const selected = members.length === 4
-        ? t.decisiveFour.slice(0,2).map((pairId)=>t.table.find((row)=>row.pairId===pairId))
-        : t.table.slice(0,2);
+      const selected=t.table.slice(0,2);
       selected.forEach((row,i) => out.push({
         pairId:row.pairId,groupNumber:group.group_number,
         rank:i+1,points:row.points,setDifference:row.setDifference,setsFor:row.setsFor
