@@ -58,7 +58,7 @@ INSERT INTO public.bp_tournament_groups(id,tournament_id,group_number) VALUES
 ('00000000-0000-4000-8000-000000000101','00000000-0000-4000-8000-000000000100',1),
 ('00000000-0000-4000-8000-000000000102','00000000-0000-4000-8000-000000000100',2);
 INSERT INTO public.bp_tournament_pairs(id,tournament_id,player1_name,player2_name,status)
-SELECT '00000000-0000-4000-8000-'||lpad(n::text,12,'0'),
+SELECT ('00000000-0000-4000-8000-'||lpad(n::text,12,'0'))::uuid,
  '00000000-0000-4000-8000-000000000100','Jugador '||n,'Pareja '||n,'approved'
  FROM generate_series(1,6) n;
 INSERT INTO public.bp_tournament_group_pairs(group_id,tournament_id,pair_id)
