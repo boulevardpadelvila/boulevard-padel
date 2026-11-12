@@ -78,7 +78,7 @@ test("SQL 82 histórico usó STB; la migración nueva obliga 3 sets normales",()
   assert.match(admin,/inputs\.slice\(0,\s*split\s*\?\s*3\s*:\s*2\)/);
   assert.match(admin,/toggleThird/);
   const update=read("sql/SQL_91_REGLAMENTO_LIGA_3_SETS.sql");
-  assert.match(update,/CREATE OR REPLACE FUNCTION public\\.bp_league_save_result/);
+  assert.match(update,/CREATE OR REPLACE FUNCTION public\.bp_league_save_result/);
   assert.match(update,/tercer set normal/i);
   assert.doesNotMatch(admin,/i === 2 \? "Súper tie-break"/);
 });
