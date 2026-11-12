@@ -68,15 +68,19 @@ test("SQL 82 protege reservas y todos los bloqueos, incluido borrado seguro",()=
   assert.match(sql,/DELETE FROM public\.bp_league_matches/);
   assert.doesNotMatch(sql,/DELETE FROM public\.reservations|TRUNCATE public\.blockouts/);
 });
-test("Resultado Liga es 2 sets más súper tie-break; no tercero normal",()=>{
+test("SQL 82 histórico usó STB; la migración nueva obliga 3 sets normales",()=>{
   assert.match(sql,/v_i=2 AND NOT\(\(v_high=10 AND v_low<=8\)/);
   assert.match(sql,/v_high>10 AND v_high-v_low=2/);
   assert.match(admin,/engine\.analyzeScore\(sets\)/);
   assert.match(admin,/p_sets:\s*sets/);
-  assert.match(html,/súper tie-break/i);
+  assert.match(html,/tercer set normal/i);
   assert.match(html,/bp-league-result-form/);
   assert.match(admin,/inputs\.slice\(0,\s*split\s*\?\s*3\s*:\s*2\)/);
   assert.match(admin,/toggleThird/);
+  const update=read("sql/SQL_91_REGLAMENTO_LIGA_3_SETS.sql");
+  assert.match(update,/CREATE OR REPLACE FUNCTION public\\.bp_league_save_result/);
+  assert.match(update,/tercer set normal/i);
+  assert.doesNotMatch(admin,/i === 2 \? "Súper tie-break"/);
 });
 test("Vista pública Liga: fixture, tabla clasificatoria y RPC con información filtrada",()=>{
   assert.match(publicHTML,/src="js\/torneos-liga-motor\.js"/);
