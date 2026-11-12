@@ -1,0 +1,51 @@
+name: "Reglamento 2026 · KO 6-40 · PostgreSQL 17 aislado"
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "sql/SQL_92_ELIMINATORIAS_GENERAL_BORRADOR.sql"
+      - "tests/fixtures/ko26_*.sql"
+      - ".github/workflows/ko26-validation.yml"
+  workflow_dispatch:
+jobs:
+  postgresql17:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    permissions:
+      contents: read
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: ko26
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: ko26_ci_only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d ko26"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      PGHOST: localhost
+      PGPORT: "5432"
+      PGDATABASE: ko26
+      PGUSER: postgres
+      PGPASSWORD: ko26_ci_only
+    steps:
+      - uses: actions/checkout@v4
+      - name: "Instalar cliente SQL si hace falta"
+        run: |
+          if ! command -v psql >/dev/null 2>&1; then
+            sudo apt-get update -qq
+            sudo apt-get install -y postgresql-client
+          fi
+          psql --version
+      - name: "Base sintética vacía y resultados ficticios"
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/fixtures/ko26_postgres_bootstrap.sql
+      - name: "Compilar DDL y RPC de eliminatorias (solo postgres descartable)"
+        run: psql -X -v ON_ERROR_STOP=1 -f sql/SQL_92_ELIMINATORIAS_GENERAL_BORRADOR.sql
+      - name: "Smoke funcional y permisos"
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/fixtures/ko26_postgres_smoke.sql
