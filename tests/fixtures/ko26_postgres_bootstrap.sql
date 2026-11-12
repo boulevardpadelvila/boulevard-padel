@@ -52,6 +52,68 @@ CREATE TABLE public.bp_tournament_match_results(
  winner_pair_id uuid NOT NULL REFERENCES public.bp_tournament_pairs(id)
 );
 
+
+-- Paridad estructural mínima del turnero: datos enteramente ficticios.
+CREATE FUNCTION public.bp_tournament_delete_allowed(p_id uuid)
+RETURNS boolean LANGUAGE sql STABLE AS $$SELECT false$$;
+CREATE TYPE public.block_type AS ENUM ('manual','tournament');
+CREATE TABLE public.courts(
+ id uuid PRIMARY KEY,
+ active boolean NOT NULL DEFAULT true,
+ created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE TABLE public.reservations(
+ id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+ court_id uuid NOT NULL REFERENCES public.courts(id),
+ starts_at timestamptz NOT NULL,ends_at timestamptz NOT NULL,
+ status text NOT NULL DEFAULT 'confirmed'
+);
+CREATE TABLE public.fixed_turn_requests(
+ id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+ status text NOT NULL DEFAULT 'approved'
+);
+ALTER TABLE public.bp_tournament_group_matches ADD COLUMN schedule_status text
+ NOT NULL DEFAULT 'unscheduled';
+ALTER TABLE public.bp_tournament_group_matches ADD COLUMN scheduled_at timestamptz;
+ALTER TABLE public.bp_tournament_group_matches ADD COLUMN scheduled_ends_at timestamptz;
+CREATE TABLE public.bp_tournament_knockout_matches(
+ id uuid PRIMARY KEY,tournament_id uuid,schedule_status text,
+ scheduled_at timestamptz,scheduled_ends_at timestamptz);
+CREATE TABLE public.bp_league_matches(
+ id uuid PRIMARY KEY,tournament_id uuid,schedule_status text,
+ scheduled_at timestamptz,scheduled_ends_at timestamptz);
+CREATE TABLE public.bp_league_final_matches(
+ id uuid PRIMARY KEY,tournament_id uuid,schedule_status text,
+ scheduled_at timestamptz,scheduled_ends_at timestamptz);
+CREATE TABLE public.blockouts(
+ id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+ court_id uuid NOT NULL REFERENCES public.courts(id),
+ starts_at timestamptz NOT NULL,ends_at timestamptz NOT NULL,
+ active boolean NOT NULL DEFAULT true,
+ block_type public.block_type NOT NULL,
+ reason text,created_by uuid,
+ tournament_group_match_id uuid REFERENCES public.bp_tournament_group_matches(id),
+ tournament_knockout_match_id uuid REFERENCES public.bp_tournament_knockout_matches(id),
+ tournament_league_match_id uuid REFERENCES public.bp_league_matches(id),
+ tournament_league_final_match_id uuid REFERENCES public.bp_league_final_matches(id),
+ CONSTRAINT bp_blockout_one_match CHECK(num_nonnulls(tournament_group_match_id,
+ tournament_knockout_match_id,tournament_league_match_id,tournament_league_final_match_id)<=1),
+ CONSTRAINT bp_blockout_tournament_type_valid CHECK(num_nonnulls(tournament_group_match_id,
+ tournament_knockout_match_id,tournament_league_match_id,tournament_league_final_match_id)=0
+ OR block_type='tournament'::public.block_type),
+ CONSTRAINT bp_tournament_blockout_requires_match CHECK(block_type<>'tournament'::public.block_type
+ OR num_nonnulls(tournament_group_match_id,tournament_knockout_match_id,
+ tournament_league_match_id,tournament_league_final_match_id)=1)
+);
+INSERT INTO public.courts(id) VALUES('00000000-0000-4000-8000-000000000200');
+INSERT INTO public.fixed_turn_requests(id)
+ VALUES('00000000-0000-4000-8000-000000000201');
+-- Reserva real ficticia: protege ese mismo horario ante torneos.
+INSERT INTO public.reservations(court_id,starts_at,ends_at)
+VALUES('00000000-0000-4000-8000-000000000200',
+ date_trunc('hour',now())+interval '2 days',
+ date_trunc('hour',now())+interval '2 days 90 minutes');
+
 INSERT INTO public.bp_tournaments(id,format,status,groups_published_at,fixture_published_at,is_published)
 VALUES('00000000-0000-4000-8000-000000000100','groups_knockout','registration_closed',now(),now(),true);
 INSERT INTO public.bp_tournament_groups(id,tournament_id,group_number) VALUES
