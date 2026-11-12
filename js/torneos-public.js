@@ -1051,6 +1051,48 @@
     return details;
   }
 
+  // Reglamento 2026: publicar las posibles eliminatorias desde la publicación
+  // del fixture de grupos, aunque todavía no haya resultados ni clasificados.
+  function previewKnockout2026Block(t){
+    if(t.format!=="groups_knockout")return null;
+    const engine=window.BPReglamento2026;
+    const groups=publishedGroupsByTournament.get(t.id)||[];
+    const fixture=publishedFixtureByTournament.get(t.id)||[];
+    if(!engine||!groups.length||!fixture.length)return null;
+    const n=groups.reduce((sum,g)=>sum+g.pairs.length,0);
+    if(n<6||n>40)return null;
+    const plan=engine.bracket(n);
+    if(groups.length!==plan.sizes.length||
+       groups.some((g,i)=>g.number!==i+1||g.pairs.length!==plan.sizes[i]))
+      return null;
+    const labels={
+      preliminary:"Ronda previa",round_of_16:"Octavos de final",
+      quarterfinal:"Cuartos de final",semifinal:"Semifinales",final:"Final"
+    };
+    const view=make("details","public-tournament-more bp-public-knockout-preview");
+    view.append(make("summary","bp-public-knockout-preview__heading",
+      "Ver posibles cruces eliminatorios · "+plan.qualifiers+" clasificadas"));
+    const body=make("div","bp-public-knockout-preview__body");
+    body.append(make("p","bp-public-knockout-preview__note",
+      "La llave se publica con el sorteo. Los nombres se conocerán al finalizar los grupos; los empates finales los resuelve Martín."));
+    for(const round of plan.rounds){
+      if(!round.matches.length)continue;
+      const section=make("section","bp-public-knockout-preview__round");
+      section.append(make("h4","bp-public-knockout-preview__round-title",
+        labels[round.stage]||round.stage));
+      const grid=make("div","bp-public-knockout-preview__matches");
+      for(const game of round.matches){
+        const match=make("article","bp-public-knockout-preview__match");
+        match.append(make("small","",game.code),
+                     make("p","",game.pair[0]),
+                     make("p","",game.pair[1]));
+        grid.append(match);
+      }
+      section.append(grid);body.append(section);
+    }
+    view.append(body);return view;
+  }
+
   function cardFor(t) {
     const card = make("article", "public-tournament-card");
     const top = make("div", "public-tournament-card__top");
@@ -1105,6 +1147,8 @@
     if (groupsBlock) card.append(groupsBlock);
     const fixtureBlock = publishedFixtureBlock(t);
     if (fixtureBlock) card.append(fixtureBlock);
+    const preview=previewKnockout2026Block(t);
+    if(preview)card.append(preview);
     if (t.format === "league") {
       for (const block of window.BPLeaguePublic?.leagueBlocks(
         t,
