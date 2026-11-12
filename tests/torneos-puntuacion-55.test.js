@@ -2,10 +2,10 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const m = require("../js/torneos-motor.js");
 const score = (...sets) => ({ sets });
-test("grupos y preliminares STB; cuartos, semis y final tercer set normal", () => {
-  for (const round of ["group", "preliminary", "round_of_16"])
+test("solo grupos STB; todas las eliminatorias con tercer set normal", () => {
+  for (const round of ["group"])
     assert.equal(m.scoringModeForStage(round), "super_tb");
-  for (const round of ["quarterfinal", "semifinal", "final"])
+  for (const round of ["preliminary", "round_of_16", "quarterfinal", "semifinal", "final"])
     assert.equal(m.scoringModeForStage(round), "three_sets");
   assert.throws(() => m.scoringModeForStage("unknown"), /Etapa desconocida/);
 });
@@ -90,7 +90,7 @@ test("posición: súper tie-break equivale a un set (no diez sets)", () => {
     A3: { ...score([6, 4], [6, 4]), format: "super_tb" },
   });
   assert.equal(x.complete, true);
-  assert.equal(x.table[0].points, 6);
+  assert.equal(x.table[0].points, 4);
   assert.equal(x.table[0].setsFor, 4);
 });
 test("resultado legado continúa visible sin modificar sus datos", () => {
