@@ -38,7 +38,7 @@ test("Apertura 2027: fixture regular completo, una rueda y cinco fechas",()=>{
     seen.add(key);
     count.set(f.pair1_id,count.get(f.pair1_id)+1);
     count.set(f.pair2_id,count.get(f.pair2_id)+1);
-    const outcome=league.analyzeScore(f.sets);
+    const outcome=league.analyzeScore(f.sets,{historical:true});
     const expected=outcome.winnerSide===1?f.pair1_id:f.pair2_id;
     assert.equal(expected,f.winner_pair_id);
   }
@@ -68,7 +68,7 @@ test("Apertura 2027: ranking 2/1/0 y cinco criterios, super tie-break sin games"
   assert.ok(report.rows[0].setDifference>report.rows[1].setDifference);
   assert.equal(report.rows[3].points,report.rows[4].points);
   assert.ok(report.rows[3].setDifference>report.rows[4].setDifference);
-  const tiebreak=league.analyzeScore([[6,4],[3,6],[10,4]]);
+  const tiebreak=league.analyzeScore([[6,4],[3,6],[10,4]],{historical:true});
   assert.equal(tiebreak.winnerSide,1);
   assert.deepEqual([tiebreak.games1,tiebreak.games2],[9,10],
     "El tercer set super TB NO agrega games");
