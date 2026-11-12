@@ -95,7 +95,7 @@ test("Grupos: GF, GC y Dif.G suman games normales, nunca puntos de súper tie-br
   assert.equal(rows.get("A").gameDifference, 0);
   assert.equal(rows.get("B").gamesFor, 10);
   assert.equal(rows.get("C").gamesFor, 0);
-  assert.equal(rows.get("A").points, 3);
+  assert.equal(rows.get("A").points, 2);
   assert.equal(rows.get("B").points, 0);
 });
 test("Admin y público de grupos muestran GF/GC/Dif.G y referencias accesibles", () => {
@@ -164,7 +164,7 @@ test("Parche 84: glosario compacto en las cuatro vistas, para móvil y escritori
     "PJ", "PG", "PP", "SF", "SC", "Dif.", "GF", "GC", "Dif.G", "Pts",
   ]);
   assert.match(group.standingsLegendNote, /súper tie-break/i);
-  assert.match(group.standingsLegendNote, /no desempatan/i);
+  assert.match(group.standingsLegendNote, /Dif\. games/i);
 
   for (const [source, prefix] of [
     [groupAdmin, "bp-results-legend"],
