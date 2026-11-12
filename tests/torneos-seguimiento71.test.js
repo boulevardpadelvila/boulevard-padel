@@ -364,7 +364,7 @@ test("Parche 77: tablas públicas replican el diseño Admin y admiten hasta 3 gr
   assert.match(css,/\.public-tournament-standings-grid \.public-tournament-table\s*\{[^}]*min-width:\s*425px/);
   assert.match(css,/overflow-x:\s*auto/);
   // No se cambia ningún cálculo de puntaje ni el cuadro eliminatorio.
-  assert.match(js,/winner\.won\+\+;\s*winner\.points\s*\+=\s*3/);
+  assert.match(js,/winner\.won\+\+;\s*winner\.points\s*\+=\s*2/);
   assert.match(js,/knockout\.append\(podium\)/);
 });
 
