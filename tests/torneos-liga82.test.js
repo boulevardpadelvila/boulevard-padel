@@ -7,8 +7,8 @@ const engine=require("../js/torneos-liga-motor.js");
 const read=p=>fs.readFileSync(path.resolve(__dirname,"..",p),"utf8");
 const ids=n=>Array.from({length:n},(_,i)=>"pareja"+(i+1));
 const score20=[[6,2],[6,3]];
-const score21=[[6,2],[4,6],[10,8]];
-const score12=[[2,6],[6,4],[10,12]];
+const score21=[[6,2],[4,6],[6,4]];
+const score12=[[2,6],[6,4],[4,6]];
 test("Una rueda: todas las parejas se enfrentan una sola vez",()=>{
   for(const n of [2,3,4,5,7,8,10,17]){
     const schedule=engine.buildSchedule(ids(n));
@@ -36,7 +36,7 @@ test("Una pareja participa una vez por Fecha; Martín elige día y horario",()=>
   assert.throws(()=>engine.validateRoundAssignment(matches,"c",1000),/Fecha/);
   assert.throws(()=>engine.validateRoundAssignment(matches,"x",3),/No se encontró/);
 });
-test("2 puntos por victoria 2-0; 1 punto por derrota en súper tie-break; 0 por 2-0",()=>{
+test("2 puntos por victoria 2-0 o 2-1; 1 punto por derrota 2-1; 0 por 2-0",()=>{
   const pairIds=ids(3);
   const matches=[
     {pair1_id:pairIds[0],pair2_id:pairIds[1],match_status:"played",sets:score21},
@@ -51,20 +51,20 @@ test("2 puntos por victoria 2-0; 1 punto por derrota en súper tie-break; 0 por 
   assert.equal(stats.complete,true);
   assert.equal(stats.champion,pairIds[0]);
 });
-test("Súper tie-break suma un set, no games",()=>{
+test("Tercer set normal cuenta sets y games",()=>{
   const r=engine.analyzeScore(score21);
   assert.equal(r.winnerSide,1);
   assert.equal(r.side1Sets,2);
   assert.equal(r.side2Sets,1);
-  assert.equal(r.games1,10);
-  assert.equal(r.games2,8);
+  assert.equal(r.games1,16);
+  assert.equal(r.games2,12);
   assert.equal(r.loserSets,1);
 });
-test("Resultado 2-0 no puede incluir tercer set, y STB necesita mínimo 10 y 2 de ventaja",()=>{
-  assert.throws(()=>engine.analyzeScore([[6,0],[6,1],[10,8]]),/adicionales/);
-  assert.throws(()=>engine.analyzeScore([[6,3],[4,6],[9,7]]),/tie-break|inválido/);
-  assert.throws(()=>engine.analyzeScore([[6,3],[4,6],[10,9]]),/tie-break|inválido/);
-  assert.deepEqual(engine.analyzeScore([[6,3],[4,6],[11,9]]).winnerSide,1);
+test("Liga nueva rechaza STB y exige un tercer set normal",()=>{
+  assert.throws(()=>engine.analyzeScore([[6,0],[6,1],[6,4]]),/adicionales/);
+  assert.throws(()=>engine.analyzeScore([[6,3],[4,6],[9,7]]),/inválido/);
+  assert.throws(()=>engine.analyzeScore([[6,3],[4,6],[10,9]]),/inválido/);
+  assert.deepEqual(engine.analyzeScore([[6,3],[4,6],[7,5]]).winnerSide,1);
 });
 test("Liga incompleta no declara campeones, tampoco empate total al terminar",()=>{
   let a=engine.standings(ids(2),[{pair1_id:"pareja1",pair2_id:"pareja2",match_status:"pending",sets:null}]);
@@ -82,4 +82,13 @@ test("No acepta parejas duplicadas ni varias ruedas",()=>{
   assert.throws(()=>engine.buildSchedule(["a","a"]));
   assert.throws(()=>engine.buildSchedule(["a"],1));
   assert.throws(()=>engine.buildSchedule(["a","b"],3));
+});
+
+test("Histórico: STB antiguo permanece legible pero no se admite en nuevas cargas",()=>{
+  const historical=[[6,2],[4,6],[10,8]];
+  const parsed=engine.analyzeScore(historical,{historical:true});
+  assert.equal(parsed.historicalSTB,true);
+  assert.equal(parsed.games1,10);
+  assert.equal(parsed.games2,8);
+  assert.throws(()=>engine.analyzeScore(historical),/inválido/);
 });
