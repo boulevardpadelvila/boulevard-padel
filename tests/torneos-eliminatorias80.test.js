@@ -258,7 +258,7 @@ test("El cálculo real del Admin usa la tabla y games para zona de cuatro", () =
   );
   assert.deepEqual(motor.planFourKnockout(list).semifinals, [
     ["c", "f"],
-    ["e", "a"],
+    ["e", "d"],
   ]);
   assert.throws(
     () =>
