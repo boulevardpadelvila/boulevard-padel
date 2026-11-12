@@ -253,7 +253,7 @@
       actual.some(x=>!expected.has(x))||pre.length!==plan.preliminaries||
       opening.length!==plan.base/2)throw Error("El simulador contiene una llave incompleta.");
     return {...plan,preliminariesMatches:pre,firstRoundMatches:opening,
-      directEntrants:direct,illustrative:!special};
+      directEntrants:direct,illustrative:false};
   }
 
   return Object.freeze({groupPlan,groupFixture,checkScore,standings,bracket});
