@@ -113,7 +113,7 @@ BEGIN
     USING ERRCODE='23514'; END IF;
    IF (SELECT count(*) FROM public.bp_tournament_group_matches
        WHERE tournament_id=p_tournament_id AND group_id=v_g.id)
-      <>CASE WHEN v_g.size=4 THEN 4 ELSE 3 END
+      <>(CASE WHEN v_g.size=4 THEN 4 ELSE 3 END)
       OR (SELECT count(*) FROM public.bp_tournament_match_results
           WHERE tournament_id=p_tournament_id AND group_id=v_g.id)
       <>CASE WHEN v_g.size=4 THEN 4 ELSE 3 END
