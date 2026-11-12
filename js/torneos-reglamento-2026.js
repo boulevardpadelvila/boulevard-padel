@@ -256,5 +256,46 @@
       directEntrants:direct,illustrative:false};
   }
 
-  return Object.freeze({groupPlan,groupFixture,checkScore,standings,bracket});
+  // Tabla nueva de Liga: preserva los cinco criterios actuales de desempate.
+  // Solo cambia el tercer set de la fase regular: debe ser NORMAL.
+  function leagueStandings(ids,matches){
+    if(!Array.isArray(ids)||ids.length<4||new Set(ids).size!==ids.length||!Array.isArray(matches))
+      throw Error("Liga inválida.");
+    const map=new Map(ids.map(id=>[id,{pairId:id,played:0,won:0,lost:0,points:0,
+      setsFor:0,setsAgainst:0,setDifference:0,gamesFor:0,gamesAgainst:0,gameDifference:0}]));
+    let played=0;
+    for(const match of matches){
+      if(!match.sets)continue;
+      const a=map.get(match.pair1),b=map.get(match.pair2);
+      if(!a||!b||a===b)throw Error("Partido de Liga inválido.");
+      const score=checkScore(match.sets,"league");
+      const winner=score.winner===1?a:b,loser=score.winner===1?b:a;
+      winner.won++;winner.points+=2;
+      loser.lost++;
+      if(score.sets.includes(1))loser.points++;
+      for(const r of [a,b])r.played++;
+      a.setsFor+=score.sets[0];a.setsAgainst+=score.sets[1];
+      b.setsFor+=score.sets[1];b.setsAgainst+=score.sets[0];
+      a.gamesFor+=score.games[0];a.gamesAgainst+=score.games[1];
+      b.gamesFor+=score.games[1];b.gamesAgainst+=score.games[0];
+      played++;
+    }
+    const rows=[...map.values()];
+    for(const r of rows){r.setDifference=r.setsFor-r.setsAgainst;r.gameDifference=r.gamesFor-r.gamesAgainst;}
+    const metrics=r=>[r.points,r.setDifference,r.setsFor,r.gameDifference,r.gamesFor];
+    rows.sort((a,b)=>{
+      const x=metrics(a),y=metrics(b);
+      for(let i=0;i<x.length;i++)if(x[i]!==y[i])return y[i]-x[i];
+      return ids.indexOf(a.pairId)-ids.indexOf(b.pairId);
+    });
+    const ties=[];
+    for(let i=0;i<rows.length;i++){
+      const peer=rows.filter(r=>metrics(r).every((n,j)=>n===metrics(rows[i])[j])).map(r=>r.pairId);
+      if(peer.length>1&&!ties.some(g=>g.includes(rows[i].pairId)))ties.push(peer);
+    }
+    return {rows,complete:matches.length>0&&played===matches.length,played,total:matches.length,
+      tiedGroups:ties,topFourReady:played===matches.length&&ties.every(g=>!g.some(id=>rows.slice(0,4).some(r=>r.pairId===id)))};
+  }
+
+  return Object.freeze({groupPlan,groupFixture,checkScore,standings,bracket,leagueStandings});
 });
