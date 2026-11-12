@@ -77,7 +77,7 @@ BEGIN
  RETURN jsonb_build_object('match_id',p_match_id,'winner_pair_id',v_winner,
    'sets_pair1',v_s1,'sets_pair2',v_s2);
 END;
-$function$
+$function$;
 
 
 CREATE OR REPLACE FUNCTION public.bp_league_prepare_final89(p_tournament_id uuid)
@@ -186,7 +186,7 @@ BEGIN
     'final','ganador SF1 vs ganador SF2'
   );
 END;
-$function$
+$function$;
 
 
 CREATE OR REPLACE FUNCTION public.bp_league_prepare_final_manual89(p_tournament_id uuid, p_qualifiers uuid[], p_reason text)
@@ -325,7 +325,7 @@ BEGIN
     'semifinal2',jsonb_build_array(p_qualifiers[2],p_qualifiers[4])
   );
 END;
-$function$
+$function$;
 
 
 COMMIT;
