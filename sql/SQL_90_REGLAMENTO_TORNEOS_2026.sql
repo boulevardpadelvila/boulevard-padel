@@ -122,7 +122,7 @@ BEGIN
  v_fours:=v_n%3;
  FOR v_i IN 1..v_group_count LOOP
    v_size:=v_sizes[v_i];
-   IF v_size<>CASE WHEN v_i<=v_fours THEN 4 ELSE 3 END THEN
+   IF v_size<>(CASE WHEN v_i<=v_fours THEN 4 ELSE 3 END) THEN
      RAISE EXCEPTION 'Las zonas de cuatro deben ser las primeras: A, B, ...' USING ERRCODE='23514';
    END IF;
    FOR v_j IN 1..CASE WHEN v_size=4 THEN 3 ELSE 2 END LOOP
@@ -249,7 +249,7 @@ BEGIN
  LOOP
    SELECT count(*),count(*) FILTER(WHERE m.match_status='played')
    INTO v_matches,v_played FROM public.bp_tournament_group_matches m WHERE m.group_id=v_group.id;
-   IF v_matches<>CASE WHEN v_group.size=4 THEN 4 ELSE 3 END OR
+   IF v_matches<>(CASE WHEN v_group.size=4 THEN 4 ELSE 3 END) OR
       v_played<>v_matches OR
       (SELECT count(*) FROM public.bp_tournament_match_results r WHERE r.group_id=v_group.id)<>v_matches THEN
      RAISE EXCEPTION 'Faltan resultados en zona %.',chr(64+v_group.group_number) USING ERRCODE='23514';
