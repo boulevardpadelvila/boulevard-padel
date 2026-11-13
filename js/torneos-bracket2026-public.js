@@ -79,6 +79,15 @@
           element("p","bp26-public__versus","VS"),
           element("p","bp26-public__team",b)
         );
+        if(live?.schedule_status==="scheduled"&&live.scheduled_at){
+          match.append(element("p","bp26-public__score",
+            "Programado: "+new Intl.DateTimeFormat("es-AR",{
+              timeZone:"America/Argentina/Cordoba",day:"2-digit",month:"2-digit",
+              hour:"2-digit",minute:"2-digit",hourCycle:"h23"
+            }).format(new Date(live.scheduled_at))));
+        } else if(live?.schedule_status==="postponed") {
+          match.append(element("p","bp26-public__score","Partido postergado"));
+        }
         if(live?.status==="played")match.append(element("p","bp26-public__score","Resultado: "+displayScore(live.sets)));
         column.append(match);
       }
