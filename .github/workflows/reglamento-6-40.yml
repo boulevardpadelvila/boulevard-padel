@@ -28,6 +28,15 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Sintaxis de módulos nuevos y scripts públicos
+        run: |
+          node --check js/admin-torneos2026.js
+          node --check js/torneos-bracket2026-public.js
+          node --check js/torneos-reglamento-2026.js
+          node --check js/admin-grupos.js
+          node --check js/admin-resultados.js
+          node --check js/torneos-public.js
+          node --check js/admin-liga82.js
       - name: Pruebas de regresión Node sin tocar producción
         run: node --test tests/*.test.js
 
