@@ -1179,8 +1179,12 @@
       publicBracketByTournament.get(t.id),
     );
     if (publicBracket) card.append(publicBracket);
-    const eliminatorias = knockoutBlock(t);
-    if (eliminatorias) card.append(eliminatorias);
+    // Reglamento 2026: el cuadro nuevo sustituye las eliminatorias heredadas.
+    // Evita mostrar una sección «Eliminatorias» vacía y duplicada.
+    if (Number(t.rules_version) !== 2026) {
+      const eliminatorias = knockoutBlock(t);
+      if (eliminatorias) card.append(eliminatorias);
+    }
     return card;
   }
   // Parche 79: dos niveles de pestañas, sin repetir tarjetas de torneos.
