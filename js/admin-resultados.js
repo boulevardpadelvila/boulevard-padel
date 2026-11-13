@@ -715,7 +715,7 @@
         panel.hidden = true;
         return;
       }
-      panel.querySelector(".bp-results-description").textContent =
+      if (panel.querySelector?.(".bp-results-description")) panel.querySelector(".bp-results-description").textContent =
         Number(tr.data.rules_version) === 2026
           ? "Fase de grupos: partido ganado 2 puntos, perdido 0. Sets y games se utilizan para desempatar."
           : "Cargá y corregí los marcadores desde cada partido del fixture. Aquí consultás únicamente las posiciones. Victoria: 3 puntos; derrota: 0.";
