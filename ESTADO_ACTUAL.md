@@ -1,5 +1,16 @@
 # Boulevard Pádel — ESTADO ACTUAL / RELEVO ENTRE CHATS
 
+## 13/11/2026 — Planilla Google Drive de BP creada y respaldo horario programado (ESTADO VIGENTE)
+
+**CONFIRMADO DIRECTAMENTE:** se conectó Google Drive de la cuenta propia `boulevardpadelvila@gmail.com`. Planilla nativa **«Boulevard Pádel — Respaldo de reservas y turnos fijos»**: <https://docs.google.com/spreadsheets/d/1ZO1QlRvVrfwlDMBb9QpuXfyfD8IQm7ewMb5Uw6MzUys/edit>. Pestañas «Reservas» (31 registros confirmados) y «Turnos fijos» (3 aprobados), con **exclusivamente cuatro columnas: Nombre, Día, Hora y Teléfono**. Primera copia desde Supabase verificada por relectura del Drive, sin campos faltantes, con filtros y zona horaria Argentina. Ninguna escritura en Supabase; registros reales conservados.
+
+**AUTOMATIZACIÓN HORARIA:** tarea ChatGPT `Respaldo Boulevard Pádel` creada, habilitada, `FREQ=HOURLY`. Debe actualizar el mismo documento con ambas listas y proteger la última copia ante una lectura fallida o inesperadamente vacía, notificando solo errores. **La primera ejecución programada aún no fue observada**: no calificar el mecanismo como sincronización ya probada. Este mecanismo depende de conexiones de ChatGPT, no es una integración Apps Script/Cloudflare autónoma. Confirmar la primera ejecución correcta antes de declarar cerrado el respaldo automático. El PDF de torneos continúa como exportación manual desde Admin para subir al mismo Drive.
+
+**REFERENCIA:** `docs/RESPALDO_DRIVE_BOULEVARD_PADEL.md`. Próximo hito de Torneos: aprobación final de Martín. Tras estas ediciones documentales, sincronizar la laptop (`git pull --ff-only origin main`). Mantener una única rama `main`.
+
+---
+
+
 ## 13/11/2026 — Respaldo operativo externo (FASE MANUAL IMPLEMENTADA / AUTOMÁTICA PENDIENTE)
 
 **Nuevo módulo en Admin, PR #33 FUSIONADO:** botón «Exportar reservas (CSV)» en Reservas y «Exportar turnos fijos (CSV)» en Turnos fijos; archivos con **exactamente 4 columnas: Nombre, Día, Hora, Teléfono**, sin código, correo, observaciones ni estado. Para reservas se exportan `confirmed` y para turnos fijos, `approved`, con paginación y hora argentina. Se incorpora botón «PDF del torneo» en cada torneo, con informe A4 imprimible de participantes y resultados, sin teléfonos; se guarda mediante el navegador y después se sube a Google Drive.
