@@ -1,6 +1,6 @@
 # Boulevard Pádel — Reglamento aprobado 12/11/2026
 
-Estado al 12/11/2026: **IMPLEMENTADO Y PUBLICADO**, PR #21 y migraciones SQL90/91/92 aplicadas. La modalidad de **6 parejas pasó una prueba manual end-to-end en producción**; falta verificar especialmente 7 parejas y otras configuraciones con pruebas reales. Preservar reservas, turnos fijos y datos productivos.
+Estado al 13/11/2026: **IMPLEMENTADO Y PUBLICADO**, PR #21 y migraciones SQL90/91/92/93 aplicadas. Las modalidades de **6 y 7 parejas pasaron pruebas manuales integrales**, mientras que las distribuciones 6..40 fueron verificadas automáticamente. Queda pendiente el OK definitivo de Martín. Preservar reservas, turnos fijos y datos productivos.
 
 ## Liga
 - Todos los partidos al mejor de tres sets NORMALES, sin STB. Esto incluye fase regular, semifinales y final.
@@ -28,5 +28,7 @@ Estado al 12/11/2026: **IMPLEMENTADO Y PUBLICADO**, PR #21 y migraciones SQL90/9
 - Migraciones SQL90 (reglamento/llaves), SQL91 (sets normales Liga) y SQL92 (programación eliminatoria / bloqueos seguros) **instaladas** en Supabase. No aplicar de nuevo manualmente.
 - Prueba de **6 parejas** realizada con 6 encuentros de grupo, empate triple y desempate manual, semifinales y final; datos/resultados verificados por lectura SQL. El torneo ficticio quedó `completed` y al cierre estaba **oculto** (`is_published=false`), pendiente de eliminación consensuada.
 - Pruebas automáticas aprobadas en Node, PostgreSQL 17 aislado y Chromium, incluyendo llave larga de 31 partidos y vistas responsive; PR #29 publicado y Cloudflare Pages verificado.
-- **Pendiente**: prueba manual con **7 parejas**, grupos A=4/B=3, 3 y 2 clasificadas, llave de 5 parejas, semis/final, público/móvil; no confundir cobertura automatizada de 6–40 con validación manual de todos los tamaños.
+- **Verificado manualmente:** torneo de 7 parejas con A=4/B=3, 3 y 2 clasificadas, previa, dos semifinales, final y presentación pública conforme al usuario. Las pruebas ficticias se eliminaron después: producción contiene 0 torneos al cierre de SQL93.
+- **SQL93:** al publicar grupos del Reglamento 2026, el servidor y el Admin comprueban que los grupos de cuatro ocupen A/B/C... primero y los demás sean de tres. Numeración correlativa. El botón de publicación queda deshabilitado si no se cumple; se permite reorganizar antes de publicar. La validación de servidor corre en el trigger existente, sin modificar reservas.
+- **Pendiente:** Martín debe hacer personalmente una prueba, comprobar también el rechazo de una distribución invertida y dar el OK definitivo. No confundir pruebas automatizadas de 6–40 con aceptación del cliente.
 - La documentación histórica que indique «desarrollo» o «sin migrar» refleja el punto de partida del 12/11 y no el estado actual. Ver `ESTADO_ACTUAL.md` y el final de `BITACORA_DESARROLLO.md`.
