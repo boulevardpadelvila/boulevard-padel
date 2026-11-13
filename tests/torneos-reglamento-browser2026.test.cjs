@@ -178,3 +178,78 @@ test("Admin 2026: dos tablas legibles y tarjetas compactas en escritorio y móvi
   assert.ok(mobile.pageWidth<=mobile.viewport+2,JSON.stringify(mobile));
   await page.close();
 });
+
+
+test("Admin 2026: modal de posiciones permite cancelar y confirmar sin diálogo nativo",async()=>{
+  const page=await browser.newPage({viewport:{width:1360,height:900}});
+  await page.setContent('<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"></head><body><main class="admin-torneos"><select id="torneos-pairs-tournament"><option value="t1" selected>Campeonato de prueba</option></select><section id="bp-results-panel"></section></main></body></html>');
+  for(const css of ["css/admin.css","css/admin-torneos.css","css/admin-torneos2026.css"])
+    await page.addStyleTag({path:src(css)});
+  await page.evaluate(()=>{
+    window.rpcCalls=[];
+    window.confirm=()=>{throw Error("No corresponde abrir confirm() nativo");};
+    const tournament={id:"t1",format:"groups_knockout",rules_version:2026,status:"registration_closed",
+      fixture_published_at:"2026-11-13T00:00:00Z",groups_published_at:"2026-11-13T00:00:00Z"};
+    const groups=[{id:"g1",group_number:1},{id:"g2",group_number:2}];
+    const pairs=Array.from({length:6},(_,i)=>({id:"p"+(i+1),
+      player1_name:"Jugador "+(i+1),player2_name:"Compañero "+(i+1)}));
+    const assignments=pairs.map((p,i)=>({group_id:i<3?"g1":"g2",pair_id:p.id}));
+    const matches=[],results=[];
+    for(let g=0;g<2;g++){
+      const ids=pairs.slice(g*3,g*3+3).map(p=>p.id);
+      for(const [j,[i,k]] of [[0,1],[1,2],[0,2]].entries()){
+        const id="m"+g+"-"+j;
+        matches.push({id,group_id:groups[g].id});
+        results.push({match_id:id,resolved_pair1_id:ids[i],
+          resolved_pair2_id:ids[k],sets:[[6,3],[6,4]]});
+      }
+    }
+    const rows={bp_tournament_groups:groups,bp_tournament_group_pairs:assignments,
+      bp_tournament_pairs:pairs,bp_tournament_group_matches:matches,
+      bp_tournament_match_results:results};
+    window.supabaseClient={
+      from(table){
+        const value=table==="bp_tournaments"?tournament:rows[table]||[];
+        const query={select(){return query},eq(){return query},order(){return query},
+          maybeSingle(){return Promise.resolve({data:value,error:null})},
+          then(ok,bad){return Promise.resolve({data:value,error:null}).then(ok,bad)}};
+        return query;
+      },
+      rpc(name,args){
+        window.rpcCalls.push({name,args});
+        return Promise.resolve({data:name==="bp_tournament_bracket_report2026"?
+          {published:true,placements:null,matches:[]}:{},error:null});
+      }
+    };
+  });
+  await page.addScriptTag({path:src("js/torneos-reglamento-2026.js")});
+  await page.addScriptTag({path:src("js/admin-torneos2026.js")});
+  const opener=page.getByRole("button",{name:"Confirmar posiciones oficiales"});
+  await opener.waitFor();
+  await opener.click();
+  const dialog=page.locator("#bp26-placements-dialog");
+  assert.ok(await dialog.evaluate(el=>el.open));
+  assert.equal(await dialog.locator(".bp26-placements-dialog__zone").count(),2);
+  assert.equal(await dialog.locator("li").count(),6);
+  assert.match(await dialog.textContent(),/Sí, confirmar posiciones/);
+  await dialog.getByRole("button",{name:"Cancelar"}).click();
+  assert.ok(!(await dialog.evaluate(el=>el.open)));
+  assert.equal(await page.evaluate(()=>window.rpcCalls.filter(x=>x.name==="bp_tournament_confirm_placements2026").length),0);
+  await opener.click();
+  await page.setViewportSize({width:390,height:844});
+  const bounds=await dialog.evaluate(el=>({
+    max:document.documentElement.clientWidth,
+    scroll:document.documentElement.scrollWidth,
+    width:el.getBoundingClientRect().width,
+    cols:getComputedStyle(el.querySelector(".bp26-placements-dialog__review")).gridTemplateColumns
+  }));
+  assert.ok(bounds.width<=bounds.max && bounds.scroll<=bounds.max+2,JSON.stringify(bounds));
+  await dialog.getByRole("button",{name:"Sí, confirmar posiciones"}).click();
+  await page.waitForFunction(()=>window.rpcCalls.some(x=>x.name==="bp_tournament_confirm_placements2026"));
+  const sent=await page.evaluate(()=>window.rpcCalls.find(x=>x.name==="bp_tournament_confirm_placements2026"));
+  assert.equal(sent.args.p_tournament_id,"t1");
+  assert.deepEqual(sent.args.p_placements.A,["p1","p2","p3"]);
+  assert.deepEqual(sent.args.p_placements.B,["p4","p5","p6"]);
+  assert.ok(!(await dialog.evaluate(el=>el.open)));
+  await page.close();
+});

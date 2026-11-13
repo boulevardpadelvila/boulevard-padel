@@ -213,3 +213,83 @@
   #bp26-admin .bp26-admin__match .bp26-admin__schedule .torneos-outline{width:auto;min-width:104px}
   #bp26-admin .bp26-admin__match>button.torneos-outline{max-width:none}
 }
+
+/* Confirmación oficial de posiciones: modal propio, legible y adaptable. */
+.bp26-placements-dialog{
+  width:min(560px,calc(100vw - 26px));
+  max-width:calc(100vw - 26px);
+  max-height:min(88vh,760px);
+  overflow-y:auto;
+  border:1px solid #c7d9ca
+}
+.bp26-placements-dialog .admin-save-dialog__icon{
+  background:#e7f3e9;
+  color:#156b3d;
+  border:1px solid #b7d8bf
+}
+.bp26-placements-dialog .admin-save-dialog__body{padding:28px 26px 24px}
+.bp26-placements-dialog #bp26-placements-description{color:#42594a}
+.bp26-placements-dialog__review{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px;
+  margin:16px 0 18px;
+  text-align:left
+}
+.bp26-placements-dialog__zone{
+  min-width:0;
+  padding:12px;
+  border:1px solid #c9dece;
+  border-radius:11px;
+  background:#f6faf5;
+  color:#21432c
+}
+.bp26-placements-dialog__zone strong{
+  color:#0e4c2d;
+  font-size:.92rem
+}
+.bp26-placements-dialog__zone ol{
+  margin:8px 0 0;
+  padding-left:19px;
+  font-size:.79rem;
+  line-height:1.55
+}
+.bp26-placements-dialog__zone li{
+  margin:0 0 7px;
+  padding-left:2px;
+  overflow-wrap:break-word
+}
+.bp26-placements-dialog__zone li:last-child{margin-bottom:0}
+.bp26-placements-dialog__zone li span{
+  color:#27633e;
+  font-weight:750;
+  white-space:nowrap
+}
+.bp26-placements-dialog__error{
+  color:#a12727!important;
+  font-weight:700;
+  font-size:.82rem
+}
+.bp26-placements-dialog__error:empty{display:none}
+.bp26-placements-dialog .admin-save-dialog__actions .primary{
+  background:#075634;
+  border-color:#075634;
+  color:#fff
+}
+.bp26-placements-dialog .admin-save-dialog__actions .primary:not(:disabled):hover{
+  background:#09452c
+}
+.bp26-placements-dialog .admin-save-dialog__actions .secondary{
+  background:#f0f3ee;
+  border-color:#b9cabb;
+  color:#224c31
+}
+.bp26-placements-dialog .admin-save-dialog__actions button:focus-visible{
+  outline:3px solid #b08e28;
+  outline-offset:2px
+}
+@media(max-width:500px){
+  .bp26-placements-dialog .admin-save-dialog__body{padding:22px 17px}
+  .bp26-placements-dialog__review{grid-template-columns:1fr}
+  .bp26-placements-dialog .admin-save-dialog__actions{grid-template-columns:1fr}
+}

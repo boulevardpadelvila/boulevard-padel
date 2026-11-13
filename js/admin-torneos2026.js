@@ -25,6 +25,31 @@
   const scoreError=dialog.querySelector('#bp26-score-error');
   let seq=0,busy=false,data=null,manual={},pendingMatch=null;
 
+  // Confirmación de posiciones oficial con modal propio, sin confirm() del navegador.
+  const placementsDialog=document.createElement('dialog');
+  placementsDialog.id='bp26-placements-dialog';
+  placementsDialog.className='admin-save-dialog bp26-placements-dialog';
+  placementsDialog.setAttribute('aria-labelledby','bp26-placements-title');
+  placementsDialog.setAttribute('aria-describedby','bp26-placements-description');
+  placementsDialog.innerHTML=`<div class="admin-save-dialog__body">
+      <span class="admin-save-dialog__icon" aria-hidden="true">✓</span>
+      <h2 id="bp26-placements-title">Confirmar posiciones oficiales</h2>
+      <p id="bp26-placements-description">Vas a fijar el orden de clasificación de cada zona. Con estas posiciones se determinarán los cruces de eliminatorias.</p>
+      <div id="bp26-placements-review" class="bp26-placements-dialog__review"></div>
+      <p class="admin-save-dialog__hint">Revisá el orden antes de continuar. Después de comenzar las eliminatorias, estas posiciones no podrán modificarse.</p>
+      <p id="bp26-placements-error" class="bp26-placements-dialog__error" role="alert"></p>
+      <div class="admin-save-dialog__actions">
+        <button type="button" class="secondary" id="bp26-placements-cancel">Cancelar</button>
+        <button type="button" class="primary" id="bp26-placements-accept">Sí, confirmar posiciones</button>
+      </div>
+    </div>`;
+  document.body.append(placementsDialog);
+  const placementsReview=placementsDialog.querySelector('#bp26-placements-review');
+  const placementsError=placementsDialog.querySelector('#bp26-placements-error');
+  const placementsCancel=placementsDialog.querySelector('#bp26-placements-cancel');
+  const placementsAccept=placementsDialog.querySelector('#bp26-placements-accept');
+  let pendingPlacements=null;
+
   const scheduleDialog=document.createElement('dialog');
   scheduleDialog.id='bp26-schedule-dialog';
   scheduleDialog.className='admin-save-dialog bp26-schedule-dialog';
@@ -122,6 +147,42 @@
     return e;
   };
   const note=(txt,err=false)=>{status.textContent=txt||'';status.classList.toggle('bp26-admin__status--error',err);};
+  placementsCancel.addEventListener('click',()=>{if(!busy)placementsDialog.close();});
+  placementsDialog.addEventListener('cancel',event=>{if(busy)event.preventDefault();});
+  placementsDialog.addEventListener('close',()=>{if(!busy)pendingPlacements=null;});
+  placementsAccept.addEventListener('click',async()=>{
+    if(busy||!pendingPlacements)return;
+    const {tournamentId,placements}=pendingPlacements;
+    if(select.value!==tournamentId||data?.bracket?.placements){
+      placementsError.textContent='El torneo cambió. Cerrá este mensaje y actualizá los datos.';
+      return;
+    }
+    busy=true;
+    placementsCancel.disabled=true;
+    placementsAccept.disabled=true;
+    placementsError.textContent='';
+    note('Confirmando posiciones…');
+    try{
+      const {error}=await supabaseClient.rpc('bp_tournament_confirm_placements2026',{
+        p_tournament_id:tournamentId,p_placements:placements
+      });
+      if(error)throw error;
+      pendingPlacements=null;
+      placementsDialog.close();
+      note('Posiciones oficiales confirmadas. Ya podés cargar eliminatorias.');
+      busy=false;
+      await load();
+    }catch(err){
+      console.error(err);
+      const message='No se pudieron confirmar las posiciones: '+(err.message||'revisá la conexión.');
+      placementsError.textContent=message;
+      note(message,true);
+    }finally{
+      busy=false;
+      placementsCancel.disabled=false;
+      placementsAccept.disabled=false;
+    }
+  });
   const nameOf=id=>data?.pairNames.get(id)||'Pareja sin identificar';
   const letter=i=>String.fromCharCode(64+Number(i));
   const metricSame=(a,b)=>a&&b&&a.points===b.points&&a.setDifference===b.setDifference&&a.gameDifference===b.gameDifference;
@@ -195,18 +256,28 @@
     if(allComplete && !data.bracket?.placements){
       const button=el('button','primary bp26-admin__confirm','Confirmar posiciones oficiales');
       button.type='button';button.disabled=busy;
-      button.addEventListener('click',async()=>{
-        if(!window.confirm('¿Confirmás el orden de todas las zonas? Después de disputar eliminatorias no podrá modificarse.'))return;
-        busy=true;button.disabled=true;note('Confirmando posiciones…');
-        try{
-          const {error}=await supabaseClient.rpc('bp_tournament_confirm_placements2026',{
-            p_tournament_id:data.tournament.id,p_placements:payload
+      button.addEventListener('click',()=>{
+        if(busy||!data||data.bracket?.placements)return;
+        pendingPlacements={
+          tournamentId:data.tournament.id,
+          placements:Object.fromEntries(Object.entries(payload).map(([zone,ids])=>[zone,[...ids]]))
+        };
+        placementsReview.replaceChildren();
+        for(const [zone,ids] of Object.entries(pendingPlacements.placements)){
+          const box=el('div','bp26-placements-dialog__zone');
+          box.append(el('strong','',`Zona ${zone}`));
+          const ordered=el('ol');
+          ids.forEach((id,i)=>{
+            const item=el('li','',nameOf(id));
+            if(i<2)item.append(el('span','', ' · Clasifica'));
+            ordered.append(item);
           });
-          if(error)throw error;
-          note('Posiciones oficiales confirmadas. Ya podés cargar eliminatorias.');
-          busy=false;await load();
-        }catch(err){console.error(err);note('No se pudieron confirmar posiciones: '+err.message,true);}
-        finally{busy=false;}
+          box.append(ordered);
+          placementsReview.append(box);
+        }
+        placementsError.textContent='';
+        placementsDialog.showModal();
+        placementsCancel.focus();
       });
       wrapper.append(button);
       if(pendingDecisions)wrapper.append(el('p','bp26-admin__hint','Revisá cuidadosamente los empates antes de confirmar; las flechas solo permiten cambiar parejas empatadas tras los criterios automáticos.'));
