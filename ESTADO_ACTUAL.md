@@ -10,7 +10,7 @@
 
 **ESTADO DEL CLIENTE:** dos pruebas de torneos (6 y 7 parejas) superadas; todavía **pendiente que Martín haga su propia prueba y dé OK definitivo**. La nueva validación de orden deberá incluirse en esa prueba.
 
-**RAMAS Y LAPTOP:** la rama temporal de SQL93 debe fusionarse a `main` tras CI y despliegue. Hay ramas históricas de trabajo ya reemplazadas por PR fusionados; el usuario autorizó dejar solo `main`. Tras fusionar, cerrar el PR WIP #20 (sustituido por #21) y eliminar ramas remotas sobrantes desde SSH en la laptop, ya que el conector GitHub disponible no ofrece eliminación de referencias. Confirmar finalmente `git status` y pruebas locales.
+**CIERRE DE GITHUB CONFIRMADO:** PR **#32** fusionado a `main`, commit funcional/documental **`604069257185a88f2e507fb8ea3aaccb81d0f50e`**; GitHub Actions Node/PostgreSQL/Chromium aprobadas y Cloudflare Pages **SUCCESS**. PR WIP #20 cerrado como obsoleto, **0 PR abiertos**. Persisten **13 ramas remotas históricas** (incluida la del PR #32); eliminación autorizada por el usuario, **a realizar desde su laptop mediante SSH** porque este conector no dispone de eliminación de refs. No confundir rama fusionada con rama borrada. Confirmar tras la limpieza `git branch -r`, `git status` y ejecución de pruebas locales. Próximo hito funcional: prueba y visto bueno definitivo de Martín.
 
 ---
 
