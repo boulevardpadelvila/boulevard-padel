@@ -1,6 +1,6 @@
 /* Boulevard Pádel · Admin: grupos y eliminatorias 2026 · 6 a 40 parejas.
  * Reutiliza resultados de fase de grupos y RPC protegidas de SQL90.
- * Jamás programa ni bloquea cancha; ni accede a reservas ni a contactos.
+ * Programa eliminatorias mediante RPC SQL92 que valida disponibilidad y protege reservas.
  */
 (() => {
   'use strict';
@@ -24,6 +24,98 @@
   const form=dialog.querySelector('#bp26-score-form');
   const scoreError=dialog.querySelector('#bp26-score-error');
   let seq=0,busy=false,data=null,manual={},pendingMatch=null;
+
+  const scheduleDialog=document.createElement('dialog');
+  scheduleDialog.id='bp26-schedule-dialog';
+  scheduleDialog.className='admin-save-dialog bp26-schedule-dialog';
+  scheduleDialog.innerHTML='<form id="bp26-schedule-form" class="admin-save-dialog__body">
+      <h2 id="bp26-schedule-title">Programar eliminatoria</h2>
+      <p id="bp26-schedule-rivals"></p>
+      <label for="bp26-schedule-day">Fecha</label>
+      <input type="date" id="bp26-schedule-day" required />
+      <label for="bp26-schedule-time">Hora de inicio</label>
+      <select id="bp26-schedule-time" required></select>
+      <label for="bp26-schedule-duration">Duración</label>
+      <select id="bp26-schedule-duration">
+        <option value="90">90 minutos</option>
+        <option value="120">120 minutos</option>
+      </select>
+      <p class="bp26-admin__hint">El sistema comprueba que la cancha esté libre de reservas, turnos fijos y otros partidos.</p>
+      <p id="bp26-schedule-error" role="alert"></p>
+      <div class="admin-save-dialog__actions">
+        <button type="button" id="bp26-schedule-cancel" class="secondary">Volver</button>
+        <button type="submit" id="bp26-schedule-save" class="primary">Guardar horario</button>
+      </div>
+    </form>';
+  document.body.append(scheduleDialog);
+  const scheduleForm=scheduleDialog.querySelector('#bp26-schedule-form');
+  const scheduleError=scheduleDialog.querySelector('#bp26-schedule-error');
+  const scheduleTime=scheduleDialog.querySelector('#bp26-schedule-time');
+  for(let hour=9;hour<=23;hour++)for(const minute of ['00','30']){
+    const t=String(hour).padStart(2,'0')+':'+minute;
+    scheduleTime.add(new Option(t,t));
+  }
+  let pendingScheduleMatch=null;
+  function matchTimeParts(value){
+    if(!value)return null;
+    const parts=Object.fromEntries(new Intl.DateTimeFormat('en-GB',{
+      timeZone:'America/Argentina/Cordoba',year:'numeric',month:'2-digit',day:'2-digit',
+      hour:'2-digit',minute:'2-digit',hourCycle:'h23'
+    }).formatToParts(new Date(value)).map(({type,value})=>[type,value]));
+    return {day:parts.year+'-'+parts.month+'-'+parts.day,time:parts.hour+':'+parts.minute};
+  }
+  function openSchedule(match){
+    if(busy||match.status==='played')return;
+    pendingScheduleMatch=match;
+    scheduleError.textContent='';
+    scheduleDialog.querySelector('#bp26-schedule-title').textContent=
+      match.schedule_status==='scheduled'?'Reprogramar eliminatoria':'Programar eliminatoria';
+    scheduleDialog.querySelector('#bp26-schedule-rivals').textContent=
+      (match.pair1_name||sourceLabel(match.source1))+' vs. '+(match.pair2_name||sourceLabel(match.source2));
+    const local=matchTimeParts(match.scheduled_at);
+    scheduleDialog.querySelector('#bp26-schedule-day').value=local?.day||'';
+    scheduleTime.value=local?.time||'19:00';
+    scheduleDialog.querySelector('#bp26-schedule-duration').value=match.scheduled_at&&match.scheduled_ends_at?
+      String(Math.round((Date.parse(match.scheduled_ends_at)-Date.parse(match.scheduled_at))/60000)):'90';
+    scheduleDialog.showModal();
+  }
+  scheduleDialog.querySelector('#bp26-schedule-cancel').addEventListener('click',()=>{if(!busy)scheduleDialog.close();});
+  scheduleForm.addEventListener('submit',async event=>{
+    event.preventDefault();
+    if(busy||!pendingScheduleMatch)return;
+    const day=scheduleDialog.querySelector('#bp26-schedule-day').value;
+    const time=scheduleTime.value;
+    if(!day||!time){scheduleError.textContent='Elegí fecha y hora.';return;}
+    const stamp=new Date(day+'T'+time+':00-03:00');
+    if(!Number.isFinite(stamp.getTime())){scheduleError.textContent='Fecha inválida.';return;}
+    busy=true;scheduleError.textContent='Comprobando disponibilidad…';
+    try{
+      const {error}=await supabaseClient.rpc('bp_tournament_schedule_bracket_match2026',{
+        p_match_id:pendingScheduleMatch.id,
+        p_start:stamp.toISOString(),
+        p_duration_minutes:Number(scheduleDialog.querySelector('#bp26-schedule-duration').value),
+        p_court_label:null
+      });
+      if(error)throw error;
+      pendingScheduleMatch=null;scheduleDialog.close();busy=false;
+      await load();
+    }catch(err){console.error(err);scheduleError.textContent=err.message||'No se pudo programar ese horario.';}
+    finally{busy=false;}
+  });
+  async function postponeSchedule(match){
+    if(busy||match.schedule_status!=='scheduled'||match.status==='played')return;
+    if(!window.confirm('¿Postergar este partido y liberar su horario de cancha?'))return;
+    busy=true;note('Liberando únicamente el horario de este partido…');
+    try{
+      const {error}=await supabaseClient.rpc('bp_tournament_schedule_bracket_match2026',{
+        p_match_id:match.id,p_start:null,p_duration_minutes:null,p_court_label:null
+      });
+      if(error)throw error;
+      busy=false;await load();
+    }catch(err){console.error(err);note(err.message||'No se pudo postergar el partido.',true);}
+    finally{busy=false;}
+  }
+
   const el=(tag,cls,content)=>{
     const e=document.createElement(tag);if(cls)e.className=cls;
     if(content!=null)e.textContent=String(content);
@@ -147,6 +239,29 @@
       card.append(el('strong','',`Partido ${stage===0?'P'+match.slot:'R'+stage+'-'+match.slot}`),
         el('div','',first+'  vs.  '+second));
       if(match.status==='played')card.append(el('p','bp26-admin__score','Resultado: '+match.sets.map(x=>x.join('-')).join(' · ')));
+      const scheduling=el('div','bp26-admin__schedule');
+      if(match.schedule_status==='scheduled' && match.scheduled_at){
+        scheduling.append(el('p','bp26-admin__when',
+          'Programado: '+new Intl.DateTimeFormat('es-AR',{
+            timeZone:'America/Argentina/Cordoba',day:'2-digit',month:'2-digit',year:'numeric',
+            hour:'2-digit',minute:'2-digit',hourCycle:'h23'
+          }).format(new Date(match.scheduled_at))));
+      }else if(match.schedule_status==='postponed'){
+        scheduling.append(el('p','bp26-admin__when','Partido postergado'));
+      }else scheduling.append(el('p','bp26-admin__when','Horario a definir'));
+      if(match.status!=='played'){
+        const plan=el('button','torneos-outline',
+          match.schedule_status==='scheduled'?'Reprogramar':'Programar');
+        plan.type='button';plan.disabled=busy;plan.addEventListener('click',()=>openSchedule(match));
+        scheduling.append(plan);
+        if(match.schedule_status==='scheduled'){
+          const postpone=el('button','torneos-outline','Postergar');
+          postpone.type='button';postpone.disabled=busy;
+          postpone.addEventListener('click',()=>postponeSchedule(match));
+          scheduling.append(postpone);
+        }
+      }
+      card.append(scheduling);
       const score=el('button','torneos-outline',match.status==='played'?'Corregir resultado':'Cargar resultado');
       score.type='button';score.disabled=busy||!match.pair1_id||!match.pair2_id;
       score.addEventListener('click',()=>openScore(match));
