@@ -227,6 +227,11 @@
   overflow-wrap:break-word
 }
 
+/* El bloque de resultados también debe ocupar el ancho en tarjetas flex. */
+.public-tournaments .public-tournament-group-results{
+  width:100%;
+  min-width:0
+}
 /* Resultados: mantener las fechas agrupadas, pero no un partido por fila. */
 .public-tournaments .public-tournament-group-results .public-tournament-days,
 .public-tournaments .public-tournament-group-results .public-tournament-days--1,
