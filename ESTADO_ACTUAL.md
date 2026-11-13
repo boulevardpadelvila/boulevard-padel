@@ -1,5 +1,15 @@
 # Boulevard Pádel — ESTADO ACTUAL / RELEVO ENTRE CHATS
 
+## 13/11/2026 — Admin Torneos: botones uniformes (PR #35 FUSIONADO)
+
+**ENTREGADO EN MAIN:** PR #35, merge `762dd3d29ffc5a7d0a243ce8d1874aee0b799d2d`. La distribución de acciones de cada tarjeta en «Torneos registrados» usa ahora una grilla `auto-fit` con columnas de igual ancho y botones de 42 px de altura; se adapta automáticamente a 6, 7 o cualquier otra cantidad y al ancho de la tarjeta en PC/tablet/celular. Solo cambió `css/admin-torneos-compacto61.css` y se sumó un test de regresión. **No se tocó** `js/admin-torneos.js`, estado de inscripciones, base de datos, reservas ni turnos fijos. El botón «Cerrar inscripciones» desaparece normalmente cuando el torneo ya está cerrado, excepto el caso especial de borrador que conserva la acción propia. CI Node, PostgreSQL 17 aislado, Chromium móvil y Cloudflare Preview completó correctamente. **Pendiente:** comprobación visual con un torneo de prueba en el Admin desplegado, sin alterar datos reales, y limpiar rama temporal remota `fix/torneos-botones-uniformes-20261113` cuando la laptop esté sincronizada.
+
+## 13/11/2026 — Primera ejecución horaria real del respaldo de Drive
+
+**VERIFICADO EN HISTORIAL DE AUTOMATIZACIÓN:** tarea «Respaldo Boulevard Pádel» programada 18:59 hora argentina, iniciada 18:59:09 y completada 19:00:12 del 13/11/2026, estado `completed`, sin error ni acción requerida. Validó por lectura 31 reservas confirmadas y 3 turnos fijos aprobados de Supabase, iguales a ambas pestañas de la planilla del Drive propio de BP, cuatro campos completos. **Como ya estaban sincronizados, no escribió la planilla** (la ejecución está comprobada, pero todavía no se demostró una actualización efectiva al aparecer datos nuevos). Próxima comprobación prevista 19:59. No se alteraron registros ni permisos.
+
+---
+
 ## 13/11/2026 — Admin Reservas: seis botones en fila y aviso de exportación modal (VIGENTE)
 
 **IMPLEMENTADO Y FUSIONADO:** PR #34, commit de código `74494095448cbadb47cced63c4b70aba99522f7b`. Los botones Hoy, + Nueva reserva, Ver canceladas, Actualizar, Exportar reservas (CSV) y Limpiar historial están en una misma fila, con columnas iguales, altura 48 px, fuente Inter 13,5 px y etiquetas sin salto de línea; en tablet/móvil una fila se desplaza horizontalmente para no disminuir legibilidad. La hoja `css/admin-respaldos-ui.css` se carga después de las CSS históricas y afecta exclusivamente las acciones de Reservas, sin alterar Torneos ni Turnos fijos.
