@@ -87,12 +87,24 @@
     node.textContent = message;
     node.style.color = error ? "#a13232" : "";
   }
+  let exportReturnFocus = null;
+  function showCsvDialog({ title, description, hint, error = false }, button) {
+    const dialog = $("bp-backup-dialog");
+    if (!dialog || typeof dialog.showModal !== "function") return;
+    $("bp-backup-dialog-title").textContent = title;
+    $("bp-backup-dialog-description").textContent = description;
+    $("bp-backup-dialog-hint").textContent = hint;
+    $("bp-backup-dialog-icon").textContent = error ? "!" : "✓";
+    dialog.dataset.result = error ? "error" : "success";
+    exportReturnFocus = button;
+    dialog.showModal();
+    $("bp-backup-dialog-close").focus();
+  }
   async function runCsv(kind) {
     const button = $(kind === "reservas" ? "bp-backup-reservations" : "bp-backup-fixed");
-    const statusId = kind === "reservas" ? "bp-backup-reservations-message" : "bp-backup-fixed-message";
     if (!button || button.disabled) return;
     button.disabled = true;
-    info(statusId, "Preparando el respaldo…");
+    let result;
     try {
       await requireAdmin();
       const list = kind === "reservas" ? await pages(() => supabaseClient
@@ -108,13 +120,24 @@
       const [dd, mm, yyyy] = dateTime(new Date().toISOString())[0].split("/");
       const today = yyyy + "-" + mm + "-" + dd;
       downloadCsv("boulevard-padel-" + kind + "-" + today + ".csv", rows);
-      info(statusId, "CSV generado: " + rows.length + " registros. Guardalo en el Drive de BP.");
+      result = {
+        title: "CSV generado",
+        description: `Se preparó la descarga de ${rows.length} ${rows.length === 1 ? "registro" : "registros"} de ${kind === "reservas" ? "reservas" : "turnos fijos"}.`,
+        hint: "El archivo se descargó a tu computadora. Podés guardarlo como copia adicional en el Drive de BP.",
+      };
     } catch (err) {
       console.error("No se pudo generar el respaldo administrativo", err);
-      info(statusId, "No se generó un respaldo completo. Verificá tu acceso e intentá nuevamente.", true);
+      result = {
+        title: "No se pudo exportar",
+        description: "No se generó un respaldo completo. Verificá tu acceso e intentá nuevamente.",
+        hint: "No se descargó ningún archivo de esta operación.",
+        error: true,
+      };
     } finally {
+      // El botón conserva su lugar y queda habilitado otra vez, incluso si falló.
       button.disabled = false;
     }
+    showCsvDialog(result, button);
   }
   async function tournamentData(t) {
     const id = t.id;
@@ -229,8 +252,16 @@
   }
   function init() {
     const r = $("bp-backup-reservations"), f = $("bp-backup-fixed");
+    const dialog = $("bp-backup-dialog");
     if (r) r.addEventListener("click", () => runCsv("reservas"));
     if (f) f.addEventListener("click", () => runCsv("fijos"));
+    if (dialog) {
+      $("bp-backup-dialog-close")?.addEventListener("click", () => dialog.close());
+      dialog.addEventListener("close", () => {
+        if (exportReturnFocus?.isConnected) exportReturnFocus.focus();
+        exportReturnFocus = null;
+      });
+    }
   }
   const api = { exportTournament, normalizeReservations, normalizeFixed, tournamentHtml, toCsv, dateTime, html, setsLabel };
   if (typeof window !== "undefined") {
