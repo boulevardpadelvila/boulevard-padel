@@ -1,5 +1,16 @@
 # Boulevard Pádel — ESTADO ACTUAL / RELEVO ENTRE CHATS
 
+## 13/11/2026 — Respaldo operativo externo (FASE MANUAL IMPLEMENTADA / AUTOMÁTICA PENDIENTE)
+
+**Nuevo módulo en Admin, por PR #33 (pendiente de fusionar hasta pasar CI):** botón «Exportar reservas (CSV)» en Reservas y «Exportar turnos fijos (CSV)» en Turnos fijos; archivos con **exactamente 4 columnas: Nombre, Día, Hora, Teléfono**, sin código, correo, observaciones ni estado. Para reservas se exportan `confirmed` y para turnos fijos, `approved`, con paginación y hora argentina. Se incorpora botón «PDF del torneo» en cada torneo, con informe A4 imprimible de participantes y resultados, sin teléfonos; se guarda mediante el navegador y después se sube a Google Drive.
+
+**LIMITACIÓN IMPORTANTE:** NO existe todavía respaldo automático, Google Sheet en Drive de BP, ni integración con Google Drive. El conector Drive disponible sólo ofrece cuentas TecnoGestión JotaPe y Personal, **no la cuenta propia de Boulevard Pádel**; no crear copias privadas del cliente en cuentas ajenas. Las exportaciones actuales deben ejecutarse manualmente mientras Admin y Supabase están disponibles y luego subirse al Drive de BP. La próxima etapa depende de conectar y autorizar Drive de BP y habilitar una sincronización externa y segura (mínimo privilegio, sin service_role en frontend).
+
+**CALIDAD Y SEGURIDAD:** se añadieron pruebas Node de columnas exactas, zona horaria, protección contra CSV injection, autenticación Admin, HTML escapado y PDF de torneo. Sin cambios de base de datos, pagos ni turnero. Referencia operativa: `docs/RESPALDO_DRIVE_BOULEVARD_PADEL.md`. Mantener como **pendiente** de activación automática hasta realizar una sincronización real y verificar el archivo Drive. La aceptación general de Torneos por Martín continúa pendiente.
+
+---
+
+
 ## 13/11/2026 — SQL93: orden obligatorio de grupos antes de publicar (ESTADO VIGENTE)
 
 **CORREGIDO, PROBADO E INSTALADO EN SUPABASE:** cuando un torneo de Grupos + Eliminatorias usa el Reglamento 2026 (6–40 parejas), las zonas con **4 parejas deben ser las primeras: A, B, C...**; las restantes quedan con 3. Ejemplos: 7=A4/B3; 10=A4/B3/C3; 11=A4/B4/C3; 14=A4/B4/C3/D3. El Admin (`js/admin-grupos.js`) consulta `rules_version`, muestra advertencia y **deshabilita Publicar grupos y la habilitación de fixture** si la distribución es incorrecta, pero permite seguir moviendo e intercambiando parejas y volver a sortear. La validación **real y obligatoria es del servidor**, mediante la migración SQL93 `bp_sql93_validacion_orden_grupos_2026` que reemplaza únicamente el cuerpo del trigger existente `bp_tournament_validate_group_sizes_3_4()`, sin cambiar permisos ni operaciones históricas. El publicador del fixture 2026 ya validaba esta condición antes de SQL93.
