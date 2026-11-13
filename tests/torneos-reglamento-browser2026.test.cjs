@@ -146,7 +146,7 @@ test("Admin 2026: dos tablas legibles y tarjetas compactas en escritorio y móvi
   assert.equal(desktop.groupWidths.length,2);
   assert.ok(desktop.groupWidths.every(x=>x>500),JSON.stringify(desktop));
   assert.ok(desktop.cardHeights.every(x=>x<125),JSON.stringify(desktop));
-  assert.match(desktop.bg,/rgb\(24[0-9],\s*2[34][0-9],\s*24[0-9]\)/);
+  assert.match(desktop.bg,/rgb\(247,\s*250,\s*246\)/);
   assert.match(desktop.text,/rgb\(3[0-9],\s*6[0-9],\s*4[0-9]\)/);
   await page.setViewportSize({width:390,height:844});
   const mobile=await page.evaluate(()=>{
