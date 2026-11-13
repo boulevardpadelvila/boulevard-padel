@@ -35,6 +35,7 @@
     <link rel="stylesheet" href="../css/torneos-tablas87.css" />
     <link rel="stylesheet" href="../css/admin-limpieza88.css" />
       <link rel="stylesheet" href="../css/admin-torneos2026.css" />
+    <link rel="stylesheet" href="../css/admin-respaldos-ui.css" />
   </head>
   <body>
     <main class="admin-shell">
@@ -316,10 +317,9 @@
               <button type="button" id="bp-cleanup88-open"
                 class="secondary bp-cleanup88__trigger">Limpiar historial</button>
             </div>
-            <p id="bp-backup-reservations-message" class="muted" aria-live="polite"></p>
-            <p class="bp-cleanup88__feedback" id="bp-cleanup88-feedback"
-              aria-live="polite"></p>
           </div>
+          <p class="bp-cleanup88__feedback" id="bp-cleanup88-feedback"
+            aria-live="polite"></p>
           <section
             id="new-booking-panel"
             class="booking-editor"
@@ -1003,7 +1003,6 @@
               </button>
             </div>
           </div>
-          <p id="bp-backup-fixed-message" class="muted" aria-live="polite"></p>
           <p
             id="admin-fixed-message"
             class="message"
@@ -1633,6 +1632,23 @@
             </button>
             <button type="button" class="primary" id="admin-save-dialog-accept">
               Sí, guardar
+            </button>
+          </div>
+        </div>
+      </dialog>
+      <!-- Exportación informativa de reservas y turnos fijos, sin avisos sueltos. -->
+      <dialog id="bp-backup-dialog" class="admin-save-dialog bp-backup-dialog"
+        aria-labelledby="bp-backup-dialog-title"
+        aria-describedby="bp-backup-dialog-description">
+        <div class="admin-save-dialog__body">
+          <span id="bp-backup-dialog-icon" class="admin-save-dialog__icon"
+            aria-hidden="true">✓</span>
+          <h2 id="bp-backup-dialog-title">Respaldo generado</h2>
+          <p id="bp-backup-dialog-description" role="status" aria-live="polite"></p>
+          <p id="bp-backup-dialog-hint" class="admin-save-dialog__hint"></p>
+          <div class="admin-save-dialog__actions">
+            <button type="button" class="primary" id="bp-backup-dialog-close">
+              Entendido
             </button>
           </div>
         </div>
