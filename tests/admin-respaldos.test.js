@@ -52,3 +52,29 @@ test("las consultas de respaldo son solo para administradores y CSV de reservas 
   assert.match(admin,/action\("PDF del torneo"/);
   assert.doesNotMatch(src,/service_role|SERVICE_ROLE_KEY|api\.google\.com|localStorage\.setItem/i);
 });
+
+test("PDF de torneo contiene parejas, ganador y marcadores sin teléfonos y escapa HTML",()=>{
+  const doc=backup.tournamentHtml({
+    id:"t",name:"Copa <script>alert(1)</script>",format:"groups_knockout",
+    status:"completed",starts_on:"2026-11-13"
+  },{
+    pairs:[
+      {id:"p1",status:"approved",player1_name:"Ana",player2_name:"Sofía"},
+      {id:"p2",status:"approved",player1_name:"Lucía",player2_name:"Inés"}
+    ],
+    groups:[],groupMembers:[],groupMatches:[],groupResults:[],
+    bracket:{matches:[{
+      stage:1,slot:1, pair1_id:"p1",pair2_id:"p2",
+      pair1_name:"Ana y Sofía",pair2_name:"Lucía y Inés",
+      status:"played",sets:[[6,4],[6,3]],winner_pair_id:"p1"
+    }]},
+    leagueMatches:[],leagueFinals:[]
+  });
+  assert.match(doc,/Campeones/);
+  assert.match(doc,/Subcampeones/);
+  assert.match(doc,/6-4 · 6-3/);
+  assert.match(doc,/Copa &lt;script&gt;/);
+  assert.doesNotMatch(doc,/<script>alert/);
+  assert.doesNotMatch(doc,/Teléfono|booking_phone|contact_phone/i);
+  assert.match(doc,/Guardar como PDF/);
+});
