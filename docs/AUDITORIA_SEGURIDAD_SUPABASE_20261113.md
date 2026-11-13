@@ -84,8 +84,53 @@ o `verify_jwt`.
   previo; ante un problema comprobado, restaurar grants explícitos según
   el inventario, sin tocar información real.
 
-## Estado al crear el borrador
+## Estado verificado en producción — 13/11/2026
 
-SQL94 preparado en rama independiente y pendiente de CI / despliegue.
-Actualizar este apartado con los resultados reales antes de declarar
-que producción está protegida.
+**IMPLEMENTADO:** PR #36 fusionado en `main`, merge
+`0955f63e64f73e0b112414ac5d6db302e5958bb4`. Se ejecutó la migración
+Supabase `bp_sql94_minimo_privilegio_rpc_localhost_2026`
+(version `20261113232433`): resultado `success: true`.
+
+**CI antes de producción:** aprobadas las seis comprobaciones de PR:
+suite Node general y específica SQL94, PostgreSQL 17 temporal SQL94,
+PostgreSQL 17 SQL89, Chromium móvil de Liga y Cloudflare Pages.
+
+**Post-verificación SQL de solo lectura:**
+- Los **15/15** disparadores identificados niegan EXECUTE a
+  `anon` y `authenticated`, conservándolo para `service_role`.
+- `rls_auto_enable` no es invocable por `anon`.
+- `create_admin_booking_flexible` y
+  `update_admin_booking_flexible`: `anon=false`,
+  `authenticated=true`.
+- `generate_booking_code`: `anon=false`,
+  `service_role=true`.
+- RPC públicas `get_booking_config`,
+  `get_available_slots_flexible`, `get_booking_by_code`,
+  `cancel_booking_by_code`, `bp_public_tournament_followup`
+  e `is_admin`: EXECUTE de `anon` conservado.
+- `set_updated_at`: `search_path` definido explícitamente.
+- **Consulta real con rol anon y transacción READ ONLY**:
+  una fila de configuración, 30 horarios de ejemplo para mañana,
+  cero coincidencias para código ficticio inexistente, verificaciones
+  `is_admin()` y `bp_tournament_is_admin()` ambas falsas y
+  ningún dato de torneo ficticio no publicado. Sin cambios de datos.
+
+**Datos antes y después:** 41 reservas totales, 31 `confirmed`,
+4 solicitudes de fijos, 3 `approved`, 4 cierres/bloqueos y 0 torneos.
+Recuentos exactamente iguales; ninguna reserva fue creada o cancelada.
+
+**Advisors:** bajaron las advertencias de funciones SECURITY DEFINER
+ejecutables por anónimos **30 → 11**, las de rol autenticado **69 → 52**;
+`function_search_path_mutable` desapareció. Persisten dos vistas
+`SECURITY DEFINER` públicas intencionales, protección contra contraseñas
+filtradas deshabilitada y aviso por extensión `btree_gist` en `public`.
+No se reporta seguridad perfecta ni se modifica la exposición necesaria
+para reservar, consultar, inscribir parejas o seguir torneos.
+
+**Próxima validación manual no destructiva:** cargar el Admin desde
+Cloudflare y localhost con sesión válida, comprobar la apertura de
+formularios, consulta de turnos y navegación de Torneos sin guardar
+registros de prueba en producción. Para eliminar las dos advertencias
+de vistas será necesario diseñar sustitutos sanitizados y probarlos
+contra las mismas consultas públicas; nunca activar `security_invoker`
+a ciegas.
