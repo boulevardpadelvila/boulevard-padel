@@ -556,7 +556,7 @@
           "Grupo completo. Las posiciones empatadas requieren definición.";
       } else if (pairCount === 3) {
         message = "Grupo completo. Clasifican las dos primeras parejas.";
-      } else if (pairCount === 4 && groups.length === 2) {
+      } else if (pairCount === 4 && groups.length === 2 && Number(t.rules_version) !== 2026) {
         message = "Grupo completo. Clasifican dos parejas.";
       } else if (pairCount === 4) {
         message = "Grupo completo. Clasifican las tres primeras parejas.";
