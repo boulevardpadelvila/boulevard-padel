@@ -596,7 +596,7 @@
         supabaseClient
           .from("bp_tournaments")
           .select(
-            "id,name,format,status,groups_published_at,fixture_published_at",
+            "id,name,format,rules_version,status,groups_published_at,fixture_published_at",
           )
           .eq("id", id)
           .maybeSingle(),
@@ -637,6 +637,12 @@
       if (seq !== loadId || id !== select.value) return;
       const bad = [tr, gr, ar, pr, mr, rr, br].find((x) => x.error);
       if (bad) throw bad.error;
+      // SQL90: los torneos nuevos usan llaves completas desde el sorteo.
+      // No invocar el modo histórico de 4/7 clasificadas.
+      if (Number(tr.data?.rules_version) === 2026) {
+        panel.hidden = true;
+        return;
+      }
       if (!tr.data || tr.data.format !== "groups_knockout") {
         panel.hidden = true;
         return;
