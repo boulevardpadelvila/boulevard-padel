@@ -1,5 +1,26 @@
 # Boulevard Pádel — Respaldo externo en Google Drive (13/11/2026)
 
+## 13/11/2026 — Drive de BP conectado: copia inicial real y actualización programada
+
+**Drive verificado:** la cuenta conectada es `boulevardpadelvila@gmail.com`, del propio Boulevard Pádel. Se creó **una planilla nativa de Google Sheets** en ese Drive (sin usar cuentas personales):
+
+<https://docs.google.com/spreadsheets/d/1ZO1QlRvVrfwlDMBb9QpuXfyfD8IQm7ewMb5Uw6MzUys/edit>
+
+**Primera copia confirmada:** pestaña `Reservas` (31 registros confirmados, 32 filas con encabezado) y pestaña `Turnos fijos` (3 solicitudes aprobadas, 4 filas con encabezado). En cada pestaña figuran **exactamente cuatro columnas: Nombre, Día, Hora y Teléfono**. Se verificaron encabezados, cantidad de filas, ausencia de valores vacíos, filtros y zona horaria `America/Argentina/Cordoba`.
+
+**Automatización habilitada:** se creó una tarea recurrente de ChatGPT denominada `Respaldo Boulevard Pádel`, de frecuencia **HOURLY**, que debe leer Supabase únicamente en modo lectura y actualizar ambas pestañas con una operación conjunta a través de la conexión privada de Google Drive. **Esta tarea depende de las conexiones activas de ChatGPT a Supabase y Google Drive**; no es una función autónoma de Cloudflare, GitHub, Apps Script ni un job del propio Supabase. Debe conservar la última copia si hay fallos, datos incompletos, un vaciado sospechoso o pérdida de acceso. **Al escribir este bloque, la primera ejecución futura aún NO se verificó**: es correcto decir «tarea programada», no «sincronización automática comprobada». Próxima ejecución prevista por la plataforma: 13/11/2026, aproximadamente 18:59 hora de Argentina.
+
+**Recuperación ante caída:** abrir el enlace de Google Sheets desde la cuenta de BP, consultar los registros ya copiados; no sobrescribir ni borrar la copia en caso de un fallo de origen. El PDF de torneos continúa siendo **manual** mediante «PDF del torneo» en el Admin y debe guardarse en el Drive de BP. Los botones CSV siguen disponibles como copia manual adicional.
+
+**Pendiente de validación técnica:** comprobar la primera ejecución y una variación real de datos, además de verificar que las conexiones sigan activas. No se alteraron datos del turnero ni se ejecutaron cambios SQL en producción para esta integración.
+
+---
+
+
+## Estado original de la fase manual (histórico)
+
+> Las indicaciones «pendiente de conectar Drive» de esta sección describen el estado anterior al alta de la planilla y la tarea. El estado vigente está arriba.
+
 ## Estado real
 
 - **IMPLEMENTADO en Admin:** exportación manual de **reservas confirmadas** y **turnos fijos aprobados** a CSV; cada archivo presenta **exactamente cuatro columnas**: Nombre, Día, Hora, Teléfono.
