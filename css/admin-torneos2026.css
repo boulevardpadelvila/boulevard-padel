@@ -175,6 +175,10 @@
   border-color:#d0b76c;
   color:#534316
 }
+/* En escritorio, Programar y Cargar resultado comparten la misma línea inferior. */
+@media(min-width:1051px){
+  #bp26-admin .bp26-admin__match>button.torneos-outline{align-self:end}
+}
 @media(max-width:1050px){
   #bp26-admin .bp26-admin__match{
     grid-template-columns:minmax(90px,120px) minmax(0,1fr) minmax(145px,185px);
