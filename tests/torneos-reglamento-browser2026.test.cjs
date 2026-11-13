@@ -1,0 +1,87 @@
+/* Boulevard Pádel · CI Chromium sin red: Admin y público de eliminatorias 2026. */
+"use strict";
+const {test,before,after}=require("node:test");
+const assert=require("node:assert/strict");
+const path=require("node:path");
+const {chromium}=require("playwright");
+const src=name=>path.resolve(__dirname,"..",name);
+let browser;
+before(async()=>{browser=await chromium.launch({headless:true});});
+after(async()=>{if(browser)await browser.close();});
+
+test("Público 2026: 40 parejas muestra TODA la llave y horas futuras sin datos privados",async()=>{
+  const page=await browser.newPage({viewport:{width:390,height:844}});
+  await page.setContent("<!doctype html><html><head></head><body><main id='root'></main></body></html>");
+  await page.addStyleTag({path:src("css/torneos-bracket2026.css")});
+  await page.addScriptTag({path:src("js/torneos-reglamento-2026.js")});
+  await page.addScriptTag({path:src("js/torneos-bracket2026-public.js")});
+  const outcome=await page.evaluate(()=>{
+    const n=40,plan=BPReglamento2026.groupPlan(n);
+    const groups=plan.sizes.map((size,i)=>({number:i+1,pairs:Array.from({length:size},(_,j)=>({id:i*4+j}))}));
+    const model=BPBracket2026Public.rounds(n);
+    const total=model.rounds.reduce((s,r)=>s+r.matches.length,0);
+    const fixture=[{id:"fixture-1"}];
+    const matches=[{stage:0,slot:1,pair1_name:"Ana y Sol",pair2_name:null,
+      schedule_status:"scheduled",scheduled_at:"2027-03-20T22:00:00.000Z"}];
+    const node=BPBracket2026Public.render({format:"groups_knockout"},groups,fixture,{matches});
+    document.getElementById("root").append(node);
+    return {count:document.querySelectorAll(".bp26-public__match").length,
+      expected:total,heading:node.querySelector("summary").textContent,
+      text:node.textContent};
+  });
+  assert.equal(outcome.count,outcome.expected);
+  assert.match(outcome.heading,/Cuadro de eliminatorias/);
+  assert.match(outcome.text,/Ana y Sol/);
+  assert.match(outcome.text,/Programado:/);
+  assert.doesNotMatch(outcome.text,/contact_phone|service_role/);
+  await page.close();
+});
+
+test("Admin 2026: abrir horario y enviar RPC nueva con marcador aún desconocido",async()=>{
+  const page=await browser.newPage({viewport:{width:390,height:844},timezoneId:"America/Argentina/Cordoba"});
+  await page.setContent('<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"></head><body><select id="torneos-pairs-tournament"><option value="t1" selected>Campeonato</option></select><section id="bp-results-panel"></section></body></html>');
+  await page.evaluate(()=>{
+    const rows={
+      bp_tournament_groups:[],bp_tournament_group_pairs:[],bp_tournament_pairs:[],
+      bp_tournament_group_matches:[],bp_tournament_match_results:[]
+    };
+    const tournament={id:"t1",format:"groups_knockout",rules_version:2026,
+      status:"registration_closed",fixture_published_at:"2026-11-13T00:00:00Z",
+      groups_published_at:"2026-11-13T00:00:00Z"};
+    const report={published:true,placements:null,matches:[
+      {id:"ko1",stage:1,slot:1,source1:"1° A",source2:"2° B",
+       pair1_name:null,pair2_name:null,pair1_id:null,pair2_id:null,status:"pending",schedule_status:"unscheduled"},
+      {id:"ko2",stage:1,slot:2,source1:"2° A",source2:"1° B",
+       pair1_name:null,pair2_name:null,pair1_id:null,pair2_id:null,status:"pending",schedule_status:"unscheduled"},
+      {id:"ko3",stage:2,slot:1,source1:"W:1:1",source2:"W:1:2",
+       pair1_name:null,pair2_name:null,pair1_id:null,pair2_id:null,status:"pending",schedule_status:"unscheduled"}
+    ]};
+    const wrapper=(value)=>{
+      const query={select(){return query},eq(){return query},order(){return query},
+        maybeSingle(){return Promise.resolve({data:value,error:null})},
+        then(yes,no){return Promise.resolve({data:value,error:null}).then(yes,no)}};
+      return query;
+    };
+    window.supabaseClient={
+      from(table){return wrapper(table==="bp_tournaments"?tournament:rows[table]||[]);},
+      rpc(name,args){
+        window.lastRpc={name,args};
+        return Promise.resolve({data:name==="bp_tournament_bracket_report2026"?report:{},error:null});
+      }
+    };
+    window.confirm=()=>true;
+  });
+  await page.addScriptTag({path:src("js/torneos-reglamento-2026.js")});
+  await page.addScriptTag({path:src("js/admin-torneos2026.js")});
+  await page.waitForSelector("#bp26-admin:not([hidden])");
+  assert.equal(await page.getByText("Programar",{exact:true}).count(),3);
+  await page.getByText("Programar",{exact:true}).first().click();
+  await page.locator("#bp26-schedule-day").fill("2027-04-01");
+  await page.locator("#bp26-schedule-time").selectOption("19:00");
+  await page.locator("#bp26-schedule-save").click();
+  const call=await page.evaluate(()=>window.lastRpc);
+  assert.equal(call.name,"bp_tournament_schedule_bracket_match2026");
+  assert.equal(call.args.p_match_id,"ko1");
+  assert.equal(call.args.p_duration_minutes,90);
+  await page.close();
+});
