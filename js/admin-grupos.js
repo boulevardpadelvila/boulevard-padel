@@ -1650,7 +1650,7 @@
         supabaseClient
           .from("bp_tournaments")
           .select(
-            "id,name,format,status,is_published,groups_published_at,fixture_published_at",
+            "id,name,format,rules_version,status,is_published,groups_published_at,fixture_published_at",
           )
           .eq("id", tournamentId)
           .maybeSingle(),
@@ -1714,19 +1714,42 @@
         Math.max(...groupSizes) <= 4 &&
         Math.max(...groupSizes) - Math.min(...groupSizes) <= 1 &&
         groups.length === Math.floor(approved.length / 3);
-      const eligible =
+      // Reglamento 2026: si hay grupos de 4, siempre A, B, C... primero.
+      // Se permite seguir reorganizando parejas antes de publicar.
+      const isRules2026 = Number(tournament.rules_version) === 2026;
+      const orderedGroups = !isRules2026 || (
+        approved.length >= 6 &&
+        approved.length <= 40 &&
+        groups.every((g, index) =>
+          g.group_number === index + 1 &&
+          groupSizes[index] === (index < approved.length % 3 ? 4 : 3)
+        )
+      );
+      const canOrganize =
         tournament.status === "registration_closed" &&
         !pairs.some((p) => p.status === "pending") &&
         approved.length >= groups.length * 3 &&
         complete &&
         balanced;
+      const eligible = canOrganize && orderedGroups;
       renderGroups(
         groups,
         assignments,
         pairs,
         published,
-        !published && eligible && groups.length > 1,
+        !published && canOrganize && groups.length > 1,
       );
+      if (!published && canOrganize && !orderedGroups) {
+        const expected = groups
+          .map((g, index) =>
+            `Grupo ${labelForGroup(index + 1)}: ${index < approved.length % 3 ? 4 : 3}`
+          )
+          .join(" · ");
+        notice(
+          `No podés publicar esta distribución. Debe ser: ${expected}. Mové parejas o repetí el sorteo.`,
+          "error",
+        );
+      }
       redraw.hidden = false;
       groupActions.hidden = false;
       groupActions.classList.toggle(
@@ -1740,8 +1763,11 @@
         ? "Los grupos ya están publicados y no pueden modificarse."
         : eligible
           ? "Publicar los grupos definitivos, previa confirmación."
-          : "Para publicar, resolvé las solicitudes pendientes y verificá asignaciones y equilibrio.";
-      redraw.disabled = busy || published || !eligible;
+          : !orderedGroups
+            ? "Los grupos de 4 deben ser los primeros: A, B, C... Reorganizá antes de publicar."
+            : "Para publicar, resolvé las solicitudes pendientes y verificá asignaciones y equilibrio.";
+      // Re-sortear debe seguir disponible para corregir un orden inválido.
+      redraw.disabled = busy || published || !canOrganize;
       publishButton.disabled = busy || published || !eligible;
       // El fixture anterior es todos contra todos. En grupos de 4 NO es válido:
       // habrá dos primeros cruces, luego ganadores entre sí y perdedores entre sí.
@@ -1752,6 +1778,7 @@
         published &&
         complete &&
         balanced &&
+        orderedGroups &&
         !pairs.some((p) => p.status === "pending") &&
         ["registration_closed", "in_progress"].includes(tournament.status);
       const fixtureResult = await loadFixture(
@@ -1928,7 +1955,9 @@
           console.error(reloadError);
         }
         notice(
-          "No pudimos publicar los grupos. Comprobá que las inscripciones sigan cerradas y la distribución esté completa y equilibrada.",
+          error.code === "23514" && /zonas de 4|grupos de 4|distribución/i.test(error.message || "")
+            ? "No se puede publicar: los grupos de 4 parejas deben ser los primeros (A, B, C...). Reorganizá los grupos."
+            : "No pudimos publicar los grupos. Comprobá que las inscripciones sigan cerradas y la distribución esté completa y equilibrada.",
           "error",
         );
       }

@@ -1,5 +1,20 @@
 # Boulevard Pádel — ESTADO ACTUAL / RELEVO ENTRE CHATS
 
+## 13/11/2026 — SQL93: orden obligatorio de grupos antes de publicar (ESTADO VIGENTE)
+
+**CORREGIDO, PROBADO E INSTALADO EN SUPABASE:** cuando un torneo de Grupos + Eliminatorias usa el Reglamento 2026 (6–40 parejas), las zonas con **4 parejas deben ser las primeras: A, B, C...**; las restantes quedan con 3. Ejemplos: 7=A4/B3; 10=A4/B3/C3; 11=A4/B4/C3; 14=A4/B4/C3/D3. El Admin (`js/admin-grupos.js`) consulta `rules_version`, muestra advertencia y **deshabilita Publicar grupos y la habilitación de fixture** si la distribución es incorrecta, pero permite seguir moviendo e intercambiando parejas y volver a sortear. La validación **real y obligatoria es del servidor**, mediante la migración SQL93 `bp_sql93_validacion_orden_grupos_2026` que reemplaza únicamente el cuerpo del trigger existente `bp_tournament_validate_group_sizes_3_4()`, sin cambiar permisos ni operaciones históricas. El publicador del fixture 2026 ya validaba esta condición antes de SQL93.
+
+**CALIDAD:** CI de PR #32 aprobado con Node, PostgreSQL 17 desechable y Chromium; PostgreSQL ensayó las **35 distribuciones válidas desde 6 hasta 40**, inversiones indebidas 7/10/11/14/40, numeración de grupos incorrecta, reversión a privado y preservación de datos ficticios del turnero. Migración SQL93 aplicada mediante Supabase y verificada por inspección directa de función: solo actúa al pasar grupos a publicados, sigue como SECURITY INVOKER y requiere el orden correcto. No se han hecho pruebas destructivas en producción; queda la aceptación final de Martín.
+
+**INTEGRIDAD DE DATOS:** lectura de producción posterior: **0 torneos** (el usuario eliminó las pruebas de 6 y 7 parejas), **41 reservas reales**, **4 solicitudes de turno fijo** y **4 bloqueos**. No se eliminaron reservas ni se modificaron sus datos.
+
+**ESTADO DEL CLIENTE:** dos pruebas de torneos (6 y 7 parejas) superadas; todavía **pendiente que Martín haga su propia prueba y dé OK definitivo**. La nueva validación de orden deberá incluirse en esa prueba.
+
+**RAMAS Y LAPTOP:** la rama temporal de SQL93 debe fusionarse a `main` tras CI y despliegue. Hay ramas históricas de trabajo ya reemplazadas por PR fusionados; el usuario autorizó dejar solo `main`. Tras fusionar, cerrar el PR WIP #20 (sustituido por #21) y eliminar ramas remotas sobrantes desde SSH en la laptop, ya que el conector GitHub disponible no ofrece eliminación de referencias. Confirmar finalmente `git status` y pruebas locales.
+
+---
+
+
 ## 13/11/2026 — Validación de torneo de 7 parejas (ESTADO VIGENTE)
 
 **CONFIRMADO por el usuario y lectura de Supabase:** se creó y completó el torneo ficticio `PRUEBA - TORNEO 7 PAREJAS` con Reglamento 2026, grupos A=4 parejas y B=3 parejas, **4+3 partidos** de grupos, clasificación oficial **3+2** y cuadro de eliminatorias de **4 partidos** (una previa, dos semifinales, final). Los 11 partidos constan como disputados. Las posiciones se recalcularon de forma independiente: A = Tiago/Stefano (4 pts), Ludmila/Joaquin (2 pts, diferencia sets 0), Tisiana/Diego (2 pts, diferencia −1), Bruno/María (0); B = Ignacio/Narela (4), Marianela/Santiago (2), Martina/Juan (0). Sin inconsistencias en ganadores, fuentes, sets normales en eliminatorias ni STB de grupos.
