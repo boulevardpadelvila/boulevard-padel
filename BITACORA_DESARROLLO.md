@@ -3647,3 +3647,20 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 - **Producción:** SQL93 aplicado correctamente y función verificada por consulta de solo lectura. No se borraron ni reescribieron tablas existentes. Recuentos posteriores: **41 reservas**, **4 solicitudes fijas**, **4 bloqueos**, **0 torneos**. El usuario ya había eliminado las pruebas ficticias de seis y siete parejas; referencias anteriores a que seguían almacenadas son históricas.
 - **Pendiente comercial:** Martín debe gestionar un torneo por sí mismo, probar que A3/B4 o A3/B4/C3 se rechaza al publicar y dar su OK definitivo. No confundir «servidor validado en CI» con aceptación final del cliente.
 - **Cierre y publicación CONFIRMADOS:** PR #32 fusionado a `main` en `604069257185a88f2e507fb8ea3aaccb81d0f50e`, Cloudflare Pages SUCCESS; CI de Node, PostgreSQL 17 y Chromium aprobada antes de fusionar. El PR WIP #20 fue cerrado por obsolescencia: 0 PR abiertos. **Falta únicamente eliminar 13 ramas remotas viejas y sincronizar la laptop**, tareas para efectuar por SSH local con `git push origin --delete` y `git fetch --prune`, porque este conector no tiene una función de borrado de referencias. No se ejecutó ningún borrado de ramas desde el conector; conservar `main` y evitar eliminar trabajo privado no revisado.
+
+---
+
+## 13/11/2026 — Exportación manual de respaldos y preparación para Drive de BP
+
+**Solicitud del cliente:** preservar fuera del sistema las reservas, turnos fijos y resultados de torneos para consultar si Cloudflare, Supabase o GitHub fallaran. El usuario precisó que de **cada reserva solo deben conservarse nombre, día, hora y teléfono**. Para torneos se prefirió un botón que genere un PDF, para conservarlo en el Drive de BP. La cuenta Google de BP no aparece entre las cuentas conectadas a Google Drive de ChatGPT.
+
+**Implementación PR #33, primera fase MANUAL:**
+- Admin → Reservas: botón para descargar CSV de todas las reservas confirmadas, solo 4 campos, hora local argentina.
+- Admin → Turnos fijos: CSV de aprobados, solo 4 campos; «Día» corresponde a día habitual de la semana.
+- Admin → Torneos: «PDF del torneo» por tarjeta, abre informe imprimible A4 con parejas, grupos, resultados y, si existe, podio. No agrega teléfonos de torneos.
+- Acceso mediante cuenta administradora vigente en Supabase; paginación completa, protección contra inyección de fórmulas al importar CSV, salida HTML escapada. Las exportaciones solo leen datos y no tocan reservas, torneos, permisos ni SQL.
+- Se incorporaron pruebas Node para campos mínimos, hora Argentina, integridad de CSV y PDF, privilegios y privacidad. Archivo de operación: `docs/RESPALDO_DRIVE_BOULEVARD_PADEL.md`.
+
+**ESTADO SIN CONFUNDIR:** estos botones **no constituyen respaldo automático**. El archivo se descarga a la laptop y el usuario debe guardarlo en el Drive **de BP**, manualmente. Sin acceso autorizado al Drive de BP no se creó ni se puede prometer una planilla nativa dentro de esa cuenta. Falta conectar el Drive de Boulevard Pádel y construir/probar sincronización automática externa; nunca colocar la clave `service_role` en el cliente, Apps Script compartido ni repositorio.
+
+**Pendientes de entrega:** aprobar CI/fusión del PR #33 y verificar el despliegue; luego probar manualmente los botones y conectar el Drive correcto para el registro autónomo. Martín aún debe aprobar el módulo de torneos.
