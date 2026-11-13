@@ -33,10 +33,10 @@
     return {plan,rounds:all};
   }
   function sourceLabel(src){
-    if(/^P[1-9][0-9]*$/.test(src))return "Ganador de previa "+src.slice(1);
+    if(/^P[1-9][0-9]*$/.test(src))return "Ganador P"+src.slice(1);
     if(/^W:[0-9]+:[0-9]+$/.test(src)){
       const [,stage,slot]=src.split(":");
-      return "Ganador del partido "+stage+"-"+slot;
+      return "Ganador R"+stage+"-"+slot;
     }
     return src;
   }

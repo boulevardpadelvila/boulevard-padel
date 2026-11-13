@@ -76,6 +76,8 @@ test("Admin 2026: abrir horario y enviar RPC nueva con marcador aún desconocido
   await page.addScriptTag({path:src("js/admin-torneos2026.js")});
   await page.waitForSelector("#bp26-admin:not([hidden])");
   assert.equal(await page.getByText("Programar",{exact:true}).count(),3);
+  assert.equal(await page.locator("#bp26-admin .bp26-admin__round").last().locator(".bp26-admin__rivals").textContent(),
+    "Ganador R1-1  vs.  Ganador R1-2");
   await page.getByText("Programar",{exact:true}).first().click();
   await page.locator("#bp26-schedule-day").fill("2027-04-01");
   await page.locator("#bp26-schedule-time").selectOption("19:00");
