@@ -28,7 +28,7 @@
   const scheduleDialog=document.createElement('dialog');
   scheduleDialog.id='bp26-schedule-dialog';
   scheduleDialog.className='admin-save-dialog bp26-schedule-dialog';
-  scheduleDialog.innerHTML='<form id="bp26-schedule-form" class="admin-save-dialog__body">
+  scheduleDialog.innerHTML=`<form id="bp26-schedule-form" class="admin-save-dialog__body">
       <h2 id="bp26-schedule-title">Programar eliminatoria</h2>
       <p id="bp26-schedule-rivals"></p>
       <label for="bp26-schedule-day">Fecha</label>
@@ -46,7 +46,7 @@
         <button type="button" id="bp26-schedule-cancel" class="secondary">Volver</button>
         <button type="submit" id="bp26-schedule-save" class="primary">Guardar horario</button>
       </div>
-    </form>';
+    </form>`;
   document.body.append(scheduleDialog);
   const scheduleForm=scheduleDialog.querySelector('#bp26-schedule-form');
   const scheduleError=scheduleDialog.querySelector('#bp26-schedule-error');
