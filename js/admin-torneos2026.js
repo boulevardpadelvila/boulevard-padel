@@ -12,7 +12,7 @@
   section.id = 'bp26-admin';
   section.className = 'torneos-panel bp26-admin';
   section.hidden = true;
-  section.innerHTML = '<div class="bp26-admin__head"><div><small>REGLAMENTO 2026</small><h2>Clasificación y eliminatorias</h2><p>Llaves publicadas desde el sorteo. Cargá los resultados para conocer las parejas.</p></div><button type="button" class="torneos-outline" id="bp26-reload">Actualizar</button></div><p id="bp26-status" class="bp26-admin__status" role="status"></p><div id="bp26-body"></div>';
+  section.innerHTML = '<div class="bp26-admin__head"><div><small>REGLAMENTO 2026</small><h2>Clasificación y eliminatorias</h2><p>Llave generada al publicar el fixture. Cargá los resultados para conocer las parejas.</p></div><button type="button" class="torneos-outline" id="bp26-reload">Actualizar</button></div><p id="bp26-status" class="bp26-admin__status" role="status"></p><div id="bp26-body"></div>';
   target.after(section);
   const body = section.querySelector('#bp26-body');
   const status = section.querySelector('#bp26-status');
@@ -182,7 +182,7 @@
         }
         tr.append(act);tbody.append(tr);
       }
-      table.append(tbody);section.append(table);
+      table.append(tbody);const scroll=el('div','bp26-admin__table-scroll');scroll.append(table);section.append(scroll);
       const message=!summary.ready?`Tabla provisoria: ${summary.played.length} de ${summary.total} partidos.`:
         summary.official?'Posiciones oficiales confirmadas.':
           unresolved.size?'Empate: Martín debe revisar el orden antes de confirmar.':'Partidos completos. Orden calculado por el reglamento.';
