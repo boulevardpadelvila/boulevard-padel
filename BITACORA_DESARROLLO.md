@@ -3676,3 +3676,12 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 - **Torneos:** el botón PDF agregado en PR #33 es una exportación manual sin teléfonos; guardar los PDF por torneo en el Drive de BP desde el navegador. Aún no se automatiza PDF para cada torneo.
 - **Siguiente validación:** observar la primera ejecución de la tarea, recontar registros tras una modificación legítima y verificar que no se borran filas buenas en un fallo. Si se requiere un mecanismo independiente de ChatGPT, desarrollar y auditar integración servidor↔Drive mediante credenciales privadas y menor privilegio. No intervenir reservas reales.
 
+---
+
+## 13/11/2026 — Ajuste del encabezado Reservas y confirmación CSV institucional (PR #34)
+
+- **Motivo / evidencia:** dos capturas del Admin mostraron que, luego de añadir «Exportar reservas (CSV)», el sexto botón «Limpiar historial» pasaba a una segunda fila (CSS histórico de cinco columnas). Al exportar, aparecía un párrafo «CSV generado: 31 registros…» a la derecha, que desarmaba la disposición.
+- **Implementación CONFIRMADA:** `css/admin-respaldos-ui.css` al final del orden de estilos. Los seis botones quedan con el mismo tamaño, distribución `repeat(6,1fr)`, altura fija de 48 px y letra Inter 13,5 px en una sola línea. Para pantallas menores se mantiene una única fila desplazable horizontalmente; el título de la sección se coloca encima cuando falta ancho.
+- **Notificaciones:** `admin/index.html` incorpora diálogo nativo reutilizable, en lugar de los mensajes sueltos. `js/admin-respaldos.js` abre modal de éxito con cantidad de registros o de error, habilita siempre el botón tras terminar y devuelve foco al botón al cerrar (incluido Escape). Mismo flujo de exportaciones para turnos fijos, sin alterar el contenido del CSV.
+- **Pruebas / seguridad:** CI Node, PostgreSQL 17 aislado y Chromium móvil aprobadas; prueba nueva `tests/admin-toolbar-csv-modal.test.js` comprueba CSS, orden de las seis acciones, éxito, fallo, reintento sin recarga y foco. **No se modificaron reservas, turnos fijos, torneos ni SQL**.
+- **GitHub:** PR #34 fusionado en `main`, commit `74494095448cbadb47cced63c4b70aba99522f7b`. Al retomar laptop: `git pull --ff-only origin main` y eliminar solo la rama temporal remota `fix/admin-reservas-toolbar-modal-csv-20261113` mediante SSH. Pendiente validación visual final en navegador del dueño.
