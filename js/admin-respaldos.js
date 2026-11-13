@@ -199,7 +199,7 @@
       table("Fase final de Liga", ["Etapa","Cruce","Pareja 1","Pareja 2","Sets"], finals) +
       '<footer>Archivo de consulta generado desde el Admin de Boulevard Pádel el ' +
       html(dateTime(new Date().toISOString())[0]) +
-      '. Elegí «Guardar como PDF» y subilo al Drive de Boulevard Pádel. No contiene teléfonos.</footer>' +
+      '. Elegí «Guardar como PDF» y subilo al Drive de Boulevard Pádel. No incluye datos de contacto.</footer>' +
       '</body></html>';
   }
   async function exportTournament(t) {
