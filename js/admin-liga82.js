@@ -78,7 +78,7 @@
       : "Grupos y fixture";
   }
   function rank() {
-    const report = engine.standings([...pairs.keys()], matchList);
+    const report = engine.standings([...pairs.keys()], matchList, Number(current?.rules_version) === 2026 ? "three_sets" : "super_tb");
     const heading = el(
       "h4",
       "Tabla general · " + report.played + " de " + report.total + " partidos",
@@ -327,7 +327,7 @@
     try {
       const tr = await supabaseClient
         .from("bp_tournaments")
-        .select("id,name,format,status,starts_on,max_pairs,is_published")
+        .select("id,name,format,rules_version,status,starts_on,max_pairs,is_published")
         .eq("id", id)
         .maybeSingle();
       if (seq !== generation || id !== select.value) return;
@@ -608,7 +608,7 @@
     inputs = [];
     for (let i = 0; i < 3; i++) {
       const row = el("div", null, "bp-league__set");
-      row.append(el("strong", i === 2 ? "Súper tie-break" : "Set " + (i + 1)));
+      row.append(el("strong", i === 2 && Number(current?.rules_version) !== 2026 ? "Súper tie-break" : "Set " + (i + 1)));
       const fields = [];
       for (let side = 0; side < 2; side++) {
         const input = document.createElement("input");
@@ -620,7 +620,7 @@
         input.placeholder = "Pareja " + (side + 1);
         input.setAttribute(
           "aria-label",
-          (i === 2 ? "Súper tie-break" : "Set " + (i + 1)) +
+          (i === 2 && Number(current?.rules_version) !== 2026 ? "Súper tie-break" : "Set " + (i + 1)) +
             " pareja " +
             (side + 1),
         );
@@ -653,11 +653,11 @@
         [...inputs.slice(0, split ? 3 : 2).flat()].some((x) => x.value === "")
       )
         throw Error("Completá todos los resultados del partido.");
-      engine.analyzeScore(sets);
+      engine.analyzeScore(sets, Number(current?.rules_version) === 2026 ? "three_sets" : "super_tb");
       $("bp-league-result-error").textContent = "";
       busy = true;
       $("bp-league-result-save").disabled = true;
-      const { error } = await supabaseClient.rpc("bp_league_save_result", {
+      const { error } = await supabaseClient.rpc(Number(current?.rules_version) === 2026 ? "bp_league_save_result2026" : "bp_league_save_result", {
         p_match_id: match.id,
         p_sets: sets,
       });
