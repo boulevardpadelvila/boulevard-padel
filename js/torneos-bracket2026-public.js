@@ -67,6 +67,10 @@
     const scroll=element("div","bp26-public__scroll");
     const stages=element("div","bp26-public__rounds");
     stages.style.setProperty("--bp26-round-count",String(model.rounds.length));
+    // En cuadros de cuatro clasificadas, semifinales lado a lado y final centrada debajo.
+    if(model.rounds.length===2 && model.rounds[0].matches.length===2 &&
+      model.rounds[1].matches.length===1)
+      stages.classList.add("bp26-public__rounds--semis-final");
     for(const round of model.rounds){
       const column=element("section","bp26-public__round");
       column.append(element("h4","bp26-public__heading",round.name));
@@ -110,12 +114,26 @@
           const podium=element("section","bp26-public__podium");
           podium.setAttribute("aria-label","Resultado final del torneo");
           for(const [kind,label,pair] of [
-            ["gold","🏆 Campeones",champion],
+            ["gold","Campeones",champion],
             ["silver","Subcampeones",runner]
           ]){
             const item=element("div","bp26-public__podium-item bp26-public__podium-item--"+kind);
-            item.append(element("span","bp26-public__podium-label",label),
+            const trophy=document.createElementNS("http://www.w3.org/2000/svg","svg");
+            trophy.setAttribute("viewBox","0 0 24 24");
+            trophy.setAttribute("fill","none");
+            trophy.setAttribute("stroke","currentColor");
+            trophy.setAttribute("stroke-width","1.8");
+            trophy.setAttribute("stroke-linecap","round");
+            trophy.setAttribute("stroke-linejoin","round");
+            trophy.setAttribute("aria-hidden","true");
+            trophy.setAttribute("class","bp26-public__podium-trophy");
+            const shape=document.createElementNS("http://www.w3.org/2000/svg","path");
+            shape.setAttribute("d","M8 21h8m-4-4v4M7 4h10v8a5 5 0 0 1-10 0V4ZM7 6H5a2 2 0 0 0-2 2v1a4 4 0 0 0 4 4m10-7h2a2 2 0 0 1 2 2v1a4 4 0 0 1-4 4");
+            trophy.append(shape);
+            const info=element("div","bp26-public__podium-details");
+            info.append(element("span","bp26-public__podium-label",label),
               element("strong","bp26-public__podium-name",pair));
+            item.append(trophy,info);
             podium.append(item);
           }
           container.append(podium);
