@@ -1,4 +1,21 @@
 # Boulevard Pádel — ESTADO ACTUAL / RELEVO ENTRE CHATS
+ 
+## Cierre de jornada — 12/11/2026, hora Argentina (ESTADO VIGENTE)
+
+**Confirmado en producción:** la modalidad **Grupos + Eliminatorias (Reglamento 2026)** superó un recorrido manual completo con **seis parejas** en el torneo ficticio `PRUEBA - TORNEO 6 PAREJAS`: 2 zonas de 3, 6 resultados de grupo, corrección de un marcador, STB solo en grupos, empate triple del Grupo B, desempate manual, confirmación de posiciones, dos semifinales y final con tercer set normal. Nicolás Castro/Tomás Herrera quedaron campeones y Sebastián Ruiz/Gabriel Romero subcampeones. El usuario aprobó las interfaces Admin y pública tras varias correcciones. El torneo fue finalizado y mostrado públicamente durante las revisiones visuales. **Última lectura directa de Supabase: estado `completed`, `is_published=false` (ahora oculto), 6 partidos de grupo y 3 eliminatorias disputadas. No borrar todavía: queda la limpieza del torneo de prueba para un momento acordado.**
+
+**Diseño entregado:** PR #22 tablas/contraste/llaves Admin; #23 botones alineados; #24 números alineados a la derecha; #25 modal propio de confirmación oficial; #26 grilla 3/2/1 de eliminatorias Admin; #27 referencias R1-1/R1-2 coherentes; #28 fixture y resultados públicos 3/2/1, cuadro claro con podio, sin duplicado vacío; #29 **dos semifinales en una fila, final centrada debajo sin ocupar todo el ancho, podio grande simétrico con copas dorada y plateada**. PR #21 fue la implementación de las reglas/migraciones SQL90/91/92. Último commit funcional de `main`: `9519da454eabfce92f1da1cdb7ca6fa96879cc98` (PR #29); Cloudflare Pages **success**; pruebas Node, PostgreSQL y Chromium **aprobadas** en la rama del PR antes de fusionar. La validación real en distintos equipos con Martín no sustituye los tests automatizados; el usuario confirmó visualmente PC.
+
+**Datos protegidos (consulta de solo lectura al cierre):** 41 reservas reales, 4 solicitudes de turno fijo, 4 bloqueos, 1 torneo de prueba con 6 partidos de grupo y 3 cruces eliminatorios. No modificar ni borrar las reservas ni los turnos reales. Las mejoras de hoy son de interfaz y pruebas; no se alteraron las reservas.
+
+**PRÓXIMO PASO ACORDADO — 13/11/2026:** después de sincronizar la laptop, crear y probar **un torneo de 7 parejas** bajo Reglamento 2026. Comprobar el reparto previsto **A:4 y B:3**, los cuatro encuentros del grupo de 4 y los tres del grupo de 3, clasificación **3+2**, sorteo, tabla/desempates, llave de cinco clasificadas, adaptación responsive PC/móvil, marcadores, final, podio, visibilidad pública y cierres. Probar primero flujo y diseño; si surge alguna diferencia, investigar antes de corregir producción. No crear horarios reales de cancha sin comprobar disponibilidad. Después de las pruebas, **eliminar explícitamente los torneos ficticios** desde Admin con verificación y limpiar ramas de GitHub ya fusionadas, preservando `main`.
+
+**SINCRONIZACIÓN LOCAL PENDIENTE DE CONFIRMACIÓN DEL USUARIO:** en la laptop `cd ~/Clientes-TGJotaPe/BoulevardPadel && git status && git fetch origin && git pull --ff-only origin main && git log -1 --oneline && git status`. La sincronización de la laptop NO puede realizarse desde el GitHub conectado; solo el usuario puede ejecutar los comandos locales. Las ramas remotas de desarrollo no se eliminan de forma automática al fusionar.
+
+> Este bloque sustituye como estado vigente a las notas históricas inferiores. Leer este bloque primero y el último apartado de `BITACORA_DESARROLLO.md`. Las descripciones antiguas de «pendiente de publicar» describen etapas anteriores, no el estado actual.
+
+---
+
 
 ## Despliegue oficial del reglamento 2026 — 12/11/2026 (ÚLTIMO ESTADO)
 

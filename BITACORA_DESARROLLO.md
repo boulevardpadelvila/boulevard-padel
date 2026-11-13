@@ -1,6 +1,6 @@
 # Bitácora de Desarrollo — Boulevard Pádel
 
-> **Estado vigente al 25/10/2026 (cierre de pruebas locales; publicación GitHub de esta jornada por realizar):** Torneos y Campeonatos dispone de grupos, fixture y revisiones controladas; el Admin incorpora editor de cruces, jornadas y orden por grupo con validación y guardado atómico (SQL N° 53). Diseño del Admin en secciones verticales, columnas adaptables de parejas/grupos, avisos y confirmaciones propios. En `PRUEBA Inscripciones 2027`: 8 parejas en 2 grupos publicados internamente, 3 jornadas y 12 partidos; fixture privado tras iniciar corrección, torneo oculto al público, sin resultados ni programación. **Pendientes:** verificar bitácora de revisión y publicación final del fixture; fixture público, asignación de horarios/canchas, resultados, tablas, eliminatorias y liga. Las entradas anteriores conservan su estado histórico.
+> **Estado vigente:** consultar el último apartado de esta bitácora, fechado **12/11/2026**, y el primer bloque de `ESTADO_ACTUAL.md`. Las entradas anteriores se conservan como historial y no representan pendientes actuales.
 
 ## Documento maestro del proyecto
 
@@ -3587,3 +3587,38 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 - **Pruebas:** PostgreSQL 17 descartable recorrió los 35 tamaños, SQL91 STB rechazado, SQL92 solapamiento, reprogramación y postergación, anon denegado, privacidad de nombres/contactos; regresiones Node, tests de Liga SQL89 y Chromium móvil (Admin y público 40 parejas). GitHub Actions todo verde en commit `2d7cdcc`, con más comprobaciones posteriores.
 - **Datos de producción al terminar migraciones:** 41 reservas, 4 solicitudes de turnos fijos, 4 bloqueos, 0 torneos — mismos recuentos antes y después. No se creó ni editó ningún turno de usuario. Verificación de grants y tablas RLS correcta.
 - **Pendiente antes del cierre de despliegue:** fusionar PR #21 a main, comprobar Cloudflare Pages, revalidar estados de trabajo local en laptop. Mantener documentación actualizada; no afirmar que una prueba simulada sea una prueba manual real de Martín.
+
+---
+
+## 12/11/2026 — Cierre de pruebas E2E del torneo de 6 parejas y refinamiento visual del Admin / público
+
+**Fecha y alcance:** 12/11/2026 (Argentina). Validación realizada por el usuario en el navegador con acciones reales del Admin, complementada con consultas SQL de solo lectura y tests automatizados en GitHub. **CONFIRMADO**: recorrido deportivo completo de 6 parejas; presentación visual aprobada en PC y despliegue del PR #29 verificado. **PENDIENTE**: prueba de 7 parejas, revisión móvil manual en más dispositivos, limpieza de torneos ficticios y ramas remotas. No confundir un test de interfaz simulado con una prueba autenticada real.
+
+### Punto de partida e implementación
+
+- El Reglamento 2026 (torneos de 6 a 40 parejas, Liga y eliminación por grupos) quedó publicado en `main` con PR **#21**, con migraciones productivas **SQL90** (llaves, clasificación, resultados), **SQL91** (tercer set normal de Liga) y **SQL92** (programación segura con bloqueo de cancha). Migraciones y cambios habían pasado suites aisladas de PostgreSQL, Node y navegador.
+- El usuario sincronizó inicialmente la laptop hasta `7311ce2` y ejecutó **245/245 tests Node correctos**. Los cambios posteriores del proyecto requieren otra sincronización local, todavía **no confirmada**.
+- Se creó el torneo de prueba `PRUEBA - TORNEO 6 PAREJAS` en Supabase productivo (datos ficticios), con inscripción por cupo y cierre automático. Publicación del fixture: **Grupo A (3 parejas, 3 partidos)** y **Grupo B (3 parejas, 3 partidos)**; llave publicada simultáneamente: **dos semifinales y una final**. Sin asignar horarios ni bloquear la cancha.
+- **Grupo A:** tres resultados cargados y verificados. Nicolás Castro/Tomás Herrera vencieron 6-3, 6-4 a Lucas Ramírez/Andrés Molina (el usuario corrigió un 6-3 duplicado); Carlos López/Martín Díaz vencieron a Lucas/Andrés con STB 6-4, 3-6, 10-8; Nicolás/Tomás vencieron a Carlos/Martín 6-4, 6-4. Clasificación final: Nicolás/Tomás 4 pts, Carlos/Martín 2, Lucas/Andrés 0. En grupos, el STB suma un set, **no games**.
+- **Grupo B:** triple empate completo ficticio. Sebastián Ruiz/Gabriel Romero vencieron a Diego Fernández/Pablo Torres 6-4, 6-4; Diego/Pablo vencieron a Juan Pérez/Pedro Gómez 6-4, 6-4; Juan/Pedro vencieron a Sebastián/Gabriel 6-4, 6-4. Todos terminaron con 2 pts, dif. sets 0, dif. games 0 y enfrentamientos directos circulares; **CONFIRMADO** que las flechas de desempate manual permiten fijar el orden del Admin. Orden oficial validado: Sebastián/Gabriel 1°, Juan/Pedro 2°, Diego/Pablo 3°.
+- **Cruces oficiales autocompletados:** semifinal R1-1 Nicolás/Tomás vs. Juan/Pedro y R1-2 Carlos/Martín vs. Sebastián/Gabriel. Primera semifinal 6-3, 4-6, 6-2 (tercer set normal); segunda 3-6, 4-6. Final R2-1 Nicolás/Tomás vs. Sebastián/Gabriel: **6-4, 7-5**; **campeones Nicolás Castro/Tomás Herrera; subcampeones Sebastián Ruiz/Gabriel Romero**. Los tres cruces se registraron como disputados, sin programar la cancha.
+- El torneo se marcó **`completed`** y se publicó temporalmente durante el control visual de la página. En la consulta de cierre el torneo **continúa en Supabase, `completed`, `is_published=false` (oculto)**: conservarlo hasta coordinar su eliminación como dato ficticio. Las capturas anteriores del sitio público corresponden al intervalo en que estuvo visible.
+
+### Correcciones de presentación y PR fusionadas (todas verificadas antes de desplegar)
+
+- **PR #22:** contraste de tablas oficiales; dos grupos lado a lado, tipografía legible y eliminatorias Admin compactas.
+- **PR #23:** botones `Programar` y `Cargar resultado` alineados horizontalmente.
+- **PR #24:** números de las tablas (`Pos.`, `Pts`, `Dif. sets`, `Dif. games`) alineados a la derecha con encabezados.
+- **PR #25:** el `confirm()` nativo de «Confirmar posiciones oficiales» fue reemplazado por un modal propio, con vista del orden y controles de confirmar/cancelar.
+- **PR #26:** tarjetas eliminatorias Admin distribuidas **3 PC / 2 tablet / 1 móvil** dentro de cada ronda, verificadas en simulación de 31 cruces.
+- **PR #27:** nomenclatura de referencias consistente, por ejemplo final `Ganador R1-1 vs. Ganador R1-2` (también en vista pública).
+- **PR #28:** programación y resultados públicos distribuidos **3/2/1** por fecha; cuadro 2026 claro y compacto, campeón/subcampeón destacados; se oculta la sección heredada «Eliminatorias» vacía para `rules_version=2026`, manteniendo compatibilidad histórica. Se corrigió además el runner de Chromium a Ubuntu 24.04 por incompatibilidad de Playwright 1.56 con el runner `ubuntu-latest` que pasó a Ubuntu 26.04.
+- **PR #29:** último ajuste pedido por el usuario: **dos semifinales en una fila, final centrada debajo con el ancho de una tarjeta**, podio de dos tarjetas grandes, idénticas en dimensiones, con **copa dorada para campeones y plateada para subcampeones**, SVG inline. Vista móvil apilada sin desbordes; llaves con más rondas conservan su presentación general. Commit funcional `9519da454eabfce92f1da1cdb7ca6fa96879cc98`, verificación final Cloudflare Pages **success**.
+- La suite Node, PostgreSQL 17 aislado y Chromium concluyó **success** en la rama del PR #29 antes de su fusión a `main`. La verificación del commit fusionado en Cloudflare fue **success**. No prometer comportamiento perfecto en dispositivos que aún no fueron revisados manualmente.
+
+### Preservación de producción y siguiente prueba
+
+- Consulta **solo lectura** del cierre: **41 reservas reales, 4 solicitudes de turnos fijos, 4 bloqueos, 1 torneo ficticio, 6 partidos de grupos y 3 eliminatorias**. Todas las mejoras de presentación posteriores a SQL92 fueron CSS/JavaScript/Node tests; sin escrituras SQL que afecten reservas. **No eliminar ni tocar datos reales**.
+- **13/11/2026 — próximo objetivo acordado:** prueba controlada de un torneo de **7 parejas**, reparto de grupos **A=4, B=3**; zona de 4 con **4 partidos**, zona de 3 con **3 partidos**; pasan **3 del grupo de 4 y 2 del grupo de 3**, total **5 clasificadas**. Verificar en Admin/público el sorteo, fixture, tabla y desempates, llave completa, programación *sin bloquear reservas reales*, marcadores, final, podio, y responsive en PC y celular. No asumir que el comportamiento de 6 parejas garantiza el de 7.
+- La eliminación del torneo ficticio de 6 parejas y cualquier otro dato de prueba se coordinará expresamente después de las comprobaciones. Las ramas GitHub `desarrollo/*` y `fix/*` ya fusionadas pueden depurarse, pero `main` y la bitácora deben preservarse; la eliminación de ramas no borra el historial de commits fusionados.
+- **Laptop:** todavía no está confirmada la actualización posterior a `7311ce2`. Antes de la próxima prueba: `git status`, `git fetch origin`, `git pull --ff-only origin main`, `git log -1 --oneline`, `git status`, `node --test tests/*.test.js`. Evitar `git reset --hard` y operaciones destructivas.
