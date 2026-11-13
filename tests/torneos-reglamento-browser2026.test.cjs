@@ -141,11 +141,17 @@ test("Admin 2026: dos tablas legibles y tarjetas compactas en escritorio y móvi
     return {groupWidths:groups.map(x=>x.getBoundingClientRect().width),
       cardHeights:cards.map(x=>x.getBoundingClientRect().height),bg,text,
       tableOverflow:groups.map(x=>x.querySelector(".bp26-admin__table-scroll").scrollWidth-
-       x.querySelector(".bp26-admin__table-scroll").clientWidth)};
+       x.querySelector(".bp26-admin__table-scroll").clientWidth),
+      buttonBottomDelta:cards.map(card=>{
+        const program=card.querySelector(".bp26-admin__schedule button").getBoundingClientRect();
+        const result=card.querySelector(":scope > button.torneos-outline").getBoundingClientRect();
+        return Math.abs(program.bottom-result.bottom);
+      })};
   });
   assert.equal(desktop.groupWidths.length,2);
   assert.ok(desktop.groupWidths.every(x=>x>500),JSON.stringify(desktop));
   assert.ok(desktop.cardHeights.every(x=>x<125),JSON.stringify(desktop));
+  assert.ok(desktop.buttonBottomDelta.every(x=>x<1),JSON.stringify(desktop));
   assert.match(desktop.bg,/rgb\(247,\s*250,\s*246\)/);
   assert.match(desktop.text,/rgb\(3[0-9],\s*6[0-9],\s*4[0-9]\)/);
   await page.setViewportSize({width:390,height:844});
