@@ -9,7 +9,9 @@ on:
       - 'tests/torneos-reglamento-2026.test.js'
       - '.github/workflows/reglamento-6-40.yml'
       - 'sql/SQL_90_REGLAMENTO_TORNEOS_2026.sql'
+      - 'sql/SQL_91_LIGA_SETS_NORMALES_2026.sql'
       - 'tests/fixtures/t90*'
+      - 'tests/fixtures/t91*'
       - 'js/torneos-bracket2026-public.js'
       - 'js/torneos-public.js'
       - 'index.html'
@@ -75,3 +77,10 @@ jobs:
           psql -X -v ON_ERROR_STOP=1 -f /tmp/t90_plans.sql
       - name: "35 fixtures completos, privacidad y protección de reservas"
         run: psql -X -v ON_ERROR_STOP=1 -f tests/fixtures/t90_postgres_smoke.sql
+
+      - name: "Preparar Liga de prueba SQL91 (datos ficticios)"
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/fixtures/t91_postgres_bootstrap.sql
+      - name: "Instalar SQL91 SOLAMENTE en PostgreSQL descartable"
+        run: psql -X -v ON_ERROR_STOP=1 -f sql/SQL_91_LIGA_SETS_NORMALES_2026.sql
+      - name: "Verificar 3 sets normales, seguridad y no regresión turnero"
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/fixtures/t91_postgres_smoke.sql
