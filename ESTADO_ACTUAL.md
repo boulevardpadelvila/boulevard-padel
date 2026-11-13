@@ -1,5 +1,16 @@
 # Boulevard Pádel — ESTADO ACTUAL / RELEVO ENTRE CHATS
 
+## 13/11/2026 — Admin Reservas: seis botones en fila y aviso de exportación modal (VIGENTE)
+
+**IMPLEMENTADO Y FUSIONADO:** PR #34, commit de código `74494095448cbadb47cced63c4b70aba99522f7b`. Los botones Hoy, + Nueva reserva, Ver canceladas, Actualizar, Exportar reservas (CSV) y Limpiar historial están en una misma fila, con columnas iguales, altura 48 px, fuente Inter 13,5 px y etiquetas sin salto de línea; en tablet/móvil una fila se desplaza horizontalmente para no disminuir legibilidad. La hoja `css/admin-respaldos-ui.css` se carga después de las CSS históricas y afecta exclusivamente las acciones de Reservas, sin alterar Torneos ni Turnos fijos.
+
+**MODAL DE EXPORTACIÓN:** el aviso «CSV generado: N registros» ya no se muestra dentro del encabezado; ahora se abre un `<dialog>` institucional con resultado de éxito o error, cantidad de registros, botón Entendido y retorno de foco. El botón de exportar permanece visible y se rehabilita al terminar la operación, incluso ante error, permitiendo volver a exportar sin refrescar. Se aplica la misma confirmación al CSV de Turnos fijos. El respaldo automático de Google Drive de BP continúa independiente y sin cambios.
+
+**PRUEBAS CONFIRMADAS:** suite Node, PostgreSQL 17 aislado y Chromium móvil aprobadas en PR #34; tests nuevos validan seis botones, CSS y diálogo, reintento y recuperación del foco. No hubo cambios SQL ni escrituras a Supabase. Tras esta entrega, usuario debe sincronizar laptop y borrar rama temporal remota `fix/admin-reservas-toolbar-modal-csv-20261113` para dejar solo `main`; confirmar la presentación visual en navegador luego del despliegue Cloudflare.
+
+---
+
+
 ## 13/11/2026 — Planilla Google Drive de BP creada y respaldo horario programado (ESTADO VIGENTE)
 
 **CONFIRMADO DIRECTAMENTE:** se conectó Google Drive de la cuenta propia `boulevardpadelvila@gmail.com`. Planilla nativa **«Boulevard Pádel — Respaldo de reservas y turnos fijos»**: <https://docs.google.com/spreadsheets/d/1ZO1QlRvVrfwlDMBb9QpuXfyfD8IQm7ewMb5Uw6MzUys/edit>. Pestañas «Reservas» (31 registros confirmados) y «Turnos fijos» (3 aprobados), con **exclusivamente cuatro columnas: Nombre, Día, Hora y Teléfono**. Primera copia desde Supabase verificada por relectura del Drive, sin campos faltantes, con filtros y zona horaria Argentina. Ninguna escritura en Supabase; registros reales conservados.
