@@ -413,12 +413,30 @@ test("Público 2026: semifinales, final y podio en cuadro compacto legible",asyn
   const geometry=await page.evaluate(()=>{
     const rounds=document.querySelector(".bp26-public__rounds");
     const root=document.querySelector(".bp26-public");
+    const semifinales=[...rounds.querySelectorAll(".bp26-public__round:first-child > .bp26-public__match")];
+    const final=rounds.querySelector(".bp26-public__round:last-child .bp26-public__match");
+    const podium=[...document.querySelectorAll(".bp26-public__podium-item")];
+    const x=semifinales.map(el=>el.getBoundingClientRect());
+    const f=final.getBoundingClientRect();
+    const p=podium.map(el=>el.getBoundingClientRect());
     return {columns:getComputedStyle(rounds).gridTemplateColumns.trim().split(/\s+/).length,
       background:getComputedStyle(root).backgroundColor,
       viewport:document.documentElement.clientWidth,
-      pageWidth:document.documentElement.scrollWidth};
+      pageWidth:document.documentElement.scrollWidth,
+      semisSameRow:Math.abs(x[0].top-x[1].top)<1,
+      semisSameWidth:Math.abs(x[0].width-x[1].width)<1,
+      finalCentered:Math.abs(f.left+f.width/2-(x[0].left+x[1].right)/2)<2,
+      finalNotFullWidth:f.width<rounds.getBoundingClientRect().width*.65,
+      finalBelowSemis:f.top>=Math.max(x[0].bottom,x[1].bottom),
+      podiumSameSize:Math.abs(p[0].height-p[1].height)<1&&Math.abs(p[0].width-p[1].width)<1,
+      trophyCount:document.querySelectorAll(".bp26-public__podium-trophy").length,
+      trophyColors:podium.map(el=>getComputedStyle(el.querySelector(".bp26-public__podium-trophy")).color)};
   });
   assert.equal(geometry.columns,2,JSON.stringify(geometry));
+  assert.ok(geometry.semisSameRow&&geometry.semisSameWidth,JSON.stringify(geometry));
+  assert.ok(geometry.finalCentered&&geometry.finalNotFullWidth&&geometry.finalBelowSemis,JSON.stringify(geometry));
+  assert.ok(geometry.podiumSameSize&&geometry.trophyCount===2,JSON.stringify(geometry));
+  assert.notEqual(geometry.trophyColors[0],geometry.trophyColors[1]);
   assert.match(geometry.background,/rgb\(255,\s*255,\s*255\)/);
   assert.ok(geometry.pageWidth<=geometry.viewport+2,JSON.stringify(geometry));
   await page.setViewportSize({width:390,height:844});
@@ -428,7 +446,7 @@ test("Público 2026: semifinales, final y podio en cuadro compacto legible",asyn
       viewport:document.documentElement.clientWidth,
       pageWidth:document.documentElement.scrollWidth};
   });
-  assert.ok(mobile.scrollWidth>mobile.width,JSON.stringify(mobile));
+  assert.ok(mobile.scrollWidth<=mobile.width+2,JSON.stringify(mobile));
   assert.ok(mobile.pageWidth<=mobile.viewport+2,JSON.stringify(mobile));
   await page.close();
 });
