@@ -28,6 +28,7 @@ test("Admin consulta versión y bloquea publicación y fixture, pero permite reo
   assert.match(js,/groupSizes\[index\] === \(index < approved\.length % 3 \? 4 : 3\)/);
   assert.match(js,/const eligible = canOrganize && orderedGroups;/);
   assert.match(js,/!published && canOrganize && groups\.length > 1/);
+  assert.match(js,/redraw\.disabled = busy \|\| published \|\| !canOrganize/);
   assert.match(js,/published &&\s+complete &&\s+balanced &&\s+orderedGroups/);
   assert.match(js,/publishButton\.disabled = busy \|\| published \|\| !eligible/);
   assert.match(js,/No podés publicar esta distribución/);
