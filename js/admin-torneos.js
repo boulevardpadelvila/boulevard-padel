@@ -521,6 +521,17 @@
       if (!isFinished(t)) {
         actions.append(action("Finalizar", () => finalizeTournament(t)));
       }
+      // Respaldo informativo: genera una vista A4 imprimible para guardar
+      // como PDF y subir al Drive de Boulevard Pádel. Nunca modifica el torneo.
+      actions.append(
+        action("PDF del torneo", () => {
+          if (!window.BPAdminBackup?.exportTournament) {
+            feedback("No se cargó el generador de PDF. Actualizá la página.");
+            return;
+          }
+          window.BPAdminBackup.exportTournament(t);
+        }),
+      );
       actions.append(
         action("Eliminar", () => remove(t), "torneos-entry__button--danger"),
       );
