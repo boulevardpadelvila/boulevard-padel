@@ -1,6 +1,6 @@
 # Boulevard Pádel — Reglamento aprobado 12/11/2026
 
-Estado: implementación en desarrollo, NO publicada; preservar todos los datos y reservas productivas.
+Estado al 12/11/2026: **IMPLEMENTADO Y PUBLICADO**, PR #21 y migraciones SQL90/91/92 aplicadas. La modalidad de **6 parejas pasó una prueba manual end-to-end en producción**; falta verificar especialmente 7 parejas y otras configuraciones con pruebas reales. Preservar reservas, turnos fijos y datos productivos.
 
 ## Liga
 - Todos los partidos al mejor de tres sets NORMALES, sin STB. Esto incluye fase regular, semifinales y final.
@@ -21,9 +21,12 @@ Estado: implementación en desarrollo, NO publicada; preservar todos los datos y
 11. Martín registra manualmente marcadores ante abandono, retiro o inasistencia (por ejemplo 6-0 6-0); el sistema no exige motivos de resultados.
 12. Sin partido por tercer puesto en ninguna modalidad.
 
-## Límite actual de implementación
-- Nuevo motor puro de 6..40 en js/torneos-reglamento-2026.js.
-- Simulador en esta rama consume ese motor.
-- Pendientes: adaptar la base de datos (SQL/RPC), versionar resultados históricos, interfaz Admin, consulta pública y bloqueo de horarios para todas las rondas.
-- Jamás publicar como terminado sin pruebas de regresión del turnero y de las solicitudes de turnos fijos, más simulación SQL descartable y pruebas de seguridad/RLS.
-- NO se han ejecutado migraciones SQL ni alterado el único proyecto Supabase; main permanece intacta.
+## Estado de implementación y validación (12/11/2026)
+
+- Motor puro `js/torneos-reglamento-2026.js` compartido con el simulador, con planes de 6 a 40 parejas.
+- Admin y web pública integrados en `main`, con clasificación oficial, corrección de resultados, rondas, marcadores, programación segura (SQL92) y podio.
+- Migraciones SQL90 (reglamento/llaves), SQL91 (sets normales Liga) y SQL92 (programación eliminatoria / bloqueos seguros) **instaladas** en Supabase. No aplicar de nuevo manualmente.
+- Prueba de **6 parejas** realizada con 6 encuentros de grupo, empate triple y desempate manual, semifinales y final; datos/resultados verificados por lectura SQL. El torneo ficticio quedó `completed` y al cierre estaba **oculto** (`is_published=false`), pendiente de eliminación consensuada.
+- Pruebas automáticas aprobadas en Node, PostgreSQL 17 aislado y Chromium, incluyendo llave larga de 31 partidos y vistas responsive; PR #29 publicado y Cloudflare Pages verificado.
+- **Pendiente**: prueba manual con **7 parejas**, grupos A=4/B=3, 3 y 2 clasificadas, llave de 5 parejas, semis/final, público/móvil; no confundir cobertura automatizada de 6–40 con validación manual de todos los tamaños.
+- La documentación histórica que indique «desarrollo» o «sin migrar» refleja el punto de partida del 12/11 y no el estado actual. Ver `ESTADO_ACTUAL.md` y el final de `BITACORA_DESARROLLO.md`.
