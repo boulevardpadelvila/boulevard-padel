@@ -243,7 +243,35 @@
       a.setsFor === b.setsFor
     );
   }
-  function standingsForGroup(group, groupMatches, twoGroupMode = false) {
+  function standingsForGroup(group, groupMatches, twoGroupMode = false, rulesVersion = 0, officialOrder = null) {
+    if (Number(rulesVersion) === 2026 && window.BPReglamento2026) {
+      const ids = (group.pairs || []).map(p => p.id);
+      const found = groupMatches.filter(m =>
+        m.winner_pair_id && Array.isArray(m.sets) &&
+        (m.resolved_pair1_id || m.pair1_id) &&
+        (m.resolved_pair2_id || m.pair2_id)
+      ).map(m => ({
+        pair1: m.resolved_pair1_id || m.pair1_id,
+        pair2: m.resolved_pair2_id || m.pair2_id,
+        sets: m.sets
+      }));
+      const r = window.BPReglamento2026.standings(ids, found, officialOrder || []);
+      const byId = new Map(group.pairs.map(p => [p.id, p]));
+      const tieIds = new Set(r.unresolved.flat());
+      const tableRows = r.rows.map((row, i) => {
+        const display = row.setDifference > 0 ? "+" + row.setDifference : row.setDifference;
+        const games = row.gameDifference > 0 ? "+" + row.gameDifference : row.gameDifference;
+        return [
+          tieIds.has(row.pairId) ? "=" : String(i + 1),
+          publicPairName(byId.get(row.pairId)),
+          row.played, row.won, row.lost, row.setsFor, row.setsAgainst,
+          display, row.gamesFor, row.gamesAgainst, games, row.points
+        ];
+      });
+      return {rows: tableRows, complete:r.complete, counted:found.length,
+        total:groupMatches.length, tied:r.unresolved.length>0,
+        decided:Array.isArray(officialOrder)&&officialOrder.length===ids.length};
+    }
     const rows = (group.pairs || []).map((p) => ({
       id: p.id,
       name: publicPairName(p),
@@ -482,7 +510,12 @@
     const standingsGrid = make("div", "public-tournament-standings-grid");
     for (const group of groups) {
       const groupMatches = matches.filter((m) => m.group_id === group.id);
-      const table = standingsForGroup(group, groupMatches, groups.length === 2);
+      const officialGroupOrder = publicBracketByTournament.get(t.id)?.placements?.[
+        publicGroupLetter(group.number)
+      ] || null;
+      const table = standingsForGroup(
+        group, groupMatches, groups.length === 2, t.rules_version, officialGroupOrder,
+      );
       const wrap = make("div", "public-tournament-standings-group");
       const pairCount = (group.pairs || []).length;
       wrap.append(
@@ -1260,7 +1293,7 @@
       const { data, error } = await supabaseClient
         .from("bp_tournaments")
         .select(
-          "id,name,format,status,starts_on,ends_on,registration_closes_at,bp_tournament_categories(name)",
+          "id,name,format,rules_version,status,starts_on,ends_on,registration_closes_at,bp_tournament_categories(name)",
         )
         .eq("is_published", true)
         .order("starts_on", { ascending: true })
