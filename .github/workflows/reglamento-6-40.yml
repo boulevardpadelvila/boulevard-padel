@@ -10,8 +10,10 @@ on:
       - '.github/workflows/reglamento-6-40.yml'
       - 'sql/SQL_90_REGLAMENTO_TORNEOS_2026.sql'
       - 'sql/SQL_91_LIGA_SETS_NORMALES_2026.sql'
+      - 'sql/SQL_92_PROGRAMACION_ELIMINATORIAS_2026.sql'
       - 'tests/fixtures/t90*'
       - 'tests/fixtures/t91*'
+      - 'tests/fixtures/t92*'
       - 'js/torneos-bracket2026-public.js'
       - 'js/torneos-public.js'
       - 'index.html'
@@ -84,3 +86,10 @@ jobs:
         run: psql -X -v ON_ERROR_STOP=1 -f sql/SQL_91_LIGA_SETS_NORMALES_2026.sql
       - name: "Verificar 3 sets normales, seguridad y no regresión turnero"
         run: psql -X -v ON_ERROR_STOP=1 -f tests/fixtures/t91_postgres_smoke.sql
+
+      - name: "Preparar turnero ficticio para bloqueo SQL92"
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/fixtures/t92_postgres_bootstrap.sql
+      - name: "Compilar programación SQL92 SOLO en PostgreSQL descartable"
+        run: psql -X -v ON_ERROR_STOP=1 -f sql/SQL_92_PROGRAMACION_ELIMINATORIAS_2026.sql
+      - name: "Probar solapamientos, reprogramación y liberación segura"
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/fixtures/t92_postgres_smoke.sql
