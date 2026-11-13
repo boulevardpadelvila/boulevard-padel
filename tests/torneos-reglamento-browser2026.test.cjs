@@ -150,15 +150,18 @@ test("Admin 2026: dos tablas legibles y tarjetas compactas en escritorio y móvi
        x.querySelector(".bp26-admin__table-scroll").clientWidth),
       buttonBottomDelta:cards.map(card=>{
         const program=card.querySelector(".bp26-admin__schedule button").getBoundingClientRect();
-        const result=card.querySelector(":scope > button.torneos-outline").getBoundingClientRect();
+        const result=card.querySelector(".bp26-admin__actions > button.torneos-outline").getBoundingClientRect();
         return Math.abs(program.bottom-result.bottom);
       })};
   });
   assert.ok(desktop.numberAligns.length>0 && desktop.numberAligns.every(x=>x==="right"),JSON.stringify(desktop));
   assert.ok(desktop.namesAlign.every(x=>x==="left"||x==="start"),JSON.stringify(desktop));
+  const threeColumns=await page.locator("#bp26-admin .bp26-admin__matches").first()
+    .evaluate(el=>getComputedStyle(el).gridTemplateColumns.trim().split(/\\s+/).length);
+  assert.equal(threeColumns,3,"En la prueba con semifinales hay dos tarjetas, pero la grilla conserva tres columnas");
   assert.equal(desktop.groupWidths.length,2);
   assert.ok(desktop.groupWidths.every(x=>x>500),JSON.stringify(desktop));
-  assert.ok(desktop.cardHeights.every(x=>x<125),JSON.stringify(desktop));
+  assert.ok(desktop.cardHeights.every(x=>x>=180&&x<320),JSON.stringify(desktop));
   assert.ok(desktop.buttonBottomDelta.every(x=>x<1),JSON.stringify(desktop));
   assert.match(desktop.bg,/rgb\(247,\s*250,\s*246\)/);
   assert.match(desktop.text,/rgb\(3[0-9],\s*6[0-9],\s*4[0-9]\)/);
@@ -251,5 +254,81 @@ test("Admin 2026: modal de posiciones permite cancelar y confirmar sin diálogo 
   assert.deepEqual(sent.args.p_placements.A,["p1","p2","p3"]);
   assert.deepEqual(sent.args.p_placements.B,["p4","p5","p6"]);
   assert.ok(!(await dialog.evaluate(el=>el.open)));
+  await page.close();
+});
+
+
+test("Admin 2026: eliminatorias grandes 3/2/1 columnas sin perder controles",async()=>{
+  const page=await browser.newPage({viewport:{width:1500,height:960}});
+  await page.setContent('<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"></head><body><main class="admin-torneos" style="width:calc(100% - 24px);max-width:1470px;margin:auto"><select id="torneos-pairs-tournament"><option value="t1" selected>Llave grande</option></select><section id="bp-results-panel"></section></main></body></html>');
+  for(const name of ["css/admin.css","css/admin-torneos.css","css/admin-contraste.css","css/admin-torneos2026.css"])
+    await page.addStyleTag({path:src(name)});
+  await page.evaluate(()=>{
+    const tr={id:"t1",format:"groups_knockout",rules_version:2026,
+      fixture_published_at:"2026-11-13T00:00:00Z",groups_published_at:"2026-11-13T00:00:00Z"};
+    const rounds=[16,8,4,2,1];
+    const matches=rounds.flatMap((count,i)=>Array.from({length:count},(_,j)=>({
+      id:"ko"+i+"-"+j,stage:i+1,slot:j+1,
+      source1:"1° A",source2:"2° B",
+      pair1_id:null,pair2_id:null,
+      pair1_name:"Jugadores de nombre largo "+j+" y Apellido",
+      pair2_name:"Otros jugadores de nombre extenso "+j+" y Otro",
+      status:"pending",sets:null,
+      schedule_status:j===0&&i===0?"scheduled":j===1&&i===0?"postponed":"unscheduled",
+      scheduled_at:j===0&&i===0?"2027-04-02T22:00:00Z":null
+    })));
+    const report={published:true,placements:null,matches};
+    window.supabaseClient={
+      from(table){
+        const value=table==="bp_tournaments"?tr:[];
+        const q={select(){return q},eq(){return q},order(){return q},
+          maybeSingle(){return Promise.resolve({data:value,error:null})},
+          then(ok,bad){return Promise.resolve({data:value,error:null}).then(ok,bad)}};
+        return q;
+      },
+      rpc(name){return Promise.resolve({data:name==="bp_tournament_bracket_report2026"?report:{},error:null});}
+    };
+  });
+  await page.addScriptTag({path:src("js/torneos-reglamento-2026.js")});
+  await page.addScriptTag({path:src("js/admin-torneos2026.js")});
+  await page.waitForFunction(()=>document.querySelectorAll("#bp26-admin .bp26-admin__match").length===31);
+  const measure=()=>page.evaluate(()=>{
+    const grids=[...document.querySelectorAll("#bp26-admin .bp26-admin__matches")];
+    const first=grids[0];
+    const cards=[...first.querySelectorAll(".bp26-admin__match")];
+    const firstThree=cards.slice(0,3).map(x=>x.getBoundingClientRect());
+    const footers=cards.map(card=>card.querySelector(".bp26-admin__actions"));
+    return {
+      columns:getComputedStyle(first).gridTemplateColumns.trim().split(/\\s+/).length,
+      rounds:grids.length,
+      total:document.querySelectorAll("#bp26-admin .bp26-admin__match").length,
+      width:document.documentElement.scrollWidth,
+      viewport:document.documentElement.clientWidth,
+      firstThreeRows:firstThree.map(x=>Math.round(x.top)),
+      actions:footers.every(x=>x&&getComputedStyle(x).display==="grid"),
+      scheduledButtons:cards[0].querySelectorAll(".bp26-admin__schedule button").length,
+      postergado:cards[1].textContent.includes("Partido postergado"),
+      firstButtonDelta:Math.abs(
+        cards[2].querySelector(".bp26-admin__schedule button").getBoundingClientRect().bottom-
+        cards[2].querySelector(".bp26-admin__actions > button").getBoundingClientRect().bottom)
+    };
+  });
+  const desktop=await measure();
+  assert.equal(desktop.rounds,5,JSON.stringify(desktop));
+  assert.equal(desktop.total,31,JSON.stringify(desktop));
+  assert.equal(desktop.columns,3,JSON.stringify(desktop));
+  assert.equal(new Set(desktop.firstThreeRows).size,1,JSON.stringify(desktop));
+  assert.equal(desktop.scheduledButtons,2,JSON.stringify(desktop));
+  assert.ok(desktop.postergado&&desktop.actions,JSON.stringify(desktop));
+  assert.ok(desktop.firstButtonDelta<1,JSON.stringify(desktop));
+  assert.ok(desktop.width<=desktop.viewport+2,JSON.stringify(desktop));
+  await page.setViewportSize({width:1010,height:960});
+  const tablet=await measure();
+  assert.equal(tablet.columns,2,JSON.stringify(tablet));
+  assert.ok(tablet.width<=tablet.viewport+2,JSON.stringify(tablet));
+  await page.setViewportSize({width:390,height:844});
+  const mobile=await measure();
+  assert.equal(mobile.columns,1,JSON.stringify(mobile));
+  assert.ok(mobile.width<=mobile.viewport+2,JSON.stringify(mobile));
   await page.close();
 });
