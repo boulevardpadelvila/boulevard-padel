@@ -20,7 +20,8 @@
     let stage=1;
     while(current.length){
       const name=current.length===1?"Final":current.length===2?"Semifinales":
-        current.length===4?"Cuartos de final":current.length===8?"Octavos de final":"Ronda eliminatoria";
+        current.length===4?"Cuartos de final":current.length===8?"Octavos de final":
+        current.length===16?"16avos de final":"Ronda eliminatoria";
       all.push({stage,name,matches:current});
       if(current.length===1)break;
       current=Array.from({length:current.length/2},(_,i)=>({
@@ -61,10 +62,11 @@
     const container=element("details","bp26-public");
     container.append(element("summary","bp26-public__summary","Cuadro de eliminatorias · "+model.plan.qualified+" clasificadas"));
     const description=element("p","bp26-public__note",
-      "Llave publicada desde el sorteo. Las referencias 1° A, 2° B y «Ganador» se reemplazan a medida que se confirman las posiciones y los partidos.");
+      "Cuadro completo de eliminatorias. Las parejas y resultados se actualizan a medida que avanza la competencia.");
     container.append(description);
     const scroll=element("div","bp26-public__scroll");
     const stages=element("div","bp26-public__rounds");
+    stages.style.setProperty("--bp26-round-count",String(model.rounds.length));
     for(const round of model.rounds){
       const column=element("section","bp26-public__round");
       column.append(element("h4","bp26-public__heading",round.name));
@@ -73,6 +75,7 @@
         const a=live?.pair1_name||sourceLabel(m.source1);
         const b=live?.pair2_name||sourceLabel(m.source2);
         const match=element("article","bp26-public__match");
+        if(live?.status==="played")match.classList.add("bp26-public__match--played");
         match.append(
           element("div","bp26-public__match-top","Partido "+(round.stage===0?"P":"R"+round.stage+"-")+m.slot),
           element("p","bp26-public__team",a),
@@ -95,6 +98,30 @@
     }
     scroll.append(stages);
     container.append(scroll);
+    const finalRound=model.rounds[model.rounds.length-1];
+    const lastMatch=byMatch.get(finalRound.stage+":1");
+    if(lastMatch?.status==="played" && lastMatch.winner_pair_id && lastMatch.pair1_id && lastMatch.pair2_id){
+      const winnerIsFirst=lastMatch.winner_pair_id===lastMatch.pair1_id;
+      const winnerIsSecond=lastMatch.winner_pair_id===lastMatch.pair2_id;
+      if(winnerIsFirst||winnerIsSecond){
+        const champion=winnerIsFirst?lastMatch.pair1_name:lastMatch.pair2_name;
+        const runner=winnerIsFirst?lastMatch.pair2_name:lastMatch.pair1_name;
+        if(champion&&runner){
+          const podium=element("section","bp26-public__podium");
+          podium.setAttribute("aria-label","Resultado final del torneo");
+          for(const [kind,label,pair] of [
+            ["gold","🏆 Campeones",champion],
+            ["silver","Subcampeones",runner]
+          ]){
+            const item=element("div","bp26-public__podium-item bp26-public__podium-item--"+kind);
+            item.append(element("span","bp26-public__podium-label",label),
+              element("strong","bp26-public__podium-name",pair));
+            podium.append(item);
+          }
+          container.append(podium);
+        }
+      }
+    }
     return container;
   }
   return Object.freeze({rounds,render,sourceLabel});
