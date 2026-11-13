@@ -8,6 +8,11 @@ on:
       - 'js/torneos-reglamento-2026.js'
       - 'tests/torneos-reglamento-2026.test.js'
       - '.github/workflows/reglamento-6-40.yml'
+      - 'sql/SQL_90_REGLAMENTO_TORNEOS_2026.sql'
+      - 'tests/fixtures/t90*'
+      - 'js/torneos-bracket2026-public.js'
+      - 'js/torneos-public.js'
+      - 'index.html'
   workflow_dispatch:
 jobs:
   pruebas:
@@ -21,3 +26,52 @@ jobs:
           node-version: '22'
       - name: Pruebas de regresión Node sin tocar producción
         run: node --test tests/*.test.js
+
+  sql90-postgresql17:
+    name: "SQL90 · PostgreSQL 17 descartable (NUNCA producción)"
+    runs-on: ubuntu-latest
+    timeout-minutes: 9
+    permissions:
+      contents: read
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: t90test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: t90_ci_only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d t90test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      PGHOST: localhost
+      PGPORT: "5432"
+      PGDATABASE: t90test
+      PGUSER: postgres
+      PGPASSWORD: t90_ci_only
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: "Instalar cliente PostgreSQL"
+        run: |
+          if ! command -v psql >/dev/null; then
+            sudo apt-get update -qq
+            sudo apt-get install -y postgresql-client
+          fi
+      - name: "Bootstrap: datos ficticios, sin conexiones externas"
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/fixtures/t90_postgres_bootstrap.sql
+      - name: "Compilar y aplicar SQL90 en base descartable"
+        run: psql -X -v ON_ERROR_STOP=1 -f sql/SQL_90_REGLAMENTO_TORNEOS_2026.sql
+      - name: "Generar los 35 planes exactos del motor JS"
+        run: |
+          node --check tests/fixtures/t90_generate_plans.js
+          node tests/fixtures/t90_generate_plans.js > /tmp/t90_plans.sql
+          psql -X -v ON_ERROR_STOP=1 -f /tmp/t90_plans.sql
+      - name: "35 fixtures completos, privacidad y protección de reservas"
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/fixtures/t90_postgres_smoke.sql
