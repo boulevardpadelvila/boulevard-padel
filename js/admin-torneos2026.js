@@ -301,7 +301,7 @@
       if(match.stage!==stage){
         stage=match.stage;
         const len=matches.filter(m=>m.stage===stage).length;
-        const title=stage===0?'Ronda previa':len===1?'Final':len===2?'Semifinales':len===4?'Cuartos de final':len===8?'Octavos de final':'Ronda eliminatoria';
+        const title=stage===0?'Ronda previa':len===1?'Final':len===2?'Semifinales':len===4?'Cuartos de final':len===8?'Octavos de final':len===16?'16avos de final':'Ronda eliminatoria';
         const round=el('section','bp26-admin__round');
         round.append(el('h4','bp26-admin__stage',title));
         roundGrid=el('div','bp26-admin__matches');
