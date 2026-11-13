@@ -1,0 +1,97 @@
+/* Boulevard Pádel · Admin Reservas · 13/11/2026.
+   Seis acciones simétricas en una única fila y diálogo CSV institucional.
+   Este CSS se carga al final para reemplazar la grilla histórica de cinco. */
+
+.admin-card.dashboard #admin-reservas-view .dashboard-title-row {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  align-items: center;
+  column-gap: clamp(14px, 2vw, 30px);
+  row-gap: 12px;
+}
+
+.admin-card.dashboard #admin-reservas-view .dashboard-actions {
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 8px;
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+  margin: 0;
+  flex: none;
+  align-items: stretch;
+  justify-content: stretch;
+}
+
+.admin-card.dashboard #admin-reservas-view .dashboard-actions > button {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+  height: 48px;
+  min-height: 48px;
+  margin: 0;
+  padding: 0 6px;
+  font: 700 13.5px/1.15 Inter, Arial, sans-serif;
+  text-align: center;
+  white-space: nowrap;
+  overflow-wrap: normal;
+}
+
+.admin-card.dashboard #admin-reservas-view .dashboard-actions > button:focus-visible {
+  outline: 3px solid #8b9c56;
+  outline-offset: 2px;
+}
+
+/* En notebooks chicas, título arriba y las seis acciones completas debajo.
+   Nunca se dividen las acciones en dos filas. */
+@media (max-width: 1500px) {
+  .admin-card.dashboard #admin-reservas-view .dashboard-title-row {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: stretch;
+  }
+}
+
+/* En tablet/celular la fila mantiene seis acciones y permite deslizarse,
+   en vez de achicar la tipografía hasta hacerla ilegible. */
+@media (max-width: 1120px) {
+  .admin-card.dashboard #admin-reservas-view .dashboard-actions {
+    grid-template-columns: repeat(6, minmax(178px, 1fr));
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    padding: 2px 2px 8px;
+    scroll-snap-type: x proximity;
+  }
+
+  .admin-card.dashboard #admin-reservas-view .dashboard-actions > button {
+    font-size: 13.5px;
+    scroll-snap-align: start;
+  }
+}
+
+.bp-backup-dialog .admin-save-dialog__actions {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.bp-backup-dialog .admin-save-dialog__icon {
+  background: #eef2e6;
+  color: #496d38;
+}
+
+.bp-backup-dialog[data-result="error"] .admin-save-dialog__icon {
+  background: #fbe9e8;
+  color: #ad3838;
+}
+
+.bp-backup-dialog .admin-save-dialog__hint {
+  max-width: 35ch;
+  margin-left: auto;
+  margin-right: auto;
+}
