@@ -1,6 +1,6 @@
 # Bitácora de Desarrollo — Boulevard Pádel
 
-> **Estado vigente:** consultar el último apartado de esta bitácora, fechado **12/11/2026**, y el primer bloque de `ESTADO_ACTUAL.md`. Las entradas anteriores se conservan como historial y no representan pendientes actuales.
+> **Estado vigente:** consultar el último apartado de esta bitácora, fechado **13/11/2026**, y el primer bloque de `ESTADO_ACTUAL.md`. Las entradas anteriores se conservan como historial y no representan pendientes actuales.
 
 ## Documento maestro del proyecto
 
@@ -3622,3 +3622,15 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 - **13/11/2026 — próximo objetivo acordado:** prueba controlada de un torneo de **7 parejas**, reparto de grupos **A=4, B=3**; zona de 4 con **4 partidos**, zona de 3 con **3 partidos**; pasan **3 del grupo de 4 y 2 del grupo de 3**, total **5 clasificadas**. Verificar en Admin/público el sorteo, fixture, tabla y desempates, llave completa, programación *sin bloquear reservas reales*, marcadores, final, podio, y responsive en PC y celular. No asumir que el comportamiento de 6 parejas garantiza el de 7.
 - La eliminación del torneo ficticio de 6 parejas y cualquier otro dato de prueba se coordinará expresamente después de las comprobaciones. Las ramas GitHub `desarrollo/*` y `fix/*` ya fusionadas pueden depurarse, pero `main` y la bitácora deben preservarse; la eliminación de ramas no borra el historial de commits fusionados.
 - **Laptop:** todavía no está confirmada la actualización posterior a `7311ce2`. Antes de la próxima prueba: `git status`, `git fetch origin`, `git pull --ff-only origin main`, `git log -1 --oneline`, `git status`, `node --test tests/*.test.js`. Evitar `git reset --hard` y operaciones destructivas.
+
+---
+
+## 13/11/2026 — Prueba completa de 7 parejas; aprobación final de Martín pendiente
+
+- **Fecha/motivo/certeza:** 13/11/2026, ampliar validación manual posterior a la prueba de seis parejas. **Confirmado** por operaciones del usuario y lectura SQL sin modificaciones: el torneo `PRUEBA - TORNEO 7 PAREJAS` se creó, registró resultados, se publicó y el usuario comprobó que **su presentación pública se veía correctamente**. **Pendiente**: visto bueno definitivo de Martín sobre una prueba que él realice personalmente.
+- **Grupos:** 7 parejas aprobadas y asignadas sin duplicados. Grupo A 4 parejas, 4 partidos; grupo B 3 parejas, 3 partidos; los siete disputados y con resultado. La zona de cuatro respetó los ganadores vs. ganadores y perdedores vs. perdedores. Orden oficial guardado con revisión de resultados vigente. Grupo A: Tiago/Stefano 4 pts (+4 sets), Ludmila/Joaquin 2 pts (0), Tisiana/Diego 2 pts (−1), Bruno/María 0 pts (−3). Grupo B: Ignacio/Narela 4 pts (+3), Marianela/Santiago 2 pts (+1), Martina/Juan 0 pts (−4). Desempate de segundo/tercero de A por diferencia de sets, no manual.
+- **Clasificación y cruces:** 3 clasificadas de A + 2 de B = 5. Previa P1 3°A (Tisiana/Diego) vs 2°B (Marianela/Santiago): ganó Tisiana/Diego 6-3, 3-6, 7-5. SF R1-1 1°A Tiago/Stefano vs ganadoras P1: Tiago/Stefano 6-3, 6-3. SF R1-2 2°A Ludmila/Joaquin vs 1°B Ignacio/Narela: Ignacio/Narela 6-4, 6-4. Final R2-1 Tiago/Stefano vs Ignacio/Narela: **6-4, 6-4**, campeones Tiago/Stefano y subcampeones Ignacio/Narela.
+- **Auditoría SQL solo lectura:** 7 grupos disputados, 4 eliminatorias disputadas; 0 ganadores incompatibles, 0 fuentes de cruces incorrectas, 0 marcadores irregulares, 0 terceros sets fuera del formato previsto. Súper tie-break válido en grupos y sets normales en eliminatorias. **0 partidos del torneo programados en la cancha**. Conservadas 41 reservas, 4 solicitudes de fijos y 4 cierres. Ninguna escritura SQL en esta auditoría.
+- **Estado al cierre:** el usuario finalizó el torneo después de revisar su publicación. Confirmado en Supabase: `completed` y `is_published=false` (oculto); no se eliminó. También se conserva la prueba ficticia de 6 parejas. El usuario planea eliminar los torneos de prueba más adelante: no hacerlo sin una indicación explícita.
+- **ACEPTACIÓN FINAL PENDIENTE:** Martín debe crear y gestionar personalmente un torneo de prueba, comprobar Admin/web pública y emitir **OK definitivo o nuevas observaciones**. No afirmar que la aceptación definitiva del cliente está dada hasta que Martín lo confirme. Después de la validación, depurar datos ficticios y ramas ya fusionadas sin afectar reservas ni torneos reales.
+- **Laptop:** el usuario confirmó `f10cf03`, `main` sincronizada, árbol limpio y **246/246 pruebas Node**. Este commit documental posterior requerirá sincronización al retomar trabajo.
