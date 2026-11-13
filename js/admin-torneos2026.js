@@ -284,8 +284,8 @@
     }
     body.append(wrapper);
   }
-  const sourceLabel=src=>/^P\d+$/.test(src)?'Ganador de previa '+src.slice(1):
-    /^W:\d+:\d+$/.test(src)?'Ganador del partido '+src.replace(/^W:/,'').replace(':','-'):src;
+  const sourceLabel=src=>/^P[1-9]\d*$/.test(src)?'Ganador P'+src.slice(1):
+    /^W:\d+:\d+$/.test(src)?'Ganador R'+src.slice(2).replace(':','-'):src;
   function renderBracket(){
     const wrapper=el('div','bp26-admin__knockout');
     wrapper.append(el('h3','bp26-admin__heading','Llave completa de eliminatorias'));
