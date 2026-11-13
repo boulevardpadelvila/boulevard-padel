@@ -140,7 +140,41 @@
     if (pairIds.some((id) => !id) || new Set(pairIds).size !== 4) return null;
     return { a1, a2, a3, a4, pairIds };
   }
+  // Temporada 2026: se calcula por 2/0, diferencia de sets, de games,
+  // enfrentamiento directo y sólo después se requiere decisión de Martín.
+  // Nunca asignar automáticamente primero/segundo por A3 y A4.
+  function standingsFor2026(members, matches, byResult) {
+    const engine = window.BPReglamento2026;
+    if (!engine) throw Error("Falta el motor deportivo 2026.");
+    const completed = matches.map(m => {
+      const r = byResult.get(m.id);
+      return r ? {
+        pair1: r.resolved_pair1_id,
+        pair2: r.resolved_pair2_id,
+        sets: r.sets,
+      } : null;
+    }).filter(Boolean);
+    const info = engine.standings(members, completed);
+    const qualifyingPlaces = members.length === 4 ? 3 : 2;
+    return {
+      table: info.rows,
+      qualifyingPlaces,
+      playedMatches: completed.length,
+      totalMatches: matches.length,
+      complete: info.complete,
+      fullTies: info.unresolved,
+      boundaryTie: info.unresolved.some(t => {
+        const at = info.rows.map((r,i) => t.includes(r.pairId) ? i : -1).filter(i => i >= 0);
+        return at.includes(qualifyingPlaces-1) && at.includes(qualifyingPlaces);
+      }),
+      qualificationReady: info.qualificationReady,
+      seedingReady: info.qualificationReady,
+      qualifiedPairIds: info.qualified,
+    };
+  }
   function standingsForFour(members, matches, byResult, semifinalMode = false) {
+    if (Number(selectedData?.tournament?.rules_version) === 2026)
+      return standingsFor2026(members, matches, byResult);
     const found = findGroupFourMatches(matches);
     if (
       !found ||
@@ -232,6 +266,8 @@
     return results;
   }
   function standingsForThree(pairIds, matches, resultMap) {
+    if (Number(selectedData?.tournament?.rules_version) === 2026)
+      return standingsFor2026(pairIds, matches, resultMap);
     const fixture = motor.buildGroupFixture(pairIds);
     const actual = fixture.map((expected) =>
       matches.filter(
@@ -537,6 +573,14 @@
                   "bp-results-hint",
                 ),
               );
+            else if (Number(data.tournament.rules_version) === 2026)
+              block.append(element(
+                "p",
+                standings.fullTies.length
+                  ? "Clasifican tres parejas. Hay puestos empatados que Martín debe resolver en Clasificación y eliminatorias."
+                  : "Grupo completo: clasifican las tres primeras parejas, determinadas por tabla de posiciones.",
+                standings.fullTies.length ? "bp-results-hint bp-results-error" : "bp-results-hint bp-results-success",
+              ));
             else if (data.groups.length === 2)
               block.append(
                 element(
@@ -633,7 +677,7 @@
       const [tr, gr, ar, pr, mr, rr] = await Promise.all([
         supabaseClient
           .from("bp_tournaments")
-          .select("id,name,format,status,fixture_published_at")
+          .select("id,name,format,rules_version,status,fixture_published_at")
           .eq("id", id)
           .maybeSingle(),
         supabaseClient
@@ -671,6 +715,10 @@
         panel.hidden = true;
         return;
       }
+      if (panel.querySelector?.(".bp-results-description")) panel.querySelector(".bp-results-description").textContent =
+        Number(tr.data.rules_version) === 2026
+          ? "Fase de grupos: partido ganado 2 puntos, perdido 0. Sets y games se utilizan para desempatar."
+          : "Cargá y corregí los marcadores desde cada partido del fixture. Aquí consultás únicamente las posiciones. Victoria: 3 puntos; derrota: 0.";
       selectedData = {
         tournament: tr.data,
         groups: gr.data || [],

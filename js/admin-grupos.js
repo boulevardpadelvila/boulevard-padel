@@ -1984,18 +1984,47 @@
     fixturePublishButton.disabled = true;
     setFixtureFeedback("Publicando fixture…");
     try {
-      const { error } = await supabaseClient.rpc(
-        "bp_tournament_publish_group_fixture",
-        {
+      const { data: tournamentState, error: stateError } = await supabaseClient
+        .from("bp_tournaments")
+        .select("rules_version")
+        .eq("id", id)
+        .single();
+      if (stateError) throw stateError;
+      let publication;
+      if (Number(tournamentState.rules_version) === 2026) {
+        const { count: approved, error: pairsError } = await supabaseClient
+          .from("bp_tournament_pairs")
+          .select("id", { count: "exact", head: true })
+          .eq("tournament_id", id)
+          .eq("status", "approved");
+        if (pairsError) throw pairsError;
+        if (!window.BPReglamento2026)
+          throw Error("Falta el motor de llaves del reglamento 2026.");
+        const plan = window.BPReglamento2026.bracket(approved);
+        // SQL90 publica en UNA transacción el fixture ya generado y TODAS
+        // las posibles eliminatorias; no asigna horarios ni bloquea cancha.
+        publication = await supabaseClient.rpc("bp_tournament_publish_fixture2026", {
           p_tournament_id: id,
-        },
-      );
+          p_plan: {
+            pairs: approved,
+            qualified: plan.qualified,
+            preliminariesMatches: plan.preliminariesMatches,
+            firstRoundMatches: plan.firstRoundMatches,
+          },
+        });
+      } else {
+        publication = await supabaseClient.rpc("bp_tournament_publish_group_fixture", {
+          p_tournament_id: id,
+        });
+      }
+      const { error } = publication;
       if (error) throw error;
       busy = false;
       if (tournamentSelect.value !== id) return;
       await refresh();
+      window.dispatchEvent(new CustomEvent("bp:fixture-published2026", { detail: { tournamentId: id } }));
       setFixtureFeedback(
-        "Fixture publicado correctamente. El torneo mantiene su visibilidad actual; todavía no se muestra el fixture en el sitio público.",
+        "Fixture publicado correctamente. Las eliminatorias también quedaron publicadas y se verán cuando el torneo sea visible.",
         "success",
       );
     } catch (error) {

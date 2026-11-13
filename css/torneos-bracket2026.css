@@ -1,0 +1,14 @@
+.bp26-public{margin-top:1.1rem;border:1px solid #31594c;border-radius:14px;overflow:hidden;background:#102a22;color:#edf7ee}
+.bp26-public__summary{padding:15px 18px;font-weight:750;cursor:pointer;color:#f4d38c;list-style-position:inside}
+.bp26-public__summary:focus-visible{outline:3px solid #f4d38c;outline-offset:-4px}
+.bp26-public__note{margin:0;padding:6px 16px 14px;color:#c8dbcf;font-size:.91rem;line-height:1.5}
+.bp26-public__scroll{overflow-x:auto;padding:0 12px 14px;scrollbar-color:#8eaf9e #15372c}
+.bp26-public__rounds{display:flex;align-items:stretch;gap:14px;min-width:max-content}
+.bp26-public__round{width:218px;display:flex;flex-direction:column;gap:10px}
+.bp26-public__heading{font-size:1rem;text-align:center;border-radius:8px;background:#1e4b39;padding:9px 8px;margin:0;color:#f3e0b4}
+.bp26-public__match{padding:12px;background:#f8fcfa;color:#19382a;border-radius:10px;box-shadow:0 0 0 1px #a3c0b2 inset}
+.bp26-public__match-top{font-size:.74rem;text-transform:uppercase;letter-spacing:.035em;color:#43665c;margin-bottom:7px}
+.bp26-public__team{font-weight:650;font-size:.9rem;line-height:1.25;margin:4px 0;overflow-wrap:anywhere}
+.bp26-public__versus{font-size:.75rem;color:#6e887d;margin:4px 0}
+.bp26-public__score{margin:8px 0 0;font-weight:700;color:#1f5b3d;font-size:.85rem}
+@media(max-width:600px){.bp26-public__scroll{padding:0 8px 12px}.bp26-public__round{width:200px}.bp26-public__summary{font-size:.91rem}}

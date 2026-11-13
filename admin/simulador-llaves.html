@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="dark light" />
-    <title>Boulevard Pádel | Simulador de llaves (prototipo)</title>
+    <title>Boulevard Pádel | Simulador de llaves</title>
     <style>
       :root {
         color-scheme: dark;
@@ -322,7 +322,7 @@
             a 40 parejas
           </p>
         </div>
-        <span class="chip">VISTA PREVIA · PENDIENTE DE APROBACIÓN</span>
+        <span class="chip">REGLAMENTO APROBADO · IMPLEMENTACIÓN EN DESARROLLO</span>
       </header>
       <section class="control" aria-label="Elegir cantidad de parejas">
         <div class="control-head">
@@ -372,14 +372,9 @@
         </div>
       </section>
       <div class="notice">
-        <strong>Reglamento ilustrativo para revisión de Martín</strong>
+        <strong>Reglamento deportivo aprobado · 12/11/2026</strong>
         <p>
-          Los tamaños de grupo, la cantidad de clasificadas y el número de
-          previas siguen el patrón del PDF de 6 a 40 parejas. Los cruces de 6 a
-          14 reflejan las llaves de sus láminas. Desde 15 parejas, la ubicación
-          exacta en las llaves es una simulación automática; los criterios de
-          clasificación, desempates y pases directos requieren aprobación del
-          organizador. No muestra resultados reales ni modifica reservas.
+          Este simulador presenta las llaves aprobadas de 6 a 40 parejas, con grupos de 3 y 4, clasificación 2/3 y prioridad de pases directos para los primeros de las zonas de cuatro. Se está integrando al sistema; esta vista no registra resultados reales, no programa cancha ni modifica reservas.
         </p>
       </div>
       <div class="actions">
@@ -390,164 +385,38 @@
       </div>
       <p class="fine">
         Simulador de consulta para Martín, enlazado solo desde el Admin; no es
-        todavía un reglamento aprobado ni aparece en el sitio público. La página
+        todavía un sistema de competición operable ni aparece en el sitio público. La página
         estática puede abrirse mediante su dirección directa, sin iniciar
         sesión. No consulta Supabase ni modifica datos.
       </p>
     </main>
+    <script src="../js/torneos-reglamento-2026.js"></script>
     <script>
       "use strict";
       const $ = (id) => document.getElementById(id);
       const NS = "http://www.w3.org/2000/svg";
-      const special = {
-        6: {
-          pre: [],
-          opening: [
-            ["1° A", "2° B"],
-            ["2° A", "1° B"],
-          ],
-        },
-        7: {
-          pre: [["3° A", "2° B"]],
-          opening: [
-            ["1° A", "P1"],
-            ["2° A", "1° B"],
-          ],
-        },
-        8: {
-          pre: [
-            ["3° A", "2° B"],
-            ["2° A", "3° B"],
-          ],
-          opening: [
-            ["1° A", "P1"],
-            ["P2", "1° B"],
-          ],
-        },
-        9: {
-          pre: [
-            ["2° B", "2° C"],
-            ["1° C", "2° A"],
-          ],
-          opening: [
-            ["1° A", "P1"],
-            ["P2", "1° B"],
-          ],
-        },
-        10: {
-          pre: [
-            ["2° B", "2° C"],
-            ["1° C", "2° A"],
-            ["3° A", "1° B"],
-          ],
-          opening: [
-            ["1° A", "P1"],
-            ["P2", "P3"],
-          ],
-        },
-        11: {
-          pre: [],
-          opening: [
-            ["1° A", "3° B"],
-            ["2° B", "2° C"],
-            ["1° C", "2° A"],
-            ["3° A", "1° B"],
-          ],
-        },
-        12: {
-          pre: [],
-          opening: [
-            ["1° A", "2° B"],
-            ["2° C", "1° D"],
-            ["1° C", "2° D"],
-            ["2° A", "1° B"],
-          ],
-        },
-        13: {
-          pre: [["3° A", "2° B"]],
-          opening: [
-            ["1° A", "P1"],
-            ["2° C", "1° D"],
-            ["1° C", "2° D"],
-            ["2° A", "1° B"],
-          ],
-        },
-        14: {
-          pre: [
-            ["3° A", "2° B"],
-            ["2° A", "3° B"],
-          ],
-          opening: [
-            ["1° A", "P1"],
-            ["2° C", "1° D"],
-            ["1° C", "2° D"],
-            ["P2", "1° B"],
-          ],
-        },
-      };
+      // La vista previa y el motor deportivo comparten UNA única fuente de llaves.
       function groupPlan(n) {
-        const g = Math.floor(n / 3),
-          fours = n % 3,
-          threes = g - fours,
-          sizes = Array.from({ length: g }, (_, i) => (i < fours ? 4 : 3)),
-          q = 2 * threes + 3 * fours,
-          base = 2 ** Math.floor(Math.log2(q)),
-          p = q - base;
+        const plan = BPReglamento2026.groupPlan(n);
         return {
-          n,
-          g,
-          fours,
-          threes,
-          sizes,
-          q,
-          base,
-          p,
-          byes: p ? 2 * base - q : 0,
+          n: plan.pairs,
+          g: plan.sizes.length,
+          fours: n % 3,
+          threes: plan.sizes.length - (n % 3),
+          sizes: plan.sizes,
+          q: plan.qualified,
+          base: plan.base,
+          p: plan.preliminaries,
+          byes: plan.direct,
         };
       }
-      function seeds(num) {
-        let arr = [1, 2];
-        while (arr.length < num) {
-          const lim = arr.length * 2 + 1;
-          arr = arr.flatMap((a) => [a, lim - a]);
-        }
-        return arr;
-      }
-      function participants(p) {
-        return p.sizes.flatMap((sz, i) =>
-          Array.from({ length: sz === 4 ? 3 : 2 }, (_, k) => ({
-            text: `${k + 1}° ${String.fromCharCode(65 + i)}`,
-            group: i,
-            rank: k + 1,
-          })),
-        );
-      }
-      function genericBracket(p) {
-        let entrants = participants(p).sort(
-          (a, b) => a.rank - b.rank || a.group - b.group,
-        );
-        let direct = entrants.slice(0, p.p ? p.byes : p.base),
-          remain = entrants.slice(direct.length);
-        const pre = [];
-        while (remain.length) {
-          const first = remain.shift();
-          const j = remain.findIndex((x) => x.group !== first.group);
-          const second = remain.splice(j >= 0 ? j : 0, 1)[0];
-          pre.push([first.text, second.text]);
-        }
-        const cells = direct
-          .map((t) => t.text)
-          .concat(pre.map((_, i) => `P${i + 1}`));
-        const order = seeds(p.base).map((i) => cells[i - 1]);
-        const opening = [];
-        for (let i = 0; i < order.length; i += 2)
-          opening.push([order[i], order[i + 1]]);
-        return { pre, opening, illustrative: true };
-      }
-      function bracket(p) {
-        return special[p.n]
-          ? { ...special[p.n], illustrative: false }
-          : genericBracket(p);
+      function bracket(plan) {
+        const model = BPReglamento2026.bracket(plan.n);
+        return {
+          pre: model.preliminariesMatches,
+          opening: model.firstRoundMatches,
+          illustrative: model.illustrative,
+        };
       }
       function el(tag, atts = {}, content) {
         const v = document.createElementNS(NS, tag);
@@ -837,7 +706,7 @@
         $("bracketTitle").textContent =
           `Llave de ${n} parejas · ${p.q} clasificadas`;
         $("roundText").textContent =
-          `${d.pre.length ? "Ronda preliminar → " : ""}${p.base === 4 ? "Semifinales" : p.base === 8 ? "Cuartos de final" : "Octavos de final"} → Final${d.illustrative ? " · cruces ilustrativos" : ""}`;
+          `${d.pre.length ? "Ronda preliminar → " : ""}${p.base === 4 ? "Semifinales" : p.base === 8 ? "Cuartos de final" : "Octavos de final"} → Final`;
         draw(p);
       }
       $("pairs").addEventListener("input", render);

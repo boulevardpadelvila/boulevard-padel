@@ -67,18 +67,19 @@
     return true;
   }
 
-  function analyzeScore(sets){
-    const result=classic.evaluateSets({sets},"super_tb");
+  function analyzeScore(sets,mode="super_tb"){
+    if(!["super_tb","three_sets"].includes(mode))throw Error("Formato de Liga desconocido.");
+    const result=classic.evaluateSets({sets},mode);
     return {
       ...result,
       winnerSide:result.winnerSide,
       loserSets:result.winnerSide===1?result.side2Sets:result.side1Sets,
-      games1:sets.slice(0,2).reduce((a,row)=>a+row[0],0),
-      games2:sets.slice(0,2).reduce((a,row)=>a+row[1],0)
+      games1:sets.slice(0,mode==="three_sets"?3:2).reduce((a,row)=>a+row[0],0),
+      games2:sets.slice(0,mode==="three_sets"?3:2).reduce((a,row)=>a+row[1],0)
     };
   }
 
-  function standings(pairIds,matches){
+  function standings(pairIds,matches,mode="super_tb"){
     if(!Array.isArray(pairIds)||new Set(pairIds).size!==pairIds.length||
         !Array.isArray(matches))throw Error("Parejas o partidos inválidos.");
     const records=new Map(pairIds.map(id=>[id,{
@@ -92,7 +93,7 @@
       const p1=records.get(match.pair1_id||match.pair1Id),
         p2=records.get(match.pair2_id||match.pair2Id);
       if(!p1||!p2||p1===p2)throw Error("Partido de Liga con parejas inválidas.");
-      const r=analyzeScore(match.sets);
+      const r=analyzeScore(match.sets,mode);
       const winner=r.winnerSide===1?p1:p2,loser=r.winnerSide===1?p2:p1;
       p1.played++;p2.played++;winner.won++;loser.lost++;
       winner.points+=2;

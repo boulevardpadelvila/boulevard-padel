@@ -58,6 +58,7 @@
   let publicFollowupByTournament = new Map();
   let publicLeagueByTournament = new Map();
   let publicLeagueFinalByTournament = new Map();
+  let publicBracketByTournament = new Map();
 
   function status(text) {
     feedback.textContent = text;
@@ -243,6 +244,36 @@
     );
   }
   function standingsForGroup(group, groupMatches, twoGroupMode = false) {
+    const rulesVersion = arguments[3] || 0;
+    const officialOrder = arguments[4] || null;
+    if (Number(rulesVersion) === 2026 && window.BPReglamento2026) {
+      const ids = (group.pairs || []).map(p => p.id);
+      const found = groupMatches.filter(m =>
+        m.winner_pair_id && Array.isArray(m.sets) &&
+        (m.resolved_pair1_id || m.pair1_id) &&
+        (m.resolved_pair2_id || m.pair2_id)
+      ).map(m => ({
+        pair1: m.resolved_pair1_id || m.pair1_id,
+        pair2: m.resolved_pair2_id || m.pair2_id,
+        sets: m.sets
+      }));
+      const r = window.BPReglamento2026.standings(ids, found, officialOrder || []);
+      const byId = new Map(group.pairs.map(p => [p.id, p]));
+      const tieIds = new Set(r.unresolved.flat());
+      const tableRows = r.rows.map((row, i) => {
+        const display = row.setDifference > 0 ? "+" + row.setDifference : row.setDifference;
+        const games = row.gameDifference > 0 ? "+" + row.gameDifference : row.gameDifference;
+        return [
+          tieIds.has(row.pairId) ? "=" : String(i + 1),
+          publicPairName(byId.get(row.pairId)),
+          row.played, row.won, row.lost, row.setsFor, row.setsAgainst,
+          display, row.gamesFor, row.gamesAgainst, games, row.points
+        ];
+      });
+      return {rows: tableRows, complete:r.complete, counted:found.length,
+        total:groupMatches.length, tied:r.unresolved.length>0,
+        decided:Array.isArray(officialOrder)&&officialOrder.length===ids.length};
+    }
     const rows = (group.pairs || []).map((p) => ({
       id: p.id,
       name: publicPairName(p),
@@ -481,7 +512,12 @@
     const standingsGrid = make("div", "public-tournament-standings-grid");
     for (const group of groups) {
       const groupMatches = matches.filter((m) => m.group_id === group.id);
-      const table = standingsForGroup(group, groupMatches, groups.length === 2);
+      const officialGroupOrder = publicBracketByTournament.get(t.id)?.placements?.[
+        publicGroupLetter(group.number)
+      ] || null;
+      const table = standingsForGroup(
+        group, groupMatches, groups.length === 2, t.rules_version, officialGroupOrder,
+      );
       const wrap = make("div", "public-tournament-standings-group");
       const pairCount = (group.pairs || []).length;
       wrap.append(
@@ -520,7 +556,7 @@
           "Grupo completo. Las posiciones empatadas requieren definición.";
       } else if (pairCount === 3) {
         message = "Grupo completo. Clasifican las dos primeras parejas.";
-      } else if (pairCount === 4 && groups.length === 2) {
+      } else if (pairCount === 4 && groups.length === 2 && Number(t.rules_version) !== 2026) {
         message = "Grupo completo. Clasifican dos parejas.";
       } else if (pairCount === 4) {
         message = "Grupo completo. Clasifican las tres primeras parejas.";
@@ -1134,6 +1170,15 @@
       );
       if (finalBlock) card.append(finalBlock);
     } else card.append(detailBlock(t));
+    // El cuadro 2026 se publica COMPLETO junto al fixture, sin esperar resultados.
+    // No reemplaza el reporte histórico de torneos anteriores.
+    const publicBracket = window.BPBracket2026Public?.render(
+      t,
+      publishedGroupsByTournament.get(t.id),
+      publishedFixtureByTournament.get(t.id),
+      publicBracketByTournament.get(t.id),
+    );
+    if (publicBracket) card.append(publicBracket);
     const eliminatorias = knockoutBlock(t);
     if (eliminatorias) card.append(eliminatorias);
     return card;
@@ -1250,7 +1295,7 @@
       const { data, error } = await supabaseClient
         .from("bp_tournaments")
         .select(
-          "id,name,format,status,starts_on,ends_on,registration_closes_at,bp_tournament_categories(name)",
+          "id,name,format,rules_version,status,starts_on,ends_on,registration_closes_at,bp_tournament_categories(name)",
         )
         .eq("is_published", true)
         .order("starts_on", { ascending: true })
@@ -1262,6 +1307,7 @@
       publicFollowupByTournament = new Map();
       publicLeagueByTournament = new Map();
       publicLeagueFinalByTournament = new Map();
+      publicBracketByTournament = new Map();
       const notices = [];
       try {
         publishedGroupsByTournament =
@@ -1305,6 +1351,23 @@
       } catch (error) {
         console.error("No se pudo consultar la fase final pública de Liga", error);
         notices.push("No se pudo cargar la fase final de Liga.");
+      }
+      // En instalaciones con SQL90, los resultados y nombres de las llaves
+      // son sanitizados por la RPC. La vista estructural funciona igual sin ella.
+      const withFixtures = tournamentsCache.filter(t =>
+        t.format === "groups_knockout" && publishedFixtureByTournament.get(t.id)?.length
+      );
+      if (withFixtures.length) {
+        try {
+          for (const t of withFixtures) {
+            const { data, error } = await supabaseClient.rpc("bp_tournament_bracket_report2026", {p_tournament_id:t.id});
+            if (error && error.code !== "PGRST202" && error.code !== "42883") throw error;
+            if (data?.matches?.length) publicBracketByTournament.set(t.id,data);
+          }
+        } catch (err) {
+          console.error("No se pudieron leer los marcadores de eliminatorias 2026",err);
+          notices.push("Los resultados de eliminatorias no están disponibles.");
+        }
       }
       status(
         notices.length

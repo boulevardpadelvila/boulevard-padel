@@ -22,7 +22,7 @@
     if (!report || !engine || t.format !== "league") return [];
     const pairs = new Map((report.pairs || []).map((p) => [p.id, p.name]));
     const matches = report.matches || [];
-    const results = engine.standings([...pairs.keys()], matches);
+    const results = engine.standings([...pairs.keys()], matches, Number(t.rules_version) === 2026 ? "three_sets" : "super_tb");
     const calendar = make("details", "public-tournament-more bp-public-league");
     calendar.append(
       make(

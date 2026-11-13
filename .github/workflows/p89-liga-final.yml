@@ -119,3 +119,5 @@ jobs:
         run: |
           node --check tests/torneos-liga-final89-browser.test.cjs
           node --test tests/torneos-liga-final89-browser.test.cjs
+          node --check tests/torneos-reglamento-browser2026.test.cjs
+          node --test tests/torneos-reglamento-browser2026.test.cjs

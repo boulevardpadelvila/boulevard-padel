@@ -1,0 +1,33 @@
+/* Boulevard Pádel · Reglas 2026, únicamente dentro del Admin de Torneos. */
+.bp26-admin{margin-top:16px}.bp26-admin__head{display:flex;align-items:start;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.bp26-admin__head small{color:#c4a268;font-weight:750;letter-spacing:.08em}
+.bp26-admin__head h2{margin:.2rem 0;font-size:1.4rem}
+.bp26-admin__head p{margin:.2rem 0 .8rem;opacity:.83}
+.bp26-admin__status{padding:9px 0;color:#bbddb6;font-size:.93rem}.bp26-admin__status--error{color:#ffb7ae}
+.bp26-admin__heading{margin:12px 0;font-size:1.18rem}
+.bp26-admin__groups{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(300px,100%),1fr));gap:14px}
+.bp26-admin__groups>.bp26-admin__heading{grid-column:1/-1}
+.bp26-admin__group{min-width:0;border:1px solid #517660;border-radius:12px;padding:12px;background:rgba(14,46,34,.3)}
+.bp26-admin__group h4{margin:0 0 12px;font-size:1rem}.bp26-admin__table{width:100%;border-collapse:collapse;font-size:.85rem}
+.bp26-admin__table th,.bp26-admin__table td{border-bottom:1px solid rgba(170,211,185,.2);padding:8px 4px;text-align:left}
+.bp26-admin__table th{font-weight:750;color:#e5c780}.bp26-admin__table td:nth-child(2){overflow-wrap:anywhere}
+.bp26-admin__hint{font-size:.85rem;opacity:.82;line-height:1.5;margin:10px 0}
+.bp26-admin__reorder{padding:7px!important;font-size:.76rem!important;white-space:nowrap}
+.bp26-admin__confirm{grid-column:1/-1;padding:13px 18px;border-radius:10px;width:fit-content;cursor:pointer}
+.bp26-admin__knockout{margin-top:20px}.bp26-admin__stage{margin:18px 0 10px;border-bottom:1px solid #5d806d;padding:0 0 7px;color:#e5c780;font-size:1.05rem}
+.bp26-admin__match{display:grid;grid-template-columns:110px minmax(150px,1fr) auto;gap:10px;align-items:center;margin:6px 0;padding:11px;border-radius:10px;background:rgba(27,68,48,.65);border:1px solid #50775d}
+.bp26-admin__match strong{font-size:.85rem}.bp26-admin__match div{overflow-wrap:anywhere;font-size:.87rem}
+.bp26-admin__score{grid-column:2/4;font-size:.83rem;font-weight:750;color:#edce88;margin:0}
+.bp26-admin__champion{padding:18px;margin:18px 0;border:1px solid #c4a268;border-radius:10px;background:rgba(113,81,23,.18)}
+.bp26-admin__champion h3{margin:5px 0}.bp26-score-fields{display:grid;gap:10px}
+.bp26-score-fields__row{display:grid;grid-template-columns:minmax(120px,1fr) repeat(2,70px);align-items:center;gap:10px}
+.bp26-score-fields input{width:100%;min-width:0;padding:9px;border:1px solid #8ca996;border-radius:7px}
+.bp26-result-dialog #bp26-score-error{color:#d94747;font-size:.9rem}
+@media(max-width:620px){.bp26-admin__match{grid-template-columns:1fr;gap:6px}.bp26-admin__score{grid-column:auto}.bp26-admin__match button{width:100%}.bp26-score-fields__row{grid-template-columns:minmax(75px,1fr) repeat(2,minmax(52px,72px))}}
+.bp26-admin__schedule{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:9px 0}
+.bp26-admin__schedule button{font-size:.84rem}
+.bp26-admin__when{font-size:.84rem;margin:0 8px 0 0;color:inherit}
+.bp26-schedule-dialog .admin-save-dialog__body{display:flex;flex-direction:column;gap:10px;max-width:460px}
+.bp26-schedule-dialog input,.bp26-schedule-dialog select{width:100%;padding:10px;border-radius:8px;border:1px solid #7a9d90;background:#f9fbfa;color:#132f23}
+.bp26-schedule-dialog label{font-weight:700;margin-top:4px}
+#bp26-schedule-error{color:#a33020;min-height:1.3em}
