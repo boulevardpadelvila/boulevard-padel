@@ -1,5 +1,17 @@
 # Boulevard Pádel — ESTADO ACTUAL / RELEVO ENTRE CHATS
 
+## 13/11/2026 — SQL94: endurecimiento de RPC y compatibilidad localhost (VIGENTE)
+
+**IMPLEMENTADO Y VERIFICADO EN PRODUCCIÓN:** PR #36 fusionado en `main` (`0955f63e64f73e0b112414ac5d6db302e5958bb4`), migración Supabase `bp_sql94_minimo_privilegio_rpc_localhost_2026` instalada con éxito (versión `20261113232433`). Se retiró EXECUTE público a **15 funciones trigger**, 1 event trigger y el generador de códigos; `create_admin_booking_flexible` y `update_admin_booking_flexible` ya no son ejecutables directamente por `anon`, pero continúan habilitadas a `authenticated` y `service_role`. Se fijó el `search_path` de `set_updated_at()`. **No se modificaron** vistas, RLS, SQL deportivo, Edge Functions ni credenciales/orígenes de localhost.
+
+**CI y prueba de roles:** los seis checks PR aprobaron (Node, SQL94 PostgreSQL 17 desechable, SQL89 PostgreSQL 17, Chromium y Cloudflare). Post-verificación directa: 15/15 triggers restringidos; las RPC públicas de turnos, cancelación por código y seguimiento de torneos siguen habilitadas a `anon`. Consulta transaccional `READ ONLY` ejecutada como `anon` en producción: configuración disponible, 30 horarios, consulta por código inexistente sin datos y guardias admin false. **No se verificó un login interactivo real con Martín; queda la comprobación visual no destructiva en localhost/Admin.**
+
+**Datos intactos:** antes y después, 41 reservas totales / 31 confirmadas, 4 solicitudes fijas / 3 aprobadas, 4 bloqueos, 0 torneos. Avisos de funciones ejecutables por anónimos de **30 a 11**; los restantes incluyen RPC deliberadamente públicas. Persisten **2 vistas `SECURITY DEFINER`** usadas por la web pública: no se convierten directamente a `security_invoker`, ya que romperían acceso al fixture sin preparar políticas RLS. También quedan pendiente revisar la protección Auth de contraseñas filtradas y `btree_gist` sin cambios improvisados. Referencia: `docs/AUDITORIA_SEGURIDAD_SUPABASE_20261113.md`.
+
+**Laptop:** sincronizar luego de este commit con `git pull --ff-only origin main`. Rama remota `security/supabase-rpc-grants94-20261113` fusionada, su eliminación se coordina por SSH después de confirmar rama `main` actualizada; nunca borrar datos reales.
+
+---
+
 ## 13/11/2026 — Admin Torneos: botones uniformes (PR #35 FUSIONADO)
 
 **ENTREGADO EN MAIN:** PR #35, merge `762dd3d29ffc5a7d0a243ce8d1874aee0b799d2d`. La distribución de acciones de cada tarjeta en «Torneos registrados» usa ahora una grilla `auto-fit` con columnas de igual ancho y botones de 42 px de altura; se adapta automáticamente a 6, 7 o cualquier otra cantidad y al ancho de la tarjeta en PC/tablet/celular. Solo cambió `css/admin-torneos-compacto61.css` y se sumó un test de regresión. **No se tocó** `js/admin-torneos.js`, estado de inscripciones, base de datos, reservas ni turnos fijos. El botón «Cerrar inscripciones» desaparece normalmente cuando el torneo ya está cerrado, excepto el caso especial de borrador que conserva la acción propia. CI Node, PostgreSQL 17 aislado, Chromium móvil y Cloudflare Preview completó correctamente. **Pendiente:** comprobación visual con un torneo de prueba en el Admin desplegado, sin alterar datos reales, y limpiar rama temporal remota `fix/torneos-botones-uniformes-20261113` cuando la laptop esté sincronizada.
