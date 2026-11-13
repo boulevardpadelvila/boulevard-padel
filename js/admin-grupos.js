@@ -1766,7 +1766,8 @@
           : !orderedGroups
             ? "Los grupos de 4 deben ser los primeros: A, B, C... Reorganizá antes de publicar."
             : "Para publicar, resolvé las solicitudes pendientes y verificá asignaciones y equilibrio.";
-      redraw.disabled = busy || published || !eligible;
+      // Re-sortear debe seguir disponible para corregir un orden inválido.
+      redraw.disabled = busy || published || !canOrganize;
       publishButton.disabled = busy || published || !eligible;
       // El fixture anterior es todos contra todos. En grupos de 4 NO es válido:
       // habrá dos primeros cruces, luego ganadores entre sí y perdedores entre sí.
