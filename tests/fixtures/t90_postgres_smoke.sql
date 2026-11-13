@@ -22,8 +22,8 @@ begin
      end loop;
    end loop;
    select public.bp_tournament_publish_fixture2026(v_t,p.plan) into v_result
-   from public._t90_plans p where p.n=n;
-   select (p.plan->>'qualified')::int-1 into v_expected from public._t90_plans p where p.n=n;
+   from public._t90_plans p where p.n=v_n;
+   select (p.plan->>'qualified')::int-1 into v_expected from public._t90_plans p where p.n=v_n;
    if (select count(*) from public.bp_tournament_bracket_matches2026 m where m.tournament_id=v_t)<>v_expected then
      raise exception 'n=%, partidos eliminatorios mal generados',n;
    end if;
