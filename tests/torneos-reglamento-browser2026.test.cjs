@@ -138,7 +138,13 @@ test("Admin 2026: dos tablas legibles y tarjetas compactas en escritorio y móvi
     const cards=[...document.querySelectorAll("#bp26-admin .bp26-admin__match")];
     const bg=getComputedStyle(cards[0]).backgroundColor;
     const text=getComputedStyle(cards[0].querySelector("div")).color;
-    return {groupWidths:groups.map(x=>x.getBoundingClientRect().width),
+    const numberCells=[...document.querySelectorAll("#bp26-admin .bp26-admin__table tr")]
+      .flatMap(tr=>[0,2,3,4].map(i=>tr.children[i]).filter(Boolean));
+    const names=[...document.querySelectorAll("#bp26-admin .bp26-admin__table tr")]
+      .map(tr=>tr.children[1]).filter(Boolean);
+    return {numberAligns:numberCells.map(x=>getComputedStyle(x).textAlign),
+      namesAlign:names.map(x=>getComputedStyle(x).textAlign),
+      groupWidths:groups.map(x=>x.getBoundingClientRect().width),
       cardHeights:cards.map(x=>x.getBoundingClientRect().height),bg,text,
       tableOverflow:groups.map(x=>x.querySelector(".bp26-admin__table-scroll").scrollWidth-
        x.querySelector(".bp26-admin__table-scroll").clientWidth),
@@ -148,6 +154,8 @@ test("Admin 2026: dos tablas legibles y tarjetas compactas en escritorio y móvi
         return Math.abs(program.bottom-result.bottom);
       })};
   });
+  assert.ok(desktop.numberAligns.length>0 && desktop.numberAligns.every(x=>x==="right"),JSON.stringify(desktop));
+  assert.ok(desktop.namesAlign.every(x=>x==="left"||x==="start"),JSON.stringify(desktop));
   assert.equal(desktop.groupWidths.length,2);
   assert.ok(desktop.groupWidths.every(x=>x>500),JSON.stringify(desktop));
   assert.ok(desktop.cardHeights.every(x=>x<125),JSON.stringify(desktop));
