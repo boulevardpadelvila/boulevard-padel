@@ -65,8 +65,8 @@ test("Las rutas públicas siguen usando RPC públicos y Edge Functions", () => {
   for (const f of ["get_booking_config","get_booking_by_code","cancel_booking_by_code"]) {
     assert.ok(reservas.includes('rpc("' + f + '"'), "Falta RPC pública " + f);
   }
-  assert.ok(reservas.includes('functions.invoke("create-booking-secure"'));
-  assert.ok(reservas.includes('functions.invoke("request-fixed-turn"'));
+  assert.match(reservas, /functions\\.invoke\\(\\s*["\']create-booking-secure/);
+  assert.match(reservas, /functions\\.invoke\\(\\s*["\']request-fixed-turn/);
   assert.ok(publicTournaments.includes('bp_public_tournament_followup'));
   assert.ok(publicTournaments.includes('register-tournament-pair'));
   assert.match(config, /supabase\.createClient\(/);
