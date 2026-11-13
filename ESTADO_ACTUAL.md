@@ -1,5 +1,15 @@
 # Boulevard Pádel — ESTADO ACTUAL / RELEVO ENTRE CHATS
 
+## Despliegue oficial del reglamento 2026 — 12/11/2026 (ÚLTIMO ESTADO)
+
+**CONFIRMADO Y PUBLICADO:** PR #21 fusionado en `main` (squash commit `25d23a6c55db8fd3552bc0fafe2338a26c20cfb1`). El check oficial de **Cloudflare Pages devolvió «Deployed successfully»** para ese commit. También aprobaron los cuatro checks posfusión de GitHub: Cloudflare Pages, test Node, SQL89 PostgreSQL 17 y Chromium móvil. No se pudo inspeccionar el navegador real del usuario desde este entorno; queda pendiente un recorrido visual y operativo con Martín.
+
+**Supabase productivo:** están instaladas las migraciones 2026 SQL90, SQL91 y SQL92. Se verificó al final: **41 reservas, 4 turnos fijos solicitados, 4 blockouts y 0 torneos**; antes de trabajar eran exactamente 41/4/4. Los nuevos módulos de torneos son independientes; los bloqueos de eliminatorias solo se crean al programar un encuentro nuevo y se liberan al postergarlo. No se editaron reservas ni turnos fijos.
+
+**Funcionalidades:** Grupos + Eliminatorias 6–40 y Liga con reglas confirmadas, Admin para posiciones/empates/resultados/horarios, publicación de llaves y horarios en web pública; motor y tests compartidos. Nuevas vistas y RPC protegidas con RLS. Ver sección «Reglas 2026» más abajo y `docs/REGLAMENTO_TORNEOS_20261112.md`.
+
+**Próxima acción del usuario:** cuando pueda, abrir el Admin y la web pública, comprobar visualmente la nueva sección y hacer con Martín una prueba end-to-end con un torneo nuevo (no existen campeonatos en este momento). Para sincronizar la laptop, trabajar sobre `main`, ejecutar `git pull --ff-only` y `node --test tests/*.test.js`. La rama de desarrollo puede eliminarse después de comprobar la sincronización; PR #21 ya quedó fusionado y cerrado.
+
 > Fuente breve de continuidad. Leer este archivo PRIMERO al iniciar otro chat, después consultar el final de `BITACORA_DESARROLLO.md` y los archivos reales de la rama. No sustituye el código ni las pruebas.
 >
 > Archivo histórico con notas antiguas. **Último estado: 12/11/2026 (Argentina), ver el bloque de abajo.** Notas posteriores del 10/11 conservadas como historial y no sustituyen este estado. 
