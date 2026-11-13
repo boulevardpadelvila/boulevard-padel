@@ -16,8 +16,10 @@ test("35 cantidades: todos los cruces aparecen desde el sorteo",()=>{
 });
 test("referencias de preliminares y rondas no exponen datos personales",()=>{
  assert.equal(publicBracket.sourceLabel("1° A"),"1° A");
- assert.equal(publicBracket.sourceLabel("P2"),"Ganador de previa 2");
- assert.equal(publicBracket.sourceLabel("W:2:3"),"Ganador del partido 2-3");
+ assert.equal(publicBracket.sourceLabel("P2"),"Ganador P2");
+ assert.equal(publicBracket.sourceLabel("W:2:3"),"Ganador R2-3");
+ assert.equal(publicBracket.sourceLabel("W:1:1"),"Ganador R1-1");
+ assert.equal(publicBracket.sourceLabel("W:1:2"),"Ganador R1-2");
 });
 test("sitio público carga scripts en orden y sin afectar reservas",()=>{
  const html=read("index.html");
