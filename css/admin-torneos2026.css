@@ -24,3 +24,10 @@
 .bp26-score-fields input{width:100%;min-width:0;padding:9px;border:1px solid #8ca996;border-radius:7px}
 .bp26-result-dialog #bp26-score-error{color:#d94747;font-size:.9rem}
 @media(max-width:620px){.bp26-admin__match{grid-template-columns:1fr;gap:6px}.bp26-admin__score{grid-column:auto}.bp26-admin__match button{width:100%}.bp26-score-fields__row{grid-template-columns:minmax(75px,1fr) repeat(2,minmax(52px,72px))}}
+.bp26-admin__schedule{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:9px 0}
+.bp26-admin__schedule button{font-size:.84rem}
+.bp26-admin__when{font-size:.84rem;margin:0 8px 0 0;color:inherit}
+.bp26-schedule-dialog .admin-save-dialog__body{display:flex;flex-direction:column;gap:10px;max-width:460px}
+.bp26-schedule-dialog input,.bp26-schedule-dialog select{width:100%;padding:10px;border-radius:8px;border:1px solid #7a9d90;background:#f9fbfa;color:#132f23}
+.bp26-schedule-dialog label{font-weight:700;margin-top:4px}
+#bp26-schedule-error{color:#a33020;min-height:1.3em}
