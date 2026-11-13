@@ -334,3 +334,101 @@ test("Admin 2026: eliminatorias grandes 3/2/1 columnas sin perder controles",asy
   assert.ok(mobile.width<=mobile.viewport+2,JSON.stringify(mobile));
   await page.close();
 });
+
+
+test("Público 2026: fixture y resultados en grilla 3/2/1 sin desborde",async()=>{
+  const page=await browser.newPage({viewport:{width:1440,height:900}});
+  await page.setContent('<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"></head><body><main class="public-tournaments"><div class="container" style="max-width:1400px;margin:auto"><article class="public-tournament-card"><details class="public-tournament-fixture" open><summary>Fixture</summary><div class="public-tournament-fixture__body public-tournament-fixture__body--1"><section class="public-tournament-fixture__calendar-block"><h4 class="public-tournament-fixture__calendar-heading">Sin programar</h4><div class="public-tournament-fixture__calendar-grid" id="fixture-grid"></div></section></div></details><section class="public-tournament-data public-tournament-group-results"><h4>Resultados de la fase de grupos</h4><div class="public-tournament-days public-tournament-days--1"><section class="public-tournament-day"><h5 class="public-tournament-day__title">Fecha por confirmar</h5><div class="public-tournament-results" id="result-grid"></div></section></div></section></article></div></main></body></html>');
+  for(const css of ["css/styles.css","css/torneos-public.css","css/torneos-fechas60.css","css/torneos-rivales86.css","css/torneos-bracket2026.css"])
+    await page.addStyleTag({path:src(css)});
+  await page.evaluate(()=>{
+    const fixture=document.getElementById("fixture-grid");
+    const result=document.getElementById("result-grid");
+    for(let i=0;i<6;i++){
+      const f=document.createElement("article");
+      f.className="public-tournament-fixture__match";
+      f.innerHTML='<p class="public-tournament-fixture__match-group">Grupo A</p><p class="public-tournament-fixture__date-meta">Fecha pendiente</p><div class="public-tournament-fixture__versus-row"><div class="public-tournament-fixture__pair">Jugador largo y Compañero '+i+'</div><span class="public-tournament-fixture__vs">vs</span><div class="public-tournament-fixture__pair">Otra pareja de prueba '+i+'</div></div>';
+      fixture.append(f);
+      const card=document.createElement("article");
+      card.className="public-tournament-result";
+      card.innerHTML='<div class="public-tournament-result__meta"><span>Grupo A · Partido '+i+'</span><span>Sin horario</span></div><div class="public-tournament-result__teams"><strong class="public-tournament-result__rival">Jugador largo y Compañero '+i+'</strong><span class="public-tournament-result__vs">vs</span><strong class="public-tournament-result__rival">Otra pareja de prueba '+i+'</strong></div><span class="public-tournament-result__score">6-3 · 6-4</span><span class="public-tournament-result__winner">Ganó Jugador largo</span>';
+      result.append(card);
+    }
+  });
+  const measure=()=>page.evaluate(()=>{
+    const fixture=document.getElementById("fixture-grid"),result=document.getElementById("result-grid");
+    const count=el=>getComputedStyle(el).gridTemplateColumns.trim().split(/\s+/).length;
+    const firstThree=[...fixture.children].slice(0,3).map(el=>Math.round(el.getBoundingClientRect().top));
+    return {fixture:count(fixture),results:count(result),firstThree,
+      rows:fixture.children.length,played:result.children.length,
+      screen:document.documentElement.clientWidth,body:document.documentElement.scrollWidth};
+  });
+  const desktop=await measure();
+  assert.equal(desktop.fixture,3,JSON.stringify(desktop));
+  assert.equal(desktop.results,3,JSON.stringify(desktop));
+  assert.equal(new Set(desktop.firstThree).size,1,JSON.stringify(desktop));
+  assert.equal(desktop.played,6);
+  assert.ok(desktop.body<=desktop.screen+2,JSON.stringify(desktop));
+  await page.setViewportSize({width:900,height:860});
+  const tablet=await measure();
+  assert.equal(tablet.fixture,2,JSON.stringify(tablet));
+  assert.equal(tablet.results,2,JSON.stringify(tablet));
+  assert.ok(tablet.body<=tablet.screen+2,JSON.stringify(tablet));
+  await page.setViewportSize({width:390,height:844});
+  const mobile=await measure();
+  assert.equal(mobile.fixture,1,JSON.stringify(mobile));
+  assert.equal(mobile.results,1,JSON.stringify(mobile));
+  assert.ok(mobile.body<=mobile.screen+2,JSON.stringify(mobile));
+  await page.close();
+});
+
+test("Público 2026: semifinales, final y podio en cuadro compacto legible",async()=>{
+  const page=await browser.newPage({viewport:{width:1380,height:880}});
+  await page.setContent('<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"></head><body><main class="public-tournaments"><div class="container" style="max-width:1260px;margin:auto"><article class="public-tournament-card" id="root"></article></div></main></body></html>');
+  for(const css of ["css/styles.css","css/torneos-public.css","css/torneos-bracket2026.css"])
+    await page.addStyleTag({path:src(css)});
+  await page.addScriptTag({path:src("js/torneos-reglamento-2026.js")});
+  await page.addScriptTag({path:src("js/torneos-bracket2026-public.js")});
+  await page.evaluate(()=>{
+    const groups=[
+      {number:1,pairs:[{id:"a"},{id:"b"},{id:"c"}]},
+      {number:2,pairs:[{id:"d"},{id:"e"},{id:"f"}]}
+    ];
+    const matches=[
+      {stage:1,slot:1,source1:"1° A",source2:"2° B",pair1_name:"Nicolás Castro y Tomás Herrera",pair2_name:"Juan Pérez y Pedro Gómez",
+       pair1_id:"a",pair2_id:"e",winner_pair_id:"a",status:"played",sets:[[6,3],[4,6],[6,2]]},
+      {stage:1,slot:2,source1:"2° A",source2:"1° B",pair1_name:"Carlos López y Martín Díaz",pair2_name:"Sebastián Ruiz y Gabriel Romero",
+       pair1_id:"b",pair2_id:"d",winner_pair_id:"d",status:"played",sets:[[3,6],[4,6]]},
+      {stage:2,slot:1,source1:"W:1:1",source2:"W:1:2",pair1_name:"Nicolás Castro y Tomás Herrera",pair2_name:"Sebastián Ruiz y Gabriel Romero",
+       pair1_id:"a",pair2_id:"d",winner_pair_id:"a",status:"played",sets:[[6,4],[7,5]]}
+    ];
+    const node=BPBracket2026Public.render({format:"groups_knockout"},groups,[{id:"fixture1"}],{matches});
+    node.open=true;
+    document.getElementById("root").append(node);
+  });
+  assert.equal(await page.locator(".bp26-public__match").count(),3);
+  assert.equal(await page.locator(".bp26-public__round").count(),2);
+  assert.equal(await page.locator(".bp26-public__podium-item").count(),2);
+  assert.match(await page.locator(".bp26-public__podium").textContent(),/Campeones.*Nicolás Castro y Tomás Herrera.*Subcampeones.*Sebastián Ruiz y Gabriel Romero/s);
+  const geometry=await page.evaluate(()=>{
+    const rounds=document.querySelector(".bp26-public__rounds");
+    const root=document.querySelector(".bp26-public");
+    return {columns:getComputedStyle(rounds).gridTemplateColumns.trim().split(/\s+/).length,
+      background:getComputedStyle(root).backgroundColor,
+      viewport:document.documentElement.clientWidth,
+      pageWidth:document.documentElement.scrollWidth};
+  });
+  assert.equal(geometry.columns,2,JSON.stringify(geometry));
+  assert.match(geometry.background,/rgb\(255,\s*255,\s*255\)/);
+  assert.ok(geometry.pageWidth<=geometry.viewport+2,JSON.stringify(geometry));
+  await page.setViewportSize({width:390,height:844});
+  const mobile=await page.evaluate(()=>{
+    const scroll=document.querySelector(".bp26-public__scroll");
+    return {scrollWidth:scroll.scrollWidth,width:scroll.clientWidth,
+      viewport:document.documentElement.clientWidth,
+      pageWidth:document.documentElement.scrollWidth};
+  });
+  assert.ok(mobile.scrollWidth>mobile.width,JSON.stringify(mobile));
+  assert.ok(mobile.pageWidth<=mobile.viewport+2,JSON.stringify(mobile));
+  await page.close();
+});
