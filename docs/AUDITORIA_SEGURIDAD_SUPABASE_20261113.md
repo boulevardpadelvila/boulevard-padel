@@ -1,5 +1,66 @@
 # Boulevard Pádel — Auditoría de seguridad Supabase / localhost (13/11/2026)
 
+## Actualización de cierre: SQL95 instalada y comprobada
+
+**IMPLEMENTADO:** PR #37 fusionado en `main`, merge
+`1e5a82b1effe7b68fcff19281080aa2be2de695d`; Supabase
+migración `bp_sql95_torneos_publicos_security_invoker`
+versión `20261113235204`, ejecución exitosa. Las dos alertas
+`security_definer_view` **desaparecieron** del asesor.
+
+**Cambio concreto:** las vistas existentes
+`bp_public_tournament_groups` y
+`bp_public_tournament_group_fixture` conservan sus nombres y columnas,
+pero tienen `security_invoker=true`; la vista de grupos conserva
+`security_barrier=true`. Las cuatro tablas auxiliares de torneos
+tienen políticas de lectura pública con RLS que solo autorizan la
+información publicada. Las parejas deben estar aprobadas y realmente
+asignadas a un grupo público; los partidos requieren el fixture
+publicado. Los permisos de la base `anon` se concedieron **por
+columna** y excluyen `contact_phone`, `source`, y toda escritura.
+
+**Pruebas:** seis comprobaciones de GitHub aprobadas antes de
+producción (SQL95 sobre PostgreSQL 17 descartable con torneos ficticios
+publicados, ocultos, pendientes, sin grupo o sin fixture; Node,
+SQL89, Chromium móvil y Cloudflare). Luego de aplicar, se verificó
+directamente en producción que ambas vistas usan `security_invoker`,
+que hay cuatro políticas bp95, que `anon` tiene SELECT del nombre
+pero **no** de `contact_phone` ni `source`, y que no dispone de
+INSERT/UPDATE/DELETE. La consulta de las vistas y las tablas bajo
+`SET LOCAL ROLE anon` en una transacción `READ ONLY` se ejecutó sin
+errores. Las dos vistas devolvieron cero filas porque **actualmente
+no hay torneos en producción**; las pruebas con filas positivas fueron
+en una base descartable. No se hicieron pruebas de escritura en producción.
+
+**Datos reales antes/después:** 41 reservas (31 confirmadas),
+4 solicitudes de turnos fijos (3 aprobadas), 4 bloqueos,
+0 torneos y 0 parejas; coinciden exactamente. Ningún dato real cambió.
+
+**Situación posterior al cierre:** el advisor ya no informa
+`security_definer_view` ni `function_search_path_mutable`.
+Persisten advertencias de funciones `SECURITY DEFINER` que sirven a
+RPC públicas y operaciones Admin, más avisos de RLS sin política en
+esquemas aislados, `btree_gist` en `public`, y protección frente a
+contraseñas filtradas desactivada. Esta última opción exige el
+**plan Pro de Supabase o superior**, según su documentación y solo
+se puede cambiar desde Auth Settings; nuestra conexión no ofrece
+un ajuste administrativo de Auth, por lo que NO se cambió.
+**No mover `btree_gist`** sin auditar dependencias de índices
+y restricciones del turnero.
+
+**Validación final pendiente con Martín:** cuando se registre un torneo
+real, verificar visualmente que grupos y fixture se vean públicos
+exactamente al publicarlos, y que nunca se publiquen antes de tiempo.
+El usuario confirmó antes de SQL95 que todas las páginas funcionaban
+desde localhost; SQL95 no modificó el frontend ni los orígenes de
+las Edge Functions, pero resta repetir la comprobación tras este
+último cambio.
+
+Las observaciones históricas posteriores que dicen «pendiente corregir
+las dos vistas» corresponden al estado ANTES de SQL95.
+
+---
+
 ## Alcance
 
 Revisión de solo lectura de Supabase real (permisos de PostgreSQL, RLS,
