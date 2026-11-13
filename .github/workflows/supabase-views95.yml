@@ -1,0 +1,78 @@
+name: "SQL95 · Seguridad vistas públicas de torneos"
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "sql/SQL_95_TORNEOS_PUBLICOS_SECURITY_INVOKER.sql"
+      - "tests/fixtures/t95_postgres_bootstrap.sql"
+      - "tests/fixtures/t95_postgres_smoke.sql"
+      - "tests/supabase-views95.test.js"
+      - ".github/workflows/supabase-views95.yml"
+  push:
+    branches: [main]
+    paths:
+      - "sql/SQL_95_TORNEOS_PUBLICOS_SECURITY_INVOKER.sql"
+      - "tests/fixtures/t95_postgres_bootstrap.sql"
+      - "tests/fixtures/t95_postgres_smoke.sql"
+      - "tests/supabase-views95.test.js"
+      - ".github/workflows/supabase-views95.yml"
+  workflow_dispatch:
+
+jobs:
+  sql95-postgresql17:
+    name: "SQL95 · RLS y privacidad sobre PostgreSQL 17 ficticio"
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    permissions:
+      contents: read
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: t95test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: t95_ci_only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d t95test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      PGHOST: localhost
+      PGPORT: "5432"
+      PGDATABASE: t95test
+      PGUSER: postgres
+      PGPASSWORD: t95_ci_only
+    steps:
+      - uses: actions/checkout@v4
+      - name: Instalar PostgreSQL client
+        run: |
+          if ! command -v psql >/dev/null 2>&1; then
+            sudo apt-get update -qq
+            sudo apt-get install -y postgresql-client
+          fi
+      - name: "Crear torneos y parejas completamente ficticios"
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/fixtures/t95_postgres_bootstrap.sql
+      - name: "Instalar SQL95 solo sobre base descartable"
+        run: psql -X -v ON_ERROR_STOP=1 -f sql/SQL_95_TORNEOS_PUBLICOS_SECURITY_INVOKER.sql
+      - name: "Verificar anon/admin, seguridad por columna, publicaciones y despublicar"
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/fixtures/t95_postgres_smoke.sql
+
+  node-regresion:
+    name: "SQL95 · contrato frontend y suite Node"
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: "Pruebas código sin escribir Supabase"
+        run: |
+          node --test tests/supabase-views95.test.js
+          node --test tests/*.test.js
