@@ -296,20 +296,25 @@
         'La llave se genera y publica automáticamente junto con el fixture de grupos.'));
       body.append(wrapper);return;
     }
-    let stage=-1;
+    let stage=-1,roundGrid=null;
     for(const match of matches){
       if(match.stage!==stage){
         stage=match.stage;
         const len=matches.filter(m=>m.stage===stage).length;
         const title=stage===0?'Ronda previa':len===1?'Final':len===2?'Semifinales':len===4?'Cuartos de final':len===8?'Octavos de final':'Ronda eliminatoria';
-        wrapper.append(el('h4','bp26-admin__stage',title));
+        const round=el('section','bp26-admin__round');
+        round.append(el('h4','bp26-admin__stage',title));
+        roundGrid=el('div','bp26-admin__matches');
+        round.append(roundGrid);
+        wrapper.append(round);
       }
       const card=el('article','bp26-admin__match');
       const first=match.pair1_name||sourceLabel(match.source1);
       const second=match.pair2_name||sourceLabel(match.source2);
-      card.append(el('strong','',`Partido ${stage===0?'P'+match.slot:'R'+stage+'-'+match.slot}`),
-        el('div','',first+'  vs.  '+second));
+      card.append(el('strong','bp26-admin__match-id',`Partido ${stage===0?'P'+match.slot:'R'+stage+'-'+match.slot}`),
+        el('div','bp26-admin__rivals',first+'  vs.  '+second));
       if(match.status==='played')card.append(el('p','bp26-admin__score','Resultado: '+match.sets.map(x=>x.join('-')).join(' · ')));
+      const actions=el('div','bp26-admin__actions');
       const scheduling=el('div','bp26-admin__schedule');
       if(match.schedule_status==='scheduled' && match.scheduled_at){
         scheduling.append(el('p','bp26-admin__when',
@@ -332,11 +337,12 @@
           scheduling.append(postpone);
         }
       }
-      card.append(scheduling);
       const score=el('button','torneos-outline',match.status==='played'?'Corregir resultado':'Cargar resultado');
       score.type='button';score.disabled=busy||!match.pair1_id||!match.pair2_id;
       score.addEventListener('click',()=>openScore(match));
-      card.append(score);wrapper.append(card);
+      actions.append(scheduling,score);
+      card.append(actions);
+      roundGrid.append(card);
     }
     const final=matches.find(m=>m.stage===Math.max(...matches.map(x=>x.stage)));
     if(final?.status==='played' && final.winner_pair_id){
