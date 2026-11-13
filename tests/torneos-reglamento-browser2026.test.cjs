@@ -157,7 +157,7 @@ test("Admin 2026: dos tablas legibles y tarjetas compactas en escritorio y móvi
   assert.ok(desktop.numberAligns.length>0 && desktop.numberAligns.every(x=>x==="right"),JSON.stringify(desktop));
   assert.ok(desktop.namesAlign.every(x=>x==="left"||x==="start"),JSON.stringify(desktop));
   const threeColumns=await page.locator("#bp26-admin .bp26-admin__matches").first()
-    .evaluate(el=>getComputedStyle(el).gridTemplateColumns.trim().split(/\\s+/).length);
+    .evaluate(el=>getComputedStyle(el).gridTemplateColumns.trim().split(/\s+/).length);
   assert.equal(threeColumns,3,"En la prueba con semifinales hay dos tarjetas, pero la grilla conserva tres columnas");
   assert.equal(desktop.groupWidths.length,2);
   assert.ok(desktop.groupWidths.every(x=>x>500),JSON.stringify(desktop));
@@ -299,7 +299,7 @@ test("Admin 2026: eliminatorias grandes 3/2/1 columnas sin perder controles",asy
     const firstThree=cards.slice(0,3).map(x=>x.getBoundingClientRect());
     const footers=cards.map(card=>card.querySelector(".bp26-admin__actions"));
     return {
-      columns:getComputedStyle(first).gridTemplateColumns.trim().split(/\\s+/).length,
+      columns:getComputedStyle(first).gridTemplateColumns.trim().split(/\s+/).length,
       rounds:grids.length,
       total:document.querySelectorAll("#bp26-admin .bp26-admin__match").length,
       width:document.documentElement.scrollWidth,
