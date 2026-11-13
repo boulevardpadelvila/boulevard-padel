@@ -58,6 +58,7 @@
   let publicFollowupByTournament = new Map();
   let publicLeagueByTournament = new Map();
   let publicLeagueFinalByTournament = new Map();
+  let publicBracketByTournament = new Map();
 
   function status(text) {
     feedback.textContent = text;
@@ -1134,6 +1135,15 @@
       );
       if (finalBlock) card.append(finalBlock);
     } else card.append(detailBlock(t));
+    // El cuadro 2026 se publica COMPLETO junto al fixture, sin esperar resultados.
+    // No reemplaza el reporte histórico de torneos anteriores.
+    const publicBracket = window.BPBracket2026Public?.render(
+      t,
+      publishedGroupsByTournament.get(t.id),
+      publishedFixtureByTournament.get(t.id),
+      publicBracketByTournament.get(t.id),
+    );
+    if (publicBracket) card.append(publicBracket);
     const eliminatorias = knockoutBlock(t);
     if (eliminatorias) card.append(eliminatorias);
     return card;
@@ -1262,6 +1272,7 @@
       publicFollowupByTournament = new Map();
       publicLeagueByTournament = new Map();
       publicLeagueFinalByTournament = new Map();
+      publicBracketByTournament = new Map();
       const notices = [];
       try {
         publishedGroupsByTournament =
@@ -1305,6 +1316,23 @@
       } catch (error) {
         console.error("No se pudo consultar la fase final pública de Liga", error);
         notices.push("No se pudo cargar la fase final de Liga.");
+      }
+      // En instalaciones con SQL90, los resultados y nombres de las llaves
+      // son sanitizados por la RPC. La vista estructural funciona igual sin ella.
+      const withFixtures = tournamentsCache.filter(t =>
+        t.format === "groups_knockout" && publishedFixtureByTournament.get(t.id)?.length
+      );
+      if (withFixtures.length) {
+        try {
+          for (const t of withFixtures) {
+            const { data, error } = await supabaseClient.rpc("bp_tournament_bracket_report2026", {p_tournament_id:t.id});
+            if (error && error.code !== "PGRST202" && error.code !== "42883") throw error;
+            if (data?.matches?.length) publicBracketByTournament.set(t.id,data);
+          }
+        } catch (err) {
+          console.error("No se pudieron leer los marcadores de eliminatorias 2026",err);
+          notices.push("Los resultados de eliminatorias no están disponibles.");
+        }
       }
       status(
         notices.length
