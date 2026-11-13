@@ -88,7 +88,8 @@ USING (
   )
   AND EXISTS (
     SELECT 1 FROM public.bp_tournament_group_pairs gp
-    WHERE gp.pair_id = id AND gp.tournament_id = tournament_id
+    WHERE gp.pair_id = bp_tournament_pairs.id
+      AND gp.tournament_id = bp_tournament_pairs.tournament_id
   )
 );
 
