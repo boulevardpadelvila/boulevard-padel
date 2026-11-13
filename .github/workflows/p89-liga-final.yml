@@ -102,7 +102,8 @@ jobs:
 
   browser-chromium:
     name: "P89 UI móvil Chromium aislado"
-    runs-on: ubuntu-latest
+    # Playwright 1.56 no soporta Ubuntu 26.04 en los runners latest.
+    runs-on: ubuntu-24.04
     timeout-minutes: 12
     permissions:
       contents: read

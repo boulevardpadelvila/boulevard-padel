@@ -30,3 +30,12 @@ test("sitio público carga scripts en orden y sin afectar reservas",()=>{
  assert.match(js,/bp_tournament_bracket_report2026/);
  assert.doesNotMatch(read("js/torneos-bracket2026-public.js"),/reservations|blockouts|fixed_turn_requests|contact_phone|service_role/);
 });
+
+test("torneos del Reglamento 2026 no duplican el bloque heredado de eliminatorias",()=>{
+ const src=read("js/torneos-public.js");
+ assert.match(src,/if \(Number\(t\.rules_version\) !== 2026\) \{/);
+ assert.match(src,/const publicBracket = window\.BPBracket2026Public\?\.render/);
+ const css=read("css/torneos-bracket2026.css");
+ assert.match(css,/grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/);
+ assert.match(css,/\.bp26-public__podium/);
+});
