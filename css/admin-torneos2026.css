@@ -293,3 +293,125 @@
   .bp26-placements-dialog__review{grid-template-columns:1fr}
   .bp26-placements-dialog .admin-save-dialog__actions{grid-template-columns:1fr}
 }
+
+/* Eliminatorias 2026: máximo tres tarjetas por fila, separadas por ronda.
+   No modifica fixture, resultados, horarios ni las tablas de posiciones. */
+#bp26-admin .bp26-admin__round{
+  min-width:0;
+  margin:20px 0 24px
+}
+#bp26-admin .bp26-admin__round .bp26-admin__stage{
+  margin:0 0 12px
+}
+#bp26-admin .bp26-admin__matches{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:13px;
+  align-items:stretch;
+  min-width:0
+}
+#bp26-admin .bp26-admin__matches .bp26-admin__match{
+  display:flex;
+  flex-direction:column;
+  align-items:stretch;
+  gap:11px;
+  min-width:0;
+  min-height:205px;
+  height:100%;
+  margin:0;
+  padding:15px;
+  border:1px solid #b4cdb9;
+  border-left:4px solid #267549;
+  border-radius:11px;
+  background:#f7faf6;
+  color:#1b3c29
+}
+#bp26-admin .bp26-admin__match .bp26-admin__match-id{
+  display:block;
+  margin:0;
+  font-size:.83rem;
+  line-height:1.4;
+  color:#205b37
+}
+#bp26-admin .bp26-admin__match>.bp26-admin__rivals{
+  min-width:0;
+  font-size:.92rem;
+  line-height:1.5;
+  font-weight:700;
+  color:#1c3928;
+  overflow-wrap:break-word
+}
+#bp26-admin .bp26-admin__match>.bp26-admin__score{
+  grid-column:auto;
+  padding:8px 10px;
+  margin:0;
+  border-radius:7px;
+  background:#e9f2e6;
+  color:#225c39;
+  font-size:.82rem;
+  line-height:1.35
+}
+#bp26-admin .bp26-admin__match .bp26-admin__actions{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  align-items:end;
+  gap:9px;
+  min-width:0;
+  width:100%;
+  margin-top:auto
+}
+#bp26-admin .bp26-admin__match .bp26-admin__schedule{
+  display:flex;
+  flex-direction:column;
+  align-items:stretch;
+  justify-content:flex-end;
+  gap:6px;
+  grid-column:auto;
+  grid-row:auto;
+  min-width:0;
+  margin:0
+}
+#bp26-admin .bp26-admin__match .bp26-admin__when{
+  font-size:.76rem;
+  line-height:1.35;
+  margin:0;
+  color:#4b6453;
+  overflow-wrap:break-word
+}
+#bp26-admin .bp26-admin__match .bp26-admin__actions>button.torneos-outline{
+  grid-column:auto;
+  grid-row:auto;
+  justify-self:stretch;
+  align-self:end;
+  max-width:none;
+  width:100%;
+  margin:0
+}
+#bp26-admin .bp26-admin__match .bp26-admin__schedule>button.torneos-outline{
+  width:100%;
+  min-width:0;
+  max-width:none;
+  margin:0
+}
+#bp26-admin .bp26-admin__match .bp26-admin__actions .torneos-outline{
+  min-width:0;
+  min-height:38px;
+  padding:8px 9px;
+  font-size:.78rem;
+  line-height:1.25
+}
+@media(max-width:1180px){
+  #bp26-admin .bp26-admin__matches{
+    grid-template-columns:repeat(2,minmax(0,1fr))
+  }
+}
+@media(max-width:710px){
+  #bp26-admin .bp26-admin__matches{
+    grid-template-columns:minmax(0,1fr);
+    gap:11px
+  }
+  #bp26-admin .bp26-admin__matches .bp26-admin__match{
+    min-height:180px;
+    padding:13px
+  }
+}
