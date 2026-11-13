@@ -312,9 +312,11 @@
               >
                 Actualizar
               </button>
+              <button type="button" id="bp-backup-reservations" class="secondary">Exportar reservas (CSV)</button>
               <button type="button" id="bp-cleanup88-open"
                 class="secondary bp-cleanup88__trigger">Limpiar historial</button>
             </div>
+            <p id="bp-backup-reservations-message" class="muted" aria-live="polite"></p>
             <p class="bp-cleanup88__feedback" id="bp-cleanup88-feedback"
               aria-live="polite"></p>
           </div>
@@ -988,6 +990,7 @@
               </p>
             </div>
             <div class="admin-fixed__toolbar">
+              <button type="button" id="bp-backup-fixed" class="secondary">Exportar turnos fijos (CSV)</button>
               <button
                 id="admin-fixed-history"
                 type="button"
@@ -1000,6 +1003,7 @@
               </button>
             </div>
           </div>
+          <p id="bp-backup-fixed-message" class="muted" aria-live="polite"></p>
           <p
             id="admin-fixed-message"
             class="message"
@@ -1797,5 +1801,6 @@
     <script src="../js/admin-eliminatorias-partidos68.js" defer></script>
     <script src="../js/admin-torneos-compacto61.js" defer></script>
     <script src="../js/admin-torneos2026.js" defer></script>
+    <script src="../js/admin-respaldos.js" defer></script>
   </body>
 </html>
