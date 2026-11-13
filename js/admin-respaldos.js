@@ -105,8 +105,8 @@
         .eq("status", "approved")
         .order("weekday", { ascending: true }));
       const rows = kind === "reservas" ? normalizeReservations(list) : normalizeFixed(list);
-      const today = new Intl.DateTimeFormat("en-CA", { timeZone: TIME_ZONE,
-        year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+      const [dd, mm, yyyy] = dateTime(new Date().toISOString())[0].split("/");
+      const today = yyyy + "-" + mm + "-" + dd;
       downloadCsv("boulevard-padel-" + kind + "-" + today + ".csv", rows);
       info(statusId, "CSV generado: " + rows.length + " registros. Guardalo en el Drive de BP.");
     } catch (err) {
@@ -232,7 +232,7 @@
     if (r) r.addEventListener("click", () => runCsv("reservas"));
     if (f) f.addEventListener("click", () => runCsv("fijos"));
   }
-  const api = { exportTournament, normalizeReservations, normalizeFixed, toCsv, dateTime, html, setsLabel };
+  const api = { exportTournament, normalizeReservations, normalizeFixed, tournamentHtml, toCsv, dateTime, html, setsLabel };
   if (typeof window !== "undefined") {
     window.BPAdminBackup = api;
     if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init, { once:true });
