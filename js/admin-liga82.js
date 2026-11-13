@@ -653,7 +653,8 @@
         [...inputs.slice(0, split ? 3 : 2).flat()].some((x) => x.value === "")
       )
         throw Error("Completá todos los resultados del partido.");
-      engine.analyzeScore(sets, Number(current?.rules_version) === 2026 ? "three_sets" : "super_tb");
+      if (Number(current?.rules_version) === 2026) engine.analyzeScore(sets, "three_sets");
+      else engine.analyzeScore(sets);
       $("bp-league-result-error").textContent = "";
       busy = true;
       $("bp-league-result-save").disabled = true;
