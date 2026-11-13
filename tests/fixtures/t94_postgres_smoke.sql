@@ -68,7 +68,10 @@ BEGIN
   IF NOT EXISTS (
     SELECT 1 FROM pg_proc p
     WHERE p.oid='public.set_updated_at()'::regprocedure
-      AND 'search_path='=ANY(p.proconfig)
+      AND EXISTS (
+        SELECT 1 FROM unnest(p.proconfig) AS setting
+        WHERE setting LIKE 'search_path=%'
+      )
   ) THEN
     RAISE EXCEPTION 'search_path del trigger no está fijado';
   END IF;
