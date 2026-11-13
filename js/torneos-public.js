@@ -243,7 +243,9 @@
       a.setsFor === b.setsFor
     );
   }
-  function standingsForGroup(group, groupMatches, twoGroupMode = false, rulesVersion = 0, officialOrder = null) {
+  function standingsForGroup(group, groupMatches, twoGroupMode = false) {
+    const rulesVersion = arguments[3] || 0;
+    const officialOrder = arguments[4] || null;
     if (Number(rulesVersion) === 2026 && window.BPReglamento2026) {
       const ids = (group.pairs || []).map(p => p.id);
       const found = groupMatches.filter(m =>
