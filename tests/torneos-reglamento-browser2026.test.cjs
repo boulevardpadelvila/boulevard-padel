@@ -62,10 +62,11 @@ test("Admin 2026: abrir horario y enviar RPC nueva con marcador aún desconocido
         then(yes,no){return Promise.resolve({data:value,error:null}).then(yes,no)}};
       return query;
     };
+    window.calls=[];
     window.supabaseClient={
       from(table){return wrapper(table==="bp_tournaments"?tournament:rows[table]||[]);},
       rpc(name,args){
-        window.lastRpc={name,args};
+        window.calls.push({name,args});
         return Promise.resolve({data:name==="bp_tournament_bracket_report2026"?report:{},error:null});
       }
     };
@@ -79,7 +80,8 @@ test("Admin 2026: abrir horario y enviar RPC nueva con marcador aún desconocido
   await page.locator("#bp26-schedule-day").fill("2027-04-01");
   await page.locator("#bp26-schedule-time").selectOption("19:00");
   await page.locator("#bp26-schedule-save").click();
-  const call=await page.evaluate(()=>window.lastRpc);
+  await page.waitForFunction(()=>window.calls.some(x=>x.name==='bp_tournament_schedule_bracket_match2026'));
+  const call=await page.evaluate(()=>window.calls.find(x=>x.name==='bp_tournament_schedule_bracket_match2026'));
   assert.equal(call.name,"bp_tournament_schedule_bracket_match2026");
   assert.equal(call.args.p_match_id,"ko1");
   assert.equal(call.args.p_duration_minutes,90);
