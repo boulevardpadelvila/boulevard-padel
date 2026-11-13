@@ -1,4 +1,17 @@
 # Boulevard Pádel — ESTADO ACTUAL / RELEVO ENTRE CHATS
+
+## 13/11/2026 — Validación de torneo de 7 parejas (ESTADO VIGENTE)
+
+**CONFIRMADO por el usuario y lectura de Supabase:** se creó y completó el torneo ficticio `PRUEBA - TORNEO 7 PAREJAS` con Reglamento 2026, grupos A=4 parejas y B=3 parejas, **4+3 partidos** de grupos, clasificación oficial **3+2** y cuadro de eliminatorias de **4 partidos** (una previa, dos semifinales, final). Los 11 partidos constan como disputados. Las posiciones se recalcularon de forma independiente: A = Tiago/Stefano (4 pts), Ludmila/Joaquin (2 pts, diferencia sets 0), Tisiana/Diego (2 pts, diferencia −1), Bruno/María (0); B = Ignacio/Narela (4), Marianela/Santiago (2), Martina/Juan (0). Sin inconsistencias en ganadores, fuentes, sets normales en eliminatorias ni STB de grupos.
+
+**Final:** Tiago/Stefano derrotó 6-4, 6-4 a Ignacio/Narela. Campeones Tiago/Stefano; subcampeones Ignacio/Narela. El usuario indicó que **publicó y revisó satisfactoriamente la presentación visual pública**, luego finalizó administrativamente el torneo. **Última lectura en Supabase:** `status=completed`, `is_published=false` (oculto ahora). Sigue almacenado: **NO eliminarlo automáticamente**. No se programó ningún partido en cancha real ni se generaron bloqueos por esta prueba. Última comprobación de preservación: 41 reservas, 4 solicitudes de turnos fijos y 4 bloqueos.
+
+**SIGUIENTE HITO — APROBACIÓN FINAL DE MARTÍN, PENDIENTE:** Martín debe ejecutar por sí mismo una prueba integral del módulo de Torneos (crear, aprobar parejas, sortear, cargar resultados, resolver empates, confirmar tablas, disputar eliminatorias y publicar/finalizar), verificar Admin y web pública y comunicar su conformidad o ajustes. **La aprobación del usuario no equivale a la aprobación de Martín.** Hasta entonces el módulo está **verificado funcionalmente para pruebas de 6 y 7 parejas**, pero **pendiente de aceptación definitiva del cliente**.
+
+**Higiene posterior:** el usuario indicó que eliminará después el torneo ficticio de 7 parejas; también sigue pendiente retirar el torneo ficticio de 6 parejas y revisar ramas de GitHub ya integradas. No realizar borrados automáticos ni tocar reservas reales. Última sincronización local confirmada por el usuario: `f10cf03`, árbol de trabajo limpio, **246/246 tests Node aprobados** antes de esta actualización documental; el nuevo commit de documentación requerirá `git pull --ff-only origin main` cuando vuelva a trabajar.
+
+---
+
  
 ## Cierre de jornada — 12/11/2026, hora Argentina (ESTADO VIGENTE)
 
