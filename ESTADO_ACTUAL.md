@@ -1,5 +1,17 @@
 # Boulevard Pádel — ESTADO ACTUAL / RELEVO ENTRE CHATS
 
+## 14/11/2026 — Inscripción pública automáticamente APROBADA + email (VIGENTE)
+
+**ACORDADO CON MARTÍN E IMPLEMENTADO:** inscripción web en torneos publicados con inscripciones abiertas pasa directamente a `status='approved'`, `source='web'`, sin necesitar aprobación manual ni aplicar requisitos personales. El sistema conserva solo validaciones técnicas existentes (formulario, Turnstile, publicación, horarios, cupo/duplicados). Martín puede **Editar** o **Eliminar inscripción** desde el Admin bajo las restricciones existentes de integridad para grupos/partidos publicados; se retiraron acciones `Aprobar`/`Rechazar` de ese panel.
+
+**Notificación:** tras confirmar la inserción, la Edge Function intenta enviar por **Resend** un correo directo a `boulevardpadelvila@gmail.com` con torneo, nombres, teléfono y fecha/hora Argentina. Usa los secretos que ya emplean las notificaciones de reservas (`RESEND_API_KEY`, `FIXED_TURN_FROM_EMAIL`). Un problema de email **NO revierte** el alta ni hace fallar la respuesta al jugador. Confirmación pública: «Inscripción confirmada. ¡La pareja ya quedó inscripta en el torneo!». El reenvío a la segunda casilla lo podrá configurar Martín desde Gmail.
+
+**Código y despliegue:** PR #41, merge `95dbe05656fd7c8993e29b3f5d4ffc1aa79eb508`; Edge Function `register-tournament-pair` versión **4** `ACTIVE` comprobada en Supabase con cambio `approved` y destinatario correcto. Seis verificaciones del PR verdes incluyendo pruebas simuladas de correo fallido, cupos, duplicados, protección, suite Node completa, SQL89/SQL90 PostgreSQL y Chromium. **No se cambiaron SQL ni datos reales, credenciales, reservas ni otros módulos de BP**.
+
+**Pendiente de verificación con Martín:** todavía no hay torneos en la base de producción, por lo que NO se insertaron parejas ficticias ni se pudo verificar la recepción real del correo. Cuando haga la próxima inscripción legítima, comprobar `Aprobada` en Admin y que llegó el aviso a `boulevardpadelvila@gmail.com`; si falta correo, revisar logs Edge/Resend sin duplicar inscripción. Documento `docs/INSCRIPCIONES_AUTOAPROBADAS_EMAIL_20261114.md`. Laptop: `git switch main && git pull --ff-only origin main && node --test tests/*.test.js`.
+
+---
+
 ## 14/11/2026 — Dos cuentas Admin de Martín habilitadas para simulador (PR #40)
 
 **CORREGIDO:** el usuario confirmó que **ambas** cuentas administrativas existentes de BP son utilizadas por Martín: perfil `Martín` y perfil `Administrador Boulevard Pádel`. El bloqueo inicial excluía erróneamente la segunda cuenta. PR #40 merge `5edf880313ac185457280bb2d1e30af4b71a5171` permite ambos UID explícitos en `functions/admin/simulador-llaves.html.js`. Se conserva verificación JWT contra Supabase Auth y `is_admin()=true` para exigir que cada sesión siga siendo Admin activo. No se permite cualquier cuenta con rol Admin: una tercera cuenta nueva permanecerá denegada hasta autorización explícita. Las rutas canónicas con y sin `.html` usan idéntico verificador. **Sin alterar Supabase, contraseñas, reservas, torneos, turnos ni permisos generales.**
