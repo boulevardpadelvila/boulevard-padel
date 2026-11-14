@@ -1,6 +1,7 @@
 {
   "version": 1,
   "include": [
+    "/admin/simulador-llaves",
     "/admin/simulador-llaves.html",
     "/functions/*"
   ],
