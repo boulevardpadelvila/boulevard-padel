@@ -3746,3 +3746,12 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 - **Verificación:** cinco checks PR aprobados. Suite general de 273 Node aprobada. Cloudflare Pages Dev verifica ambas URLs en GET y POST sin token (puerta de validación y HTTP 403 respectivamente) y mantiene el código fuente de Functions bloqueado. Luego de fusionar, GitHub Actions comprobó ambas URLs contra el sitio **real** de producción, todo correcto, Cloudflare Pages desplegó exitosamente. Se actualizó el documento `docs/PROTECCION_SIMULADOR_LLAVES_20261114.md`.
 - **Pendiente manual:** que el usuario vuelva a probar la URL canónica en ventana de incógnito y que Martín abra el simulador con la sesión Admin legítima. Si un visitante todavía accede al contenido, se debe investigar respuesta HTTP/cache/configuración de Cloudflare, no asumir que la protección es efectiva.
 
+---
+
+## 14/11/2026 — Simulador admite las dos cuentas Admin de Martín (PR #40)
+
+- **Aclaración:** el usuario mostró el login Admin con la cuenta de Boulevard Pádel y explicó que **Martín administra las dos cuentas Admin** de BP. También confirmó que la protección existente bloqueaba el acceso al simulador desde otro navegador sin cuenta y que con el otro login autorizado funcionaba. Por eso debía poder usar el simulador con ambas cuentas, no solo con el perfil llamado «Martín».
+- **Cambio en producción:** PR #40 merge `5edf880313ac185457280bb2d1e30af4b71a5171`. La Function `functions/admin/simulador-llaves.html.js` pasó de una constante individual a una lista de UID explícitos: los perfiles existentes `Martín` y `Administrador Boulevard Pádel`. Se sigue verificando JWT real en Supabase Auth y rol Admin activo mediante `is_admin()`, independientemente del nombre que muestre el navegador. La tercera cuenta con Admin no incluida NO tendrá acceso sin autorización explícita. El alias sin .html conserva la misma verificación.
+- **Pruebas:** cinco verificaciones verdes en PR (Node integral, test aislado de autorización, Cloudflare Pages, PostgreSQL SQL89, Chromium). Casos: dos cuentas autorizadas con rol activo reciben simulador; si pierden rol son rechazadas; cuenta no autorizada es rechazada; visitante sin token obtiene 403. No se ingresó con ninguna contraseña real. No se cambió Supabase ni datos o permisos globales.
+- **Pendiente manual:** ingresar con cada una de las dos cuentas de Martín y confirmar visualmente la apertura del simulador; verificar nuevamente incógnito sin sesión. Hacerlo desde Cloudflare Pages, no desde el Live Server estático.
+
