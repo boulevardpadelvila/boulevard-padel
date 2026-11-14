@@ -134,8 +134,8 @@ test("Ambas cuentas de Martín, autenticadas y Admin activas, reciben el simulad
     assert.equal(r.status,200);
     const html=await r.text();
     assert.match(html,/Simulador interactivo de llaves/);
-    assert.match(html,/Imprimir \\/ guardar en PDF/);
-    assert.match(html,/\\.\\.\\/js\\/torneos-reglamento-2026\\.js/);
+    assert.ok(html.includes("Imprimir / guardar en PDF"));
+    assert.ok(html.includes("../js/torneos-reglamento-2026.js"));
     assert.equal(urls.length,2);
     assert.match(r.headers.get("cache-control"),/no-store/);
   }
