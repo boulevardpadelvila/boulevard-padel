@@ -212,7 +212,7 @@ Deno.serve(async (req) => {
           "podés eliminar su inscripción manualmente desde el Admin.",
           "",
           "Administración: https://boulevard-padel.pages.dev/admin/",
-        ].join("\\n");
+        ].join("\n");
         const sent = await fetch("https://api.resend.com/emails", {
           method: "POST",
           headers: {
