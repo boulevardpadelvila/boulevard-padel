@@ -4,7 +4,12 @@ const fs=require("node:fs");
 const path=require("node:path");
 const read=name=>fs.readFileSync(path.join(__dirname,"..",name),"utf8");
 test("simulador 6-40 usa motor compartido y no contiene llaves duplicadas",()=>{
- const html=read("admin/simulador-llaves.html");
+ // El simulador ya no se publica como archivo estático: sólo se entrega
+ // después de la validación de identidad desde la Pages Function.
+ const server=read("functions/admin/simulador-llaves.html.js");
+ const encoded=server.match(/^const SIMULATOR_HTML = (.+);$/m);
+ assert.ok(encoded,"El contenido protegido debe existir en la función");
+ const html=JSON.parse(encoded[1]);
  assert.match(html,/src="\.\.\/js\/torneos-reglamento-2026\.js"/);
  assert.match(html,/BPReglamento2026\.groupPlan\(n\)/);
  assert.match(html,/BPReglamento2026\.bracket\(plan\.n\)/);
