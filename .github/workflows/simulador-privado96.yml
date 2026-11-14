@@ -1,0 +1,54 @@
+name: "Simulador privado · Martín y Cloudflare Pages"
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "_routes.json"
+      - "functions/admin/simulador-llaves.html.js"
+      - "admin/simulador-llaves.html"
+      - "tests/simulador-privado96.test.js"
+      - ".github/workflows/simulador-privado96.yml"
+  push:
+    branches: [main]
+    paths:
+      - "_routes.json"
+      - "functions/admin/simulador-llaves.html.js"
+      - "admin/simulador-llaves.html"
+      - "tests/simulador-privado96.test.js"
+      - ".github/workflows/simulador-privado96.yml"
+  workflow_dispatch:
+
+jobs:
+  simulador-acceso:
+    name: "Simulador · Identidad Martín y regresiones"
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: "Verificar acceso Martín, denegaciones y 265+ tests del sistema"
+        run: |
+          node --test tests/simulador-privado96.test.js
+          node --test tests/*.test.js
+      - name: "Compilar Pages Functions sin desplegar"
+        run: |
+          npx --yes wrangler@4.47.0 pages functions build functions \
+            --outdir=.tmp/pages-worker \
+            --output-routes-path=.tmp/routes-compiled.json
+          node - <<'NODE'
+          const fs = require("node:fs");
+          const target = "/admin/simulador-llaves.html";
+          const routes = JSON.parse(fs.readFileSync(".tmp/routes-compiled.json","utf8"));
+          if (routes.version !== 1 || !routes.include.includes(target)) {
+            throw new Error("La función Cloudflare no intercepta el enlace exacto al simulador");
+          }
+          if (fs.existsSync("admin/simulador-llaves.html")) {
+            throw new Error("No publicar el HTML original como archivo estático");
+          }
+          console.log("Ruta privada compilada:", target);
+          NODE
