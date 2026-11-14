@@ -1,5 +1,13 @@
 # Boulevard Pádel — Protección del simulador de llaves (14/11/2026)
 
+## Actualización — Dos cuentas administradas por Martín
+
+**Corrección PR #40** (merge `5edf880313ac185457280bb2d1e30af4b71a5171`). El propietario aclaró que los dos perfiles Admin activos de BP son manejados por Martín: «Martín» y «Administrador Boulevard Pádel». Se autorizaron ambos UID explícitos en una lista controlada desde la función Cloudflare. Cada token se sigue validando contra Supabase Auth y luego se exige `is_admin()=true` en la misma sesión: si el perfil pierde el rol o se desactiva, deja de ingresar. Una tercera cuenta Admin **no entra automáticamente**, incluso si tiene rol Admin. La protección cubre las URL `/admin/simulador-llaves` y `/admin/simulador-llaves.html`. El usuario había confirmado que la protección del simulador ya impedía acceso anónimo.
+
+**Tests:** dos cuentas autorizadas y Admin, ambas denegadas cuando `is_admin()=false`, tercera cuenta Admin simulada denegada, anónimos denegados. Cinco checks de PR verdes, sin cambios en Supabase, turnero, contraseñas ni cuentas. Después del deploy, comprobar con cada login real (en distinta sesión/ventana) que el simulador se abre; los tests positivos usan tokens ficticios.
+
+---
+
 ## Objetivo
 El enlace `/admin/simulador-llaves.html` debe permitir consultar el simulador
 solo a la cuenta Supabase de **Martín**, siempre que conserve `role=admin` y
