@@ -3766,3 +3766,12 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 - **Pruebas:** seis checks verdes antes de merge (suite Node, nuevos tests con Deno/Supabase/Resend/Turnstile simulados, SQL89/SQL90 PostgreSQL 17, Chromium y Cloudflare). Los casos positivos comprueban guardado aprobado, destino exacto de correo; los negativos comprueban cupo, duplicados, origen, Turnstile y caídas del proveedor de correo sin perder inscripciones. Código y escenarios en `tests/torneos-autoaprobacion-email.test.js`; documentos `docs/INSCRIPCIONES_AUTOAPROBADAS_EMAIL_20261114.md`.
 - **Pendiente:** en producción había 0 torneos y 0 parejas, por lo que no se generaron datos falsos para testear. Cuando Martín cree su primer torneo real, probar una inscripción verdadera y confirmar la recepción del email en `boulevardpadelvila@gmail.com` (y Spam); si falta, revisar Resend y los logs de la Edge Function. El usuario debe sincronizar con `git pull --ff-only origin main` y probar localhost/publicación.
 
+---
+
+## 14/11/2026 — Seguimiento de prueba manual de inscripción automática
+
+- El usuario ejecutó sincronización local `git switch main && git pull --ff-only origin main && node --test tests/*.test.js && git status`. Confirmó **282 tests aprobados, cero fallos y árbol limpio** en commit `f6981a8`.
+- Se propuso crear un torneo de prueba e inscribir una única pareja para verificar autoaprobación y correo. El usuario informó después: «Hasta el momento todo funciona de lujo! Excelente trabajo». Se registra esta **devolución manual positiva** sin afirmar pruebas específicas que no fueron detalladas.
+- **Aún no se confirmó explícitamente** en el chat la recepción del correo en `boulevardpadelvila@gmail.com`. También queda comprobar/verificar de forma individual el mensaje público y el estado `Aprobada` si es necesario cerrar formalmente la prueba. No se realizaron escrituras a Supabase ni alteraciones de funciones en este seguimiento.
+- Si el torneo y la pareja son exclusivamente de prueba, su eliminación debe hacerse desde el Admin cuando el usuario lo decida y tras verificar dependencias. Conservar intactas las reservas y los turnos fijos reales. Mantener estable el código en ausencia de fallos.
+
