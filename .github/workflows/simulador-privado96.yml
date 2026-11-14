@@ -37,6 +37,7 @@ jobs:
           node --test tests/*.test.js
       - name: "Compilar Pages Functions sin desplegar"
         run: |
+          mkdir -p .tmp
           npx --yes wrangler@4.47.0 pages functions build functions \
             --outdir=.tmp/pages-worker \
             --output-routes-path=.tmp/routes-compiled.json
@@ -52,3 +53,27 @@ jobs:
           }
           console.log("Ruta privada compilada:", target);
           NODE
+      - name: "Verificar Cloudflare Preview sin sesión (no leer llaves)"
+        run: |
+          python3 - <<'PY'
+          import urllib.request, urllib.error, time
+          url = "https://security-simulador-martin-pa.boulevard-padel.pages.dev/admin/simulador-llaves.html"
+          for attempt in range(5):
+              try:
+                  with urllib.request.urlopen(url,timeout=15) as r:
+                      body=r.read().decode("utf8")
+                      assert r.status==200 and "Verificando el acceso" in body
+                      assert "BPReglamento2026.groupPlan(n)" not in body
+                      assert "no-store" in r.headers.get("Cache-Control","")
+                  req=urllib.request.Request(url,method="POST",headers={"Accept":"text/html"})
+                  try:
+                      urllib.request.urlopen(req,timeout=15)
+                      raise RuntimeError("POST sin JWT dejó ver simulador")
+                  except urllib.error.HTTPError as e:
+                      assert e.code == 403, f"Esperábamos 403, llegó {e.code}"
+                  print("Cloudflare Preview: GET puerta privada; POST sin JWT = 403")
+                  break
+              except Exception:
+                  if attempt==4: raise
+                  time.sleep(3)
+          PY
