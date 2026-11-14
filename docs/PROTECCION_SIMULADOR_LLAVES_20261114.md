@@ -40,6 +40,43 @@ autenticación**; no puede prometer confidencialidad del código fuente ya
 publicado. Para ocultar el código habría que hacer privado el repositorio
 y revisar la distribución de scripts; es una tarea separada.
 
+## Cierre de ruta canónica sin extensión — 14/11/2026
+
+**Reporte del usuario:** el enlace copiado desde el Admin era
+`https://boulevard-padel.pages.dev/admin/simulador-llaves` (sin
+`.html`). Esa URL se abría en incógnito, a pesar de que la prueba
+original protegía solo `/admin/simulador-llaves.html`.
+Cloudflare Pages utiliza URLs canónicas sin la extensión HTML.
+
+**Solución desplegada:** PR #39 merge `b0e30a910377534e31807b7a0b0b5d6d32af7f80`.
+Se agregó `functions/admin/simulador-llaves.js`, alias que
+**reexporta el mismo onRequest** con validación de token Supabase,
+UID de Martín e `is_admin()`, sin duplicar guardias. `_routes.json`
+incluye tanto `/admin/simulador-llaves` como
+`/admin/simulador-llaves.html`, además del resguardo
+`/functions/*`. El enlace del Admin ahora apunta a la URL canónica
+sin extensión.
+
+**Prevención de regresión:** `tests/simulador-privado96.test.js`
+verifica la existencia del alias y la inclusión de ambas rutas. El
+workflow de simulador ejecuta en Cloudflare Pages Dev **las dos URL**,
+probando GET con la puerta de acceso sin el contenido y POST sin JWT
+con HTTP 403. Tras fusionar, se ejecutó el control en la **dirección
+real de producción** para **ambas URL** y todos los casos pasaron.
+La ruta del código fuente interno permanece protegida. CI de PR:
+cinco controles verdes (Node, Cloudflare Pages local y compilación,
+SQL89 PostgreSQL, Chromium y despliegue); CI main: protección y
+despliegue correctos. **Sin cambios en Supabase ni datos reales.**
+
+**Pendiente del usuario:** probar en ventana privada nueva
+`/admin/simulador-llaves` y confirmar que solo aparece la pantalla
+«Simulador de llaves» con aviso de acceso privado, sin las llaves.
+La prueba de acceso real de Martín con su sesión sigue pendiente:
+las pruebas automáticas simulan correctamente esa identidad, pero
+no acceden con su contraseña.
+
+---
+
 ## Estado de producción comprobado — 14/11/2026
 
 **Implementado y desplegado:** PR #38, merge
