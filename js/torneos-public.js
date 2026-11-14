@@ -1464,7 +1464,7 @@
     form.reset();
     tokenReset();
     status(
-      "Solicitud recibida correctamente. Quedó pendiente de aprobación del administrador.",
+      "Inscripción confirmada. ¡La pareja ya quedó inscripta en el torneo!",
     );
   }
   load();
