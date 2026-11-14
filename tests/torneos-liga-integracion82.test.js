@@ -107,7 +107,7 @@ test("Todos los botones de Liga son simétricos en escritorio y móvil",()=>{
 
 test("Liga en producción necesitará desplegar su Edge Function de inscripción",()=>{
   const edge=read("supabase/functions/register-tournament-pair/index.ts");
-  assert.match(edge, /select\("id,format,status,is_published,max_pairs,ends_on,registration_closes_at"\)/);
+  assert.match(edge, /select\("id,name,format,status,is_published,max_pairs,ends_on,registration_closes_at"\)/);
   assert.match(edge,/competition\.format !== "league" && competition\.ends_on < argentinaToday/);
   assert.match(edge,/competition\.status !== "registration_open"/);
   assert.match(edge,/competition\.max_pairs/);

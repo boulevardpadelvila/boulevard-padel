@@ -710,7 +710,7 @@
           );
         if (pendingResult.count > 0)
           throw new Error(
-            "Primero aprobá o rechazá las inscripciones pendientes.",
+            "Hay inscripciones antiguas pendientes. Revisá las parejas antes de cerrar el torneo.",
           );
         if (approvedResult.count < 3)
           throw new Error(

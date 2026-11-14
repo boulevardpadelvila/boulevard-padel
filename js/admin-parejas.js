@@ -227,14 +227,10 @@
         st,
         button("Editar", () => openEdit(pair)),
       );
-      if (pair.status !== "approved")
-        actions.append(button("Aprobar", () => askStatus(pair, "approved")));
-      if (pair.status !== "rejected")
-        actions.append(
-          button("Rechazar", () => askStatus(pair, "rejected"), true),
-        );
+      // Las inscripciones web ya ingresan aprobadas. Martín puede editar
+      // datos o eliminar la inscripción si no cumple sus requisitos.
       // Parche 47: eliminación explícita y separada de las acciones habituales.
-      // Mantener «Aprobada · Editar · Rechazar» en una sola fila.
+      // Sin aprobación ni rechazo manual: solo editar o eliminar.
       const removeRow = document.createElement("div");
       removeRow.className = "torneos-pair-entry__remove";
       removeRow.append(
@@ -317,28 +313,6 @@
           .eq("tournament_id", current);
         if (error) throw readableError(error);
         feedback("Datos de la pareja actualizados.");
-      },
-    );
-  }
-  function askStatus(pair, next) {
-    const label = next === "approved" ? "Aprobar" : "Rechazar";
-    showDialog(
-      `${label} inscripción`,
-      `¿${label.toLowerCase()} a ${pair.player1_name} y ${pair.player2_name}?`,
-      false,
-      label,
-      async () => {
-        const { error } = await supabaseClient
-          .from("bp_tournament_pairs")
-          .update({ status: next, updated_at: new Date().toISOString() })
-          .eq("id", pair.id)
-          .eq("tournament_id", current);
-        if (error) throw readableError(error);
-        feedback(
-          next === "approved"
-            ? "Inscripción aprobada."
-            : "Inscripción rechazada.",
-        );
       },
     );
   }

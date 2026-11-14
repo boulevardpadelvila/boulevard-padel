@@ -1,5 +1,5 @@
 // Boulevard Pádel — registro público de parejas. Desplegar con verify_jwt = false.
-// Secrets obligatorios: TURNSTILE_SECRET_KEY y SUPABASE_SERVICE_ROLE_KEY.
+// Turnstile + service_role obligatorios; Resend es opcional y usa secretos ya vigentes de reservas.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const allowedOrigins = new Set([
   "https://boulevard-padel.pages.dev",
@@ -109,7 +109,7 @@ Deno.serve(async (req) => {
     });
     const { data: competition, error: competitionError } = await db
       .from("bp_tournaments")
-      .select("id,format,status,is_published,max_pairs,ends_on,registration_closes_at")
+      .select("id,name,format,status,is_published,max_pairs,ends_on,registration_closes_at")
       .eq("id", tournamentId)
       .maybeSingle();
     if (competitionError) throw competitionError;
@@ -141,7 +141,7 @@ Deno.serve(async (req) => {
         { error: "Las inscripciones de este torneo están cerradas." },
         origin,
       );
-    // Se considera el cupo de solicitudes pendientes y aprobadas.
+    // Se consideran pendientes históricos y aprobadas para proteger el cupo.
     if (competition.max_pairs != null) {
       const { count, error } = await db
         .from("bp_tournament_pairs")
@@ -161,7 +161,7 @@ Deno.serve(async (req) => {
       player1_name,
       player2_name,
       contact_phone,
-      status: "pending",
+      status: "approved",
       source: "web",
     });
     if (insertError?.code === "23505")
@@ -170,12 +170,77 @@ Deno.serve(async (req) => {
         { error: "Esta pareja ya tiene una inscripción registrada." },
         origin,
       );
+    if (insertError?.code === "23514") {
+      // Los triggers de PostgreSQL protegen cupo y horario incluso en
+      // altas simultáneas; no confundir esos rechazos con un error 500.
+      return json(
+        409,
+        { error: "Inscripciones cerradas o cupo completo. Actualizá el torneo." },
+        origin,
+      );
+    }
     if (insertError) throw insertError;
+
+    // La inscripción ya quedó APROBADA en PostgreSQL. Un fallo en el aviso
+    // nunca revierte la inscripción ni invita al jugador a inscribirse otra vez.
+    // Reutiliza exactamente la configuración Resend de las reservas de BP,
+    // pero envía DIRECTAMENTE al buzón elegido por Martín para torneos.
+    const resendKey = Deno.env.get("RESEND_API_KEY");
+    const from = Deno.env.get("FIXED_TURN_FROM_EMAIL");
+    const to = "boulevardpadelvila@gmail.com";
+    if (resendKey && from) {
+      try {
+        const safeTournament = tidy(competition.name).slice(0, 160);
+        const safeName1 = player1_name.slice(0, 100);
+        const safeName2 = player2_name.slice(0, 100);
+        const safePhone = contact_phone.slice(0, 30);
+        const registeredAt = new Intl.DateTimeFormat("es-AR", {
+          timeZone: "America/Argentina/Cordoba",
+          dateStyle: "full",
+          timeStyle: "short",
+        }).format(new Date());
+        const message = [
+          "Se registró y aprobó automáticamente una nueva pareja en Boulevard Pádel.",
+          "",
+          `Torneo: ${safeTournament}`,
+          `Jugador 1: ${safeName1}`,
+          `Jugador 2: ${safeName2}`,
+          `Teléfono de contacto: ${safePhone}`,
+          `Inscripción: ${registeredAt}`,
+          "",
+          "La pareja ya quedó inscripta. Si no cumple tus requisitos,",
+          "podés eliminar su inscripción manualmente desde el Admin.",
+          "",
+          "Administración: https://boulevard-padel.pages.dev/admin/",
+        ].join("\n");
+        const sent = await fetch("https://api.resend.com/emails", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${resendKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            from,
+            to: [to],
+            subject: "Boulevard Pádel — Nueva pareja inscripta y aprobada",
+            text: message,
+          }),
+        });
+        if (!sent.ok) {
+          console.error("Aviso de torneo rechazado por correo:", sent.status);
+        }
+      } catch (emailError) {
+        console.error("No se pudo enviar el aviso de torneo:", emailError);
+      }
+    } else {
+      console.warn("Aviso de torneo omitido: falta configuración Resend");
+    }
+
     return json(
       201,
       {
         ok: true,
-        message: "Solicitud recibida. Está pendiente de aprobación.",
+        message: "Inscripción confirmada. ¡La pareja ya está inscripta en el torneo!",
       },
       origin,
     );
