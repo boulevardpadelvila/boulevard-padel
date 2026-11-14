@@ -3737,3 +3737,12 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 - **Nuevo proyecto TG Torneos:** desarrollar con cuenta GitHub/infraestructura de TecnoGestión JotaPe, **nunca** con la cuenta de Boulevard Pádel. Pendiente proyecto de ChatGPT nuevo, repositorio privado nuevo, logo de TGJotaPe; aún no se crearon.
 - **Referencia:** `docs/PROTECCION_SIMULADOR_LLAVES_20261114.md`.
 
+---
+
+## 14/11/2026 — Corrección de acceso al simulador por URL sin extensión
+
+- **Reporte:** el usuario seguía abriendo el simulador en ventana privada mediante `https://boulevard-padel.pages.dev/admin/simulador-llaves`. No omitió ningún paso. El error era la protección inicial: se interceptó `/admin/simulador-llaves.html`, pero Cloudflare Pages sirve las páginas con URL canónica **sin** `.html`. El workflow también comprobaba solo la ruta incorrecta y por eso no había detectado el problema.
+- **Solución:** PR #39, merge `b0e30a910377534e31807b7a0b0b5d6d32af7f80`; alias `functions/admin/simulador-llaves.js` reexporta el mismo `onRequest` para Martín; `_routes.json` incluye ahora `/admin/simulador-llaves` y `/admin/simulador-llaves.html` además de `/functions/*`. El enlace de Admin se actualizó a `./simulador-llaves`. Sin modificar autorización, Supabase, configuración de reservas ni permisos.
+- **Verificación:** cinco checks PR aprobados. Suite general de 273 Node aprobada. Cloudflare Pages Dev verifica ambas URLs en GET y POST sin token (puerta de validación y HTTP 403 respectivamente) y mantiene el código fuente de Functions bloqueado. Luego de fusionar, GitHub Actions comprobó ambas URLs contra el sitio **real** de producción, todo correcto, Cloudflare Pages desplegó exitosamente. Se actualizó el documento `docs/PROTECCION_SIMULADOR_LLAVES_20261114.md`.
+- **Pendiente manual:** que el usuario vuelva a probar la URL canónica en ventana de incógnito y que Martín abra el simulador con la sesión Admin legítima. Si un visitante todavía accede al contenido, se debe investigar respuesta HTTP/cache/configuración de Cloudflare, no asumir que la protección es efectiva.
+
