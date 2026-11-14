@@ -1,5 +1,13 @@
 # Boulevard Pádel — ESTADO ACTUAL / RELEVO ENTRE CHATS
 
+## 14/11/2026 — Dos cuentas Admin de Martín habilitadas para simulador (PR #40)
+
+**CORREGIDO:** el usuario confirmó que **ambas** cuentas administrativas existentes de BP son utilizadas por Martín: perfil `Martín` y perfil `Administrador Boulevard Pádel`. El bloqueo inicial excluía erróneamente la segunda cuenta. PR #40 merge `5edf880313ac185457280bb2d1e30af4b71a5171` permite ambos UID explícitos en `functions/admin/simulador-llaves.html.js`. Se conserva verificación JWT contra Supabase Auth y `is_admin()=true` para exigir que cada sesión siga siendo Admin activo. No se permite cualquier cuenta con rol Admin: una tercera cuenta nueva permanecerá denegada hasta autorización explícita. Las rutas canónicas con y sin `.html` usan idéntico verificador. **Sin alterar Supabase, contraseñas, reservas, torneos, turnos ni permisos generales.**
+
+**Tests de PR:** cinco checks verdes (suite Node, Cloudflare, PostgreSQL SQL89, Chromium, función Pages Dev), incluidos los casos «ambas cuentas válidas», «ambas sin Admin activas -> denegadas», «tercera cuenta Admin -> denegada» y «sin JWT -> 403». La prueba real de ingreso con la segunda cuenta debe confirmar Martín después del despliegue; solo se usan tokens ficticios en los tests automáticos. El usuario ya confirmó que la protección actual bloquea los visitantes y que puede ingresar con una de las cuentas. Última versión del código en `main`; usar `git pull --ff-only origin main` para sincronizar laptop.
+
+---
+
 ## 14/11/2026 — URL sin extensión protegida (PR #39)
 
 **CORRECCIÓN A UNA OMISIÓN DE LA PROTECCIÓN INICIAL:** el usuario detectó que podía copiar `https://boulevard-padel.pages.dev/admin/simulador-llaves` (sin .html) y usarla en incógnito. La primera protección de PR #38 solo interceptaba `/admin/simulador-llaves.html`; Cloudflare Pages considera canónicas las rutas HTML sin extensión.
