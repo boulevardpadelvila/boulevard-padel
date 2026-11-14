@@ -74,15 +74,33 @@ test("Token inventado o vencido: Supabase Auth niega y no se entrega simulador",
   assert.equal(calls,1);
 });
 
-test("La segunda cuenta admin NO es Martín, aunque exista y tenga permisos",async()=>{
+test("Una tercera cuenta Admin no autorizada continúa bloqueada",async()=>{
   let calls=0;
   const handler=makeHandler(async()=>{
     calls++;
-    return json({id:"2e0b2b44-28a0-4659-9f65-70c947120f12"});
+    return json({id:"00000000-0000-0000-0000-000000000999"});
   });
   const r=await handler({request:req()});
   assert.equal(r.status,403);
-  assert.equal(calls,1); // ni siquiera se ejecuta la RPC admin
+  assert.equal(calls,1); // no consultar rol si identidad no es una de las dos cuentas permitidas
+});
+
+test("Las dos cuentas de Martín requieren además permiso Admin activo",async()=>{
+  for(const adminId of [
+    "72eb5b79-eb7e-4cd4-9e8c-8736f0aeaa3d",
+    "2e0b2b44-28a0-4659-9f65-70c947120f12"
+  ]) {
+    let calls=0;
+    const handler=makeHandler(async(url)=>{
+      calls++;
+      if(url.endsWith("/auth/v1/user"))return json({id:adminId});
+      if(url.endsWith("/rest/v1/rpc/is_admin"))return json(false);
+      throw Error("URL inesperada");
+    });
+    const r=await handler({request:req()});
+    assert.equal(r.status,403);
+    assert.equal(calls,2);
+  }
 });
 
 test("Martín sin rol admin activo: no se devuelve el simulador",async()=>{
@@ -98,24 +116,29 @@ test("Martín sin rol admin activo: no se devuelve el simulador",async()=>{
   assert.equal(calls,2);
 });
 
-test("Solo Martín autenticado y admin activo recibe las llaves originales",async()=>{
-  const urls=[];
-  const handler=makeHandler(async(url,opts)=>{
-    urls.push(url);
-    assert.equal(opts.headers.apikey?.length>10,true);
-    assert.ok(opts.headers.Authorization.startsWith("Bearer "));
-    if(url.endsWith("/auth/v1/user"))return json({id:martinId});
-    if(url.endsWith("/rest/v1/rpc/is_admin"))return json(true);
-    throw Error("URL inesperada");
-  });
-  const r=await handler({request:req()});
-  assert.equal(r.status,200);
-  const html=await r.text();
-  assert.match(html,/Simulador interactivo de llaves/);
-  assert.match(html,/Imprimir \/ guardar en PDF/);
-  assert.match(html,/\.\.\/js\/torneos-reglamento-2026\.js/);
-  assert.equal(urls.length,2);
-  assert.match(r.headers.get("cache-control"),/no-store/);
+test("Ambas cuentas de Martín, autenticadas y Admin activas, reciben el simulador",async()=>{
+  for(const adminId of [
+    "72eb5b79-eb7e-4cd4-9e8c-8736f0aeaa3d",
+    "2e0b2b44-28a0-4659-9f65-70c947120f12"
+  ]) {
+    const urls=[];
+    const handler=makeHandler(async(url,opts)=>{
+      urls.push(url);
+      assert.equal(opts.headers.apikey?.length>10,true);
+      assert.ok(opts.headers.Authorization.startsWith("Bearer "));
+      if(url.endsWith("/auth/v1/user"))return json({id:adminId});
+      if(url.endsWith("/rest/v1/rpc/is_admin"))return json(true);
+      throw Error("URL inesperada");
+    });
+    const r=await handler({request:req()});
+    assert.equal(r.status,200);
+    const html=await r.text();
+    assert.match(html,/Simulador interactivo de llaves/);
+    assert.ok(html.includes("Imprimir / guardar en PDF"));
+    assert.ok(html.includes("../js/torneos-reglamento-2026.js"));
+    assert.equal(urls.length,2);
+    assert.match(r.headers.get("cache-control"),/no-store/);
+  }
 });
 
 test("Cualquier método distinto de GET/HEAD/POST recibe 405 sin datos",async()=>{
