@@ -6,6 +6,7 @@ on:
     paths:
       - "_routes.json"
       - "functions/admin/simulador-llaves.html.js"
+      - "functions/admin/simulador-llaves.js"
       - "admin/simulador-llaves.html"
       - "tests/simulador-privado96.test.js"
       - ".github/workflows/simulador-privado96.yml"
@@ -14,6 +15,7 @@ on:
     paths:
       - "_routes.json"
       - "functions/admin/simulador-llaves.html.js"
+      - "functions/admin/simulador-llaves.js"
       - "admin/simulador-llaves.html"
       - "tests/simulador-privado96.test.js"
       - ".github/workflows/simulador-privado96.yml"
@@ -43,15 +45,17 @@ jobs:
             --output-routes-path=.tmp/routes-compiled.json
           node - <<'NODE'
           const fs = require("node:fs");
-          const target = "/admin/simulador-llaves.html";
+          const targets = ["/admin/simulador-llaves","/admin/simulador-llaves.html"];
           const routes = JSON.parse(fs.readFileSync(".tmp/routes-compiled.json","utf8"));
-          if (routes.version !== 1 || !(routes.include.includes(target) || routes.include.includes("/*"))) {
-            throw new Error("La función Cloudflare no intercepta el enlace exacto al simulador");
+          for (const target of targets) {
+            if (routes.version !== 1 || !(routes.include.includes(target) || routes.include.includes("/*"))) {
+              throw new Error("La función Cloudflare no intercepta: " + target);
+            }
           }
           if (fs.existsSync("admin/simulador-llaves.html")) {
             throw new Error("No publicar el HTML original como archivo estático");
           }
-          console.log("Ruta privada compilada:", target);
+          console.log("Rutas privadas compiladas:", targets.join(", "));
           NODE
       - name: "Probar Pages Function real en localhost sin acceso"
         run: |
@@ -61,25 +65,26 @@ jobs:
           python3 - <<'PY'
           import urllib.request, urllib.error, time
           base="http://127.0.0.1:8788"
-          url=base+"/admin/simulador-llaves.html"
-          for attempt in range(25):
+          for suffix in ("/admin/simulador-llaves", "/admin/simulador-llaves.html"):
+              url=base+suffix
+              for attempt in range(25):
+                  try:
+                      with urllib.request.urlopen(url,timeout=3) as response:
+                          assert response.status==200
+                          body=response.read().decode("utf8")
+                          assert "Verificando el acceso" in body, "No se invocó Pages Function para "+suffix
+                          assert "BPReglamento2026.groupPlan(n)" not in body
+                          assert "no-store" in response.headers.get("Cache-Control","")
+                      break
+                  except Exception:
+                      if attempt==24: raise
+                      time.sleep(1)
+              req=urllib.request.Request(url,method="POST",headers={"Accept":"text/html"})
               try:
-                  with urllib.request.urlopen(url,timeout=3) as response:
-                      assert response.status==200
-                      body=response.read().decode("utf8")
-                      assert "Verificando el acceso" in body
-                      assert "BPReglamento2026.groupPlan(n)" not in body
-                      assert "no-store" in response.headers.get("Cache-Control","")
-                  break
-              except Exception:
-                  if attempt==24: raise
-                  time.sleep(1)
-          req=urllib.request.Request(url,method="POST",headers={"Accept":"text/html"})
-          try:
-              urllib.request.urlopen(req,timeout=10)
-              raise AssertionError("POST sin token entregó datos")
-          except urllib.error.HTTPError as e:
-              assert e.code==403, f"POST anónimo debe dar 403, no {e.code}"
+                  urllib.request.urlopen(req,timeout=10)
+                  raise AssertionError("POST sin token entregó datos: "+suffix)
+              except urllib.error.HTTPError as e:
+                  assert e.code==403, f"POST anónimo a {suffix} debe dar 403, no {e.code}"
           with urllib.request.urlopen(base+"/index.html",timeout=10) as response:
               home=response.read().decode("utf8")
               assert response.status==200 and "Boulevard" in home
@@ -89,7 +94,7 @@ jobs:
                   raise AssertionError("Cloudflare filtró el código completo del simulador como archivo estático")
           except urllib.error.HTTPError as e:
               assert e.code in (403,404), f"Endpoint fuente no protegido: {e.code}"
-          print("Cloudflare Pages local: GET puerta; POST anónimo 403; fuente de función bloqueada; home intacta")
+          print("Cloudflare Pages local: ambas rutas GET puerta y POST anónimo 403; fuente bloqueada; home intacta")
           PY
       - name: "Comprobar producción sin credenciales"
         if: github.ref == 'refs/heads/main'
@@ -101,28 +106,29 @@ jobs:
           opener.addheaders=[("User-Agent","BoulevardPadel-SecuritySmoke/1.0 (authorized CI check)")]
           urllib.request.install_opener(opener)
           base="https://boulevard-padel.pages.dev"
-          url=base+"/admin/simulador-llaves.html"
-          for attempt in range(10):
+          for suffix in ("/admin/simulador-llaves", "/admin/simulador-llaves.html"):
+              url=base+suffix
+              for attempt in range(10):
+                  try:
+                      with urllib.request.urlopen(url,timeout=15) as r:
+                          body=r.read().decode("utf8")
+                          assert r.status==200 and "Verificando el acceso" in body, "Sin gate: "+suffix
+                          assert "BPReglamento2026.groupPlan(n)" not in body
+                          assert "no-store" in r.headers.get("Cache-Control","")
+                      break
+                  except Exception:
+                      if attempt==9: raise
+                      time.sleep(3)
+              req=urllib.request.Request(url,method="POST",headers={"Accept":"text/html"})
               try:
-                  with urllib.request.urlopen(url,timeout=15) as r:
-                      body=r.read().decode("utf8")
-                      assert r.status==200 and "Verificando el acceso" in body
-                      assert "BPReglamento2026.groupPlan(n)" not in body
-                      assert "no-store" in r.headers.get("Cache-Control","")
-                  break
-              except Exception:
-                  if attempt==9: raise
-                  time.sleep(3)
-          req=urllib.request.Request(url,method="POST",headers={"Accept":"text/html"})
-          try:
-              urllib.request.urlopen(req,timeout=15)
-              raise AssertionError("Producción: POST sin sesión devolvió simulador")
-          except urllib.error.HTTPError as e:
-              assert e.code==403, f"Producción esperaba 403, fue {e.code}"
+                  urllib.request.urlopen(req,timeout=15)
+                  raise AssertionError("Producción: POST anónimo devolvió simulador: "+suffix)
+              except urllib.error.HTTPError as e:
+                  assert e.code==403, f"Producción {suffix} esperaba 403, fue {e.code}"
           try:
               urllib.request.urlopen(base+"/functions/admin/simulador-llaves.html.js",timeout=15)
               raise AssertionError("Producción: el código fuente del Worker quedó como asset público")
           except urllib.error.HTTPError as e:
               assert e.code in (403,404),f"Producción expuso función: {e.code}"
-          print("PRODUCCIÓN: pantalla de acceso, POST anónimo=403 y fuente de Function protegida")
+          print("PRODUCCIÓN: ambas rutas muestran gate, POST anónimo=403 y fuente de Function protegida")
           PY
