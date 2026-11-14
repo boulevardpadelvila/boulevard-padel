@@ -27,7 +27,10 @@ function req(method="POST",authorization="Bearer "+token) {
 const json=(obj,status=200)=>new Response(JSON.stringify(obj),{status,headers:{"Content-Type":"application/json"}});
 
 test("La URL tiene una única ruta edge y no queda el HTML estático descargable",()=>{
-  assert.deepEqual(config,{version:1,include:[route],exclude:[]});
+  assert.deepEqual(config,{version:1,include:[route,"/functions/*"],exclude:[]});
+  const middleware=fs.readFileSync(path.join(root,"functions/_middleware.js"),"utf8");
+  assert.match(middleware,/path\.startsWith\("\/functions\/"\)/);
+  assert.match(middleware,/status:\s*404/);
   assert.equal(fs.existsSync(path.join(root,"admin/simulador-llaves.html")),false);
   assert.match(original,/auth\/v1\/user/);
   assert.match(original,/rest\/v1\/rpc\/is_admin/);
