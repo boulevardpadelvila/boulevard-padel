@@ -1,5 +1,17 @@
 # Boulevard Pádel — ESTADO ACTUAL / RELEVO ENTRE CHATS
 
+## 14/11/2026 — CIERRE GENERAL DEL PROYECTO POR CONFORMIDAD DEL USUARIO
+
+**ESTADO: FINALIZADO / EN FUNCIONAMIENTO.** El usuario declara explícitamente: «Por ahora, damos por finalizado TODO Boulevard Padel». La implementación de sitio público, turnero, Admin y torneos queda cerrada por conformidad del usuario. **No abrir nuevas modificaciones ni refactorizaciones preventivas sin un nuevo pedido.** Mantener intactos el código funcional, la configuración, las reservas y los turnos fijos reales.
+
+**Última comprobación funcional:** en una inscripción de prueba se confirmó en producción que la pareja ingresó como **Aprobada** y que el email llegó correctamente a `boulevardpadelvila@gmail.com`. El usuario ejecutó 282/282 pruebas locales correctas. La función Edge de inscripción automática se encuentra desplegada. Las dos cuentas que administra Martín pueden acceder al simulador protegido; las URLs públicas sin sesión fueron comprobadas como restringidas.
+
+**ÚNICA VERIFICACIÓN EXTERNA POSPUESTA:** Martín confirmará al hablar con el usuario si el correo de inscripción también fue reenviado a su casilla personal, como sucede con las reservas. Se revisó visualmente el filtro Gmail existente: remitente `onboarding@resend.dev`, asunto contiene «Boulevard Pádel», acción de reenvío a la casilla personal de Martín. **En principio el asunto de inscripciones coincide con el filtro**, por lo que no está justificado modificar nada antes de esa confirmación. No afirmar que la entrega del reenvío está comprobada. Esta verificación no bloquea el cierre del software.
+
+**Mantenimiento:** conservar el repositorio, documentación y respaldos; gestionar cualquier torneo creado exclusivamente como prueba desde el Admin, cuando el usuario lo decida y respetando integridad. No borrar registros sin indicación. **TG Torneos es otro proyecto independiente en la cuenta de TecnoGestión JotaPe; no continuar su desarrollo aquí ni mezclar cuentas.**
+
+---
+
 ## 14/11/2026 — Confirmación real de inscripción aprobada y correo de Torneos
 
 **CONFIRMADO por el usuario en producción:** durante la prueba con un torneo y una inscripción, el correo de notificación **llegó a `boulevardpadelvila@gmail.com`** y la pareja **figuraba como `Aprobada` en el panel Admin**. Esto valida el guardado aprobado de la Edge Function `register-tournament-pair` versión 4 y la entrega efectiva del email al buzón principal. Previamente el usuario había confirmado funcionamiento general satisfactorio y 282/282 pruebas Node.
