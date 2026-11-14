@@ -83,5 +83,42 @@ jobs:
           with urllib.request.urlopen(base+"/index.html",timeout=10) as response:
               home=response.read().decode("utf8")
               assert response.status==200 and "Boulevard" in home
-          print("Cloudflare Pages local: GET puerta sin llaves; POST anónimo 403; home pública sin cambios")
+          source_url=base+"/functions/admin/simulador-llaves.html.js"
+          try:
+              with urllib.request.urlopen(source_url,timeout=10) as response:
+                  raise AssertionError("Cloudflare filtró el código completo del simulador como archivo estático")
+          except urllib.error.HTTPError as e:
+              assert e.code in (403,404), f"Endpoint fuente no protegido: {e.code}"
+          print("Cloudflare Pages local: GET puerta; POST anónimo 403; fuente de función bloqueada; home intacta")
+          PY
+      - name: "Comprobar producción sin credenciales"
+        if: github.ref == 'refs/heads/main'
+        run: |
+          python3 - <<'PY'
+          import urllib.request, urllib.error, time
+          base="https://boulevard-padel.pages.dev"
+          url=base+"/admin/simulador-llaves.html"
+          for attempt in range(10):
+              try:
+                  with urllib.request.urlopen(url,timeout=15) as r:
+                      body=r.read().decode("utf8")
+                      assert r.status==200 and "Verificando el acceso" in body
+                      assert "BPReglamento2026.groupPlan(n)" not in body
+                      assert "no-store" in r.headers.get("Cache-Control","")
+                  break
+              except Exception:
+                  if attempt==9: raise
+                  time.sleep(3)
+          req=urllib.request.Request(url,method="POST",headers={"Accept":"text/html"})
+          try:
+              urllib.request.urlopen(req,timeout=15)
+              raise AssertionError("Producción: POST sin sesión devolvió simulador")
+          except urllib.error.HTTPError as e:
+              assert e.code==403, f"Producción esperaba 403, fue {e.code}"
+          try:
+              urllib.request.urlopen(base+"/functions/admin/simulador-llaves.html.js",timeout=15)
+              raise AssertionError("Producción: el código fuente del Worker quedó como asset público")
+          except urllib.error.HTTPError as e:
+              assert e.code in (403,404),f"Producción expuso función: {e.code}"
+          print("PRODUCCIÓN: pantalla de acceso, POST anónimo=403 y fuente de Function protegida")
           PY
