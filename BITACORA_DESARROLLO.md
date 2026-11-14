@@ -3775,3 +3775,11 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 - **Aún no se confirmó explícitamente** en el chat la recepción del correo en `boulevardpadelvila@gmail.com`. También queda comprobar/verificar de forma individual el mensaje público y el estado `Aprobada` si es necesario cerrar formalmente la prueba. No se realizaron escrituras a Supabase ni alteraciones de funciones en este seguimiento.
 - Si el torneo y la pareja son exclusivamente de prueba, su eliminación debe hacerse desde el Admin cuando el usuario lo decida y tras verificar dependencias. Conservar intactas las reservas y los turnos fijos reales. Mantener estable el código en ausencia de fallos.
 
+---
+
+## 14/11/2026 — Confirmación del email de inscripción en cuenta BP y aprobación en Admin
+
+- El usuario verificó **de forma explícita** durante su prueba de torneo que la pareja figuraba **`Aprobada` en el Admin** y que **recibió el correo de aviso en `boulevardpadelvila@gmail.com`**. Con esto queda comprobada en producción la nueva autoaprobación y la recepción efectiva del email de `register-tournament-pair` versión 4. La ejecución local anterior había aprobado **282/282 pruebas**.
+- **Pendiente por confirmar:** que el mensaje también llegue a la casilla personal de Martín, mediante el reenvío existente de Gmail (como ya ocurre con reservas). El asunto de torneos es distinto del de reservas; puede necesitar un filtro Gmail adicional. No está confirmado todavía el reenvío y no se cambió ninguna regla.
+- No hacen falta nuevas modificaciones al código o a Supabase por el funcionamiento probado. Mantener intactos los datos y realizar cualquier eliminación del torneo de prueba únicamente desde Admin y cuando lo indique el usuario.
+
