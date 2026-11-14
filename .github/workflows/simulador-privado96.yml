@@ -53,27 +53,35 @@ jobs:
           }
           console.log("Ruta privada compilada:", target);
           NODE
-      - name: "Verificar Cloudflare Preview sin sesión (no leer llaves)"
+      - name: "Probar Pages Function real en localhost sin acceso"
         run: |
+          npx --yes wrangler@4.47.0 pages dev . --ip=127.0.0.1 --port=8788 > .tmp/wrangler-local.log 2>&1 &
+          pid=$!
+          trap 'kill "$pid" 2>/dev/null || true' EXIT
           python3 - <<'PY'
           import urllib.request, urllib.error, time
-          url = "https://security-simulador-martin-pa.boulevard-padel.pages.dev/admin/simulador-llaves.html"
-          for attempt in range(5):
+          base="http://127.0.0.1:8788"
+          url=base+"/admin/simulador-llaves.html"
+          for attempt in range(25):
               try:
-                  with urllib.request.urlopen(url,timeout=15) as r:
-                      body=r.read().decode("utf8")
-                      assert r.status==200 and "Verificando el acceso" in body
+                  with urllib.request.urlopen(url,timeout=3) as response:
+                      assert response.status==200
+                      body=response.read().decode("utf8")
+                      assert "Verificando el acceso" in body
                       assert "BPReglamento2026.groupPlan(n)" not in body
-                      assert "no-store" in r.headers.get("Cache-Control","")
-                  req=urllib.request.Request(url,method="POST",headers={"Accept":"text/html"})
-                  try:
-                      urllib.request.urlopen(req,timeout=15)
-                      raise RuntimeError("POST sin JWT dejó ver simulador")
-                  except urllib.error.HTTPError as e:
-                      assert e.code == 403, f"Esperábamos 403, llegó {e.code}"
-                  print("Cloudflare Preview: GET puerta privada; POST sin JWT = 403")
+                      assert "no-store" in response.headers.get("Cache-Control","")
                   break
               except Exception:
-                  if attempt==4: raise
-                  time.sleep(3)
+                  if attempt==24: raise
+                  time.sleep(1)
+          req=urllib.request.Request(url,method="POST",headers={"Accept":"text/html"})
+          try:
+              urllib.request.urlopen(req,timeout=10)
+              raise AssertionError("POST sin token entregó datos")
+          except urllib.error.HTTPError as e:
+              assert e.code==403, f"POST anónimo debe dar 403, no {e.code}"
+          with urllib.request.urlopen(base+"/index.html",timeout=10) as response:
+              home=response.read().decode("utf8")
+              assert response.status==200 and "Boulevard" in home
+          print("Cloudflare Pages local: GET puerta sin llaves; POST anónimo 403; home pública sin cambios")
           PY
