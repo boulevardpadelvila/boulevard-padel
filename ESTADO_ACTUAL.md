@@ -1,5 +1,15 @@
 # Boulevard Pádel — ESTADO ACTUAL / RELEVO ENTRE CHATS
 
+## 14/11/2026 — Confirmación real de inscripción aprobada y correo de Torneos
+
+**CONFIRMADO por el usuario en producción:** durante la prueba con un torneo y una inscripción, el correo de notificación **llegó a `boulevardpadelvila@gmail.com`** y la pareja **figuraba como `Aprobada` en el panel Admin**. Esto valida el guardado aprobado de la Edge Function `register-tournament-pair` versión 4 y la entrega efectiva del email al buzón principal. Previamente el usuario había confirmado funcionamiento general satisfactorio y 282/282 pruebas Node.
+
+**ÚNICO PENDIENTE DE ESTA VERIFICACIÓN:** confirmar si Gmail reenvía también el nuevo correo de torneos a la casilla personal de Martín, como ya sucede con reservas. **No afirmar reenvío confirmado todavía.** El asunto nuevo es «Boulevard Pádel — Nueva pareja inscripta y aprobada», distinto del aviso de reserva. Si hay un filtro por asunto de reservas, habrá que ajustarlo o crear uno para torneos, siempre con la conformidad del administrador y desde Gmail. No modificar Supabase ni el código por este punto.
+
+**Estado de mantenimiento:** no hay cambios funcionales adicionales necesarios. No eliminar el torneo o la pareja de prueba sin indicación del usuario; si se decide borrarlos, usar el Admin para ese torneo únicamente, conservando reservas y turnos fijos.
+
+---
+
 ## 14/11/2026 — Prueba manual del cambio de inscripciones: devolución positiva (en seguimiento)
 
 Después de sincronizar `main` (commit `f6981a8`) y pasar **282/282 pruebas Node, 0 fallos, árbol de trabajo limpio**, el usuario indicó que «hasta el momento todo funciona de lujo» al iniciar la prueba de crear un torneo y registrar una sola pareja. **No se recibió confirmación individual y explícita** de los tres hitos: mensaje de inscripción confirmada, estado `Aprobada` en Admin y correo entregado a `boulevardpadelvila@gmail.com`. Por lo tanto, la comprobación manual es positiva pero la entrega efectiva del email permanece **pendiente de confirmación**, no afirmar «correo recibido» sin comprobarlo.
