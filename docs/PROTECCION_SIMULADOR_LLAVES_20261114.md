@@ -40,7 +40,40 @@ autenticación**; no puede prometer confidencialidad del código fuente ya
 publicado. Para ocultar el código habría que hacer privado el repositorio
 y revisar la distribución de scripts; es una tarea separada.
 
-## Pruebas previstas y realizadas
+## Estado de producción comprobado — 14/11/2026
+
+**Implementado y desplegado:** PR #38, merge
+`4f60b9ed3854a25392e0e31947fe870e946159db`.
+`functions/admin/simulador-llaves.html.js` identifica exclusivamente el UID
+Supabase de Martín y exige además `is_admin()=true`.
+No se modificaron perfiles, contraseñas, registros ni esquema Supabase.
+
+**Se descubrió y corrigió una vía alternativa:** este sitio publica la raíz
+del repositorio como assets estáticos y en una prueba de CI
+`/functions/admin/simulador-llaves.html.js` devolvió el contenido fuente.
+Se agregó `functions/_middleware.js` y una segunda ruta
+`/functions/*` en `_routes.json` para responder HTTP 404 a toda
+petición de código interno. La función efectiva de simulador usa
+el mismo middleware y sigue comprobando Supabase.
+
+**Pruebas aprobadas:** 273/273 pruebas Node, compilación Cloudflare,
+prueba de Cloudflare Pages Dev localhost, Cloudflare despliegue exitoso,
+y comprobación HTTP a la dirección **real de producción**:
+GET devuelve pantalla de autorización sin las llaves, POST sin
+JWT responde 403, y la URL del código fuente de Cloudflare responde
+403 o 404, sin entrega del recurso. Para la prueba remota se utilizó
+User-Agent descriptivo, dado que Cloudflare Pages rechaza el User-Agent
+por defecto de Python urllib mediante Browser Integrity Check.
+
+**Pendiente manual:** que Martín abra el simulador con su sesión y
+verifique el funcionamiento visual; no se utilizó su contraseña durante
+los tests. Para quien use otro perfil de administrador, el bloqueo
+403 es intencional. El repositorio Github público conserva el HTML
+antiguo en su historial, aunque la URL funcional ya está protegida.
+
+---
+
+## Pruebas automatizadas
 `tests/simulador-privado96.test.js` debe verificar:
 1. GET y HEAD sin las llaves.
 2. POST sin token, token inválido, otro admin y Martín sin rol activo: 403.
