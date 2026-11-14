@@ -45,7 +45,7 @@ jobs:
           const fs = require("node:fs");
           const target = "/admin/simulador-llaves.html";
           const routes = JSON.parse(fs.readFileSync(".tmp/routes-compiled.json","utf8"));
-          if (routes.version !== 1 || !routes.include.includes(target)) {
+          if (routes.version !== 1 || !(routes.include.includes(target) || routes.include.includes("/*"))) {
             throw new Error("La función Cloudflare no intercepta el enlace exacto al simulador");
           }
           if (fs.existsSync("admin/simulador-llaves.html")) {
