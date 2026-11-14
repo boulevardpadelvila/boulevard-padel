@@ -1,6 +1,6 @@
 # Bitácora de Desarrollo — Boulevard Pádel
 
-> **Estado vigente:** consultar el último apartado de esta bitácora, fechado **13/11/2026**, y el primer bloque de `ESTADO_ACTUAL.md`. Las entradas anteriores se conservan como historial y no representan pendientes actuales.
+> **Estado vigente: PROYECTO FINALIZADO por conformidad del usuario el 14/11/2026.** Consultar el último apartado de esta bitácora y el primer bloque de `ESTADO_ACTUAL.md`. Los registros anteriores se conservan como historial y no representan pendientes actuales.
 
 ## Documento maestro del proyecto
 
@@ -3782,4 +3782,14 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 - El usuario verificó **de forma explícita** durante su prueba de torneo que la pareja figuraba **`Aprobada` en el Admin** y que **recibió el correo de aviso en `boulevardpadelvila@gmail.com`**. Con esto queda comprobada en producción la nueva autoaprobación y la recepción efectiva del email de `register-tournament-pair` versión 4. La ejecución local anterior había aprobado **282/282 pruebas**.
 - **Pendiente por confirmar:** que el mensaje también llegue a la casilla personal de Martín, mediante el reenvío existente de Gmail (como ya ocurre con reservas). El asunto de torneos es distinto del de reservas; puede necesitar un filtro Gmail adicional. No está confirmado todavía el reenvío y no se cambió ninguna regla.
 - No hacen falta nuevas modificaciones al código o a Supabase por el funcionamiento probado. Mantener intactos los datos y realizar cualquier eliminación del torneo de prueba únicamente desde Admin y cuando lo indique el usuario.
+
+---
+
+## 14/11/2026 — CIERRE GENERAL de Boulevard Pádel
+
+- El usuario expresó su conformidad y declaró **finalizado TODO Boulevard Pádel, por ahora**. Se da por cerrada la etapa de desarrollo del sitio público, reservas, turnos fijos, Admin y torneos. No realizar cambios adicionales por iniciativa propia ni alterar registros productivos.
+- **Prueba real de la última mejora:** una pareja ingresó y figuró **Aprobada** en el Admin; el email automático **llegó a `boulevardpadelvila@gmail.com`**. En la laptop se habían validado **282 pruebas Node** sin errores y repositorio limpio.
+- **Única confirmación administrativa externa pendiente, que NO condiciona el cierre:** Martín confirmará posteriormente si Gmail reenviaba ese email a su casilla personal. La captura compartida del filtro existente indica remitente `onboarding@resend.dev`, asunto contiene `Boulevard Pádel` y acción de reenvío a su casilla Hotmail; por tanto, el asunto de torneos coincidiría con el filtro si el remitente coincide. Todavía no está acreditada la recepción en destino. No configurar filtros nuevos de forma preventiva.
+- **Operación y mantenimiento:** conservar GitHub, Supabase, Cloudflare, bitácora y respaldos. No borrar reservas ni turnos fijos reales. Si se desea retirar el torneo de prueba, hacerlo desde el Admin únicamente después de indicación del usuario. Cambios futuros serán tareas nuevas y puntuales.
+- **Separación de proyectos:** `TG Torneos` es un producto comercial independiente para TecnoGestión JotaPe, nunca debe desarrollarse usando la cuenta o infraestructura de BP.
 
