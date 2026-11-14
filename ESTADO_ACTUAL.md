@@ -1,5 +1,17 @@
 # Boulevard Pádel — ESTADO ACTUAL / RELEVO ENTRE CHATS
 
+## 14/11/2026 — URL sin extensión protegida (PR #39)
+
+**CORRECCIÓN A UNA OMISIÓN DE LA PROTECCIÓN INICIAL:** el usuario detectó que podía copiar `https://boulevard-padel.pages.dev/admin/simulador-llaves` (sin .html) y usarla en incógnito. La primera protección de PR #38 solo interceptaba `/admin/simulador-llaves.html`; Cloudflare Pages considera canónicas las rutas HTML sin extensión.
+
+**IMPLEMENTADO Y VERIFICADO:** PR #39 merge `b0e30a910377534e31807b7a0b0b5d6d32af7f80`. Nuevo alias `functions/admin/simulador-llaves.js`, que importa exactamente la misma lógica JWT + UID Martín + `is_admin()` que la ruta anterior, sin cambiar Supabase ni contraseñas. `_routes.json` incluye **ambas rutas**, enlace del Admin actualizado a `./simulador-llaves`. Se conservó bloqueo de `/functions/*` y todo el turnero intacto.
+
+**Pruebas:** cinco verificaciones verdes en PR (Cloudflare, Node completo, simulador Pages Dev, PostgreSQL SQL89, Chromium). En el runtime real de Cloudflare local: ambas URLs devuelven por GET solo la puerta de validación y por POST anónimo **403**. Después de merge, GitHub Actions probó con la web **real de producción** y confirmó exactamente lo mismo para ambas URLs, además de la protección del código interno. Cloudflare Pages reportó despliegue exitoso. **Pendiente:** que usuario pruebe incógnito nuevamente y que Martín pruebe su propia sesión real; no se cuenta con su contraseña, los tests de autorización positiva fueron con simulaciones seguras.
+
+**Última acción requerida en laptop:** `git switch main && git pull --ff-only origin main && node --test tests/*.test.js`. Si se desea, borrar rama de PR #39 tras sincronizar: `git push origin --delete security/simulador-url-canonica-sin-html-20261114`. Documentación completa en `docs/PROTECCION_SIMULADOR_LLAVES_20261114.md`.
+
+---
+
 ## 14/11/2026 — Simulador de llaves PRIVADO para Martín (IMPLEMENTADO)
 
 **PROTEGIDO EN PRODUCCIÓN** `/admin/simulador-llaves.html` por Cloudflare Pages Function, PR #38 merge `4f60b9ed3854a25392e0e31947fe870e946159db`. GET público entrega solo una puerta de validación, jamás el simulador. El navegador envía en POST su token Supabase al mismo endpoint. El servidor valida token contra Supabase Auth, exige que el UID sea **exactamente Martín** (hay dos perfiles Admin activos) y que `is_admin()=true`, que requiere administrador activo. Los otros Admin y los visitantes reciben 403. No se cambió Supabase, permisos globales, reservas, torneos ni cuentas. La hoja HTML estática antigua se retiró: no se distribuye como página pública.
