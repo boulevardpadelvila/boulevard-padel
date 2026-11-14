@@ -1,5 +1,13 @@
 # Boulevard Pádel — ESTADO ACTUAL / RELEVO ENTRE CHATS
 
+## 14/11/2026 — Prueba manual del cambio de inscripciones: devolución positiva (en seguimiento)
+
+Después de sincronizar `main` (commit `f6981a8`) y pasar **282/282 pruebas Node, 0 fallos, árbol de trabajo limpio**, el usuario indicó que «hasta el momento todo funciona de lujo» al iniciar la prueba de crear un torneo y registrar una sola pareja. **No se recibió confirmación individual y explícita** de los tres hitos: mensaje de inscripción confirmada, estado `Aprobada` en Admin y correo entregado a `boulevardpadelvila@gmail.com`. Por lo tanto, la comprobación manual es positiva pero la entrega efectiva del email permanece **pendiente de confirmación**, no afirmar «correo recibido» sin comprobarlo.
+
+**Decisión de mantenimiento:** no modificar el código ni Supabase mientras la prueba funcione. Si se trata de un torneo exclusivamente de prueba, eliminarlo desde el Admin cuando el usuario lo decida, verificando primero sus dependencias; no borrar reservas, turnos fijos ni datos ajenos al torneo. No configurar todavía ningún reenvío Gmail ni automatización sin que Martín lo solicite.
+
+---
+
 ## 14/11/2026 — Inscripción pública automáticamente APROBADA + email (VIGENTE)
 
 **ACORDADO CON MARTÍN E IMPLEMENTADO:** inscripción web en torneos publicados con inscripciones abiertas pasa directamente a `status='approved'`, `source='web'`, sin necesitar aprobación manual ni aplicar requisitos personales. El sistema conserva solo validaciones técnicas existentes (formulario, Turnstile, publicación, horarios, cupo/duplicados). Martín puede **Editar** o **Eliminar inscripción** desde el Admin bajo las restricciones existentes de integridad para grupos/partidos publicados; se retiraron acciones `Aprobar`/`Rechazar` de ese panel.
