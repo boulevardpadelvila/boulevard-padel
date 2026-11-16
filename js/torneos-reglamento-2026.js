@@ -97,6 +97,41 @@
         },
       };
 
+
+  /* Cuadros oficiales, páginas 10..35 del PDF «Drops 6 a 40 parejas».
+     Las entradas están en orden vertical: cada Pn es el ganador de la
+     previa n. NO generar estos cruces mediante ordenación por ranking. */
+  const DROPS_PDF = Object.freeze({
+    15: ["2B 2C|2D 2A", "1A P1|1E 1D|1C 2E|P2 1B"],
+    16: ["2B 2C|3A 2E|2D 2A", "1A P1|1E 1D|1C P2|P3 1B"],
+    17: ["2B 2C|1E 3B|3A 2E|2D 2A", "1A P1|P2 1D|1C P3|P4 1B"],
+    18: ["2C 2F|1E 2B|2A 1F|2E 2D", "1A P1|P2 1D|1C P3|P4 1B"],
+    19: ["2C 2F|1E 2B|3A 1D|2A 1F|2E 2D", "1A P1|P2 P3|1C P4|P5 1B"],
+    20: ["2C 2F|1E 2B|3A 1D|1C 3B|2A 1F|2E 2D", "1A P1|P2 P3|P4 P5|P6 1B"],
+    21: ["2F 2G|1E 2C|2B 1D|1C 2A|2D 1F|1G 2E", "1A P1|P2 P3|P4 P5|P6 1B"],
+    22: ["2F 2G|1E 2C|2B 1D|1C 2A|2D 1F|1G 2E|3A 1B", "1A P1|P2 P3|P4 P5|P6 P7"],
+    23: ["", "1A 3B|2F 2G|1E 2C|2B 1D|1C 2A|2D 1F|1G 2E|3A 1B"],
+    24: ["", "1A 2B|2G 1H|1E 2F|2C 1D|1C 2D|2E 1F|1G 2H|2A 1B"],
+    25: ["3A 2B", "1A P1|2G 1H|1E 2F|2C 1D|1C 2D|2E 1F|1G 2H|2A 1B"],
+    26: ["3A 2B|2A 3B", "1A P1|2G 1H|1E 2F|2C 1D|1C 2D|2E 1F|1G 2H|P2 1B"],
+    27: ["2B 2C|2D 2A", "1A P1|1I 1H|1E 2G|2F 1D|1C 2E|2H 1F|1G 2I|P2 1B"],
+    28: ["2B 2C|3A 2E|2D 2A", "1A P1|1I 1H|1E 2G|2F 1D|1C P2|2H 1F|1G 2I|P3 1B"],
+    29: ["2B 2C|2F 3B|3A 2E|2D 2A", "1A P1|1I 1H|1E 2G|P2 1D|1C P3|2H 1F|1G 2I|P4 1B"],
+    30: ["2C 2F|2G 2B|2A 2H|2E 2D", "1A P1|1I 1H|1E 2J|P2 1D|1C P3|2I 1F|1G 1J|P4 1B"],
+    31: ["2C 2F|2G 2B|2A 2H|2I 3A|2E 2D", "1A P1|1I 1H|1E 2J|P2 1D|1C P3|P4 1F|1G 1J|P5 1B"],
+    32: ["2C 2F|3B 2J|2G 2B|2A 2H|2I 3A|2E 2D", "1A P1|1I 1H|1E P2|P3 1D|1C P4|P5 1F|1G 1J|P6 1B"],
+    33: ["2F 2G|2B 2K|2J 2C|2D 2I|1K 2A|2H 2E", "1A P1|1I 1H|1E P2|P3 1D|1C P4|P5 1F|1G 1J|P6 1B"],
+    34: ["2F 2G|2B 2K|2J 2C|2D 2I|1K 2A|3A 1J|2H 2E", "1A P1|1I 1H|1E P2|P3 1D|1C P4|P5 1F|1G P6|P7 1B"],
+    35: ["2F 2G|1I 3B|2B 2K|2J 2C|2D 2I|1K 2A|3A 1J|2H 2E", "1A P1|P2 1H|1E P3|P4 1D|1C P5|P6 1F|1G P7|P8 1B"],
+    36: ["2G 2J|1I 2B|2C 1L|2K 2F|2E 2L|1K 2D|2A 1J|2I 2H", "1A P1|P2 1H|1E P3|P4 1D|1C P5|P6 1F|1G P7|P8 1B"],
+    37: ["2G 2J|1I 2B|3A 1H|2C 1L|2K 2F|2E 2L|1K 2D|2A 1J|2I 2H", "1A P1|P2 P3|1E P4|P5 1D|1C P6|P7 1F|1G P8|P9 1B"],
+    38: ["2G 2J|1I 2B|3A 1H|2C 1L|2K 2F|2E 2L|1K 2D|1G 3B|2A 1J|2I 2H", "1A P1|P2 P3|1E P4|P5 1D|1C P6|P7 1F|P8 P9|P10 1B"],
+    39: ["2J 2K|1I 2C|2B 1H|2F 1L|1M 2G|2H 2M|1K 2E|1G 2A|2D 1J|2L 2I", "1A P1|P2 P3|1E P4|P5 1D|1C P6|P7 1F|P8 P9|P10 1B"],
+    40: ["2J 2K|1I 2C|2B 1H|2F 1L|1M 2G|2H 2M|1K 2E|3A 1F|1G 2A|2D 1J|2L 2I", "1A P1|P2 P3|1E P4|P5 1D|1C P6|P7 P8|P9 P10|P11 1B"],
+  });
+  const expandDrops=(rows)=>rows ? rows.split("|").map(row=>row.split(" ").map(x=>
+    /^P[1-9][0-9]*$/.test(x) ? x : `${x[0]}° ${x.slice(1)}`)) : [];
+
   function groupPlan(n){
     if(!Number.isSafeInteger(n)||n<6||n>40)throw Error("Se requieren de 6 a 40 parejas aprobadas.");
     const groups=Math.floor(n/3), fours=n%3;
@@ -228,6 +263,9 @@
     if(special){
       pre=special.pre.map(m=>m.slice());
       opening=special.opening.map(m=>m.slice());
+    }else if(DROPS_PDF[n]){
+      pre=expandDrops(DROPS_PDF[n][0]);
+      opening=expandDrops(DROPS_PDF[n][1]);
     }else{
       // Primero por posición deportiva; zonas de cuatro son A, B... y
       // desempatan prioridad frente a zonas de tres.
@@ -252,6 +290,12 @@
     if(actual.length!==entrants.length||new Set(actual).size!==entrants.length||
       actual.some(x=>!expected.has(x))||pre.length!==plan.preliminaries||
       opening.length!==plan.base/2)throw Error("El simulador contiene una llave incompleta.");
+    if(pre.some(([a,b])=>a.startsWith("1° ")&&b.startsWith("1° ")))
+      throw Error("El reglamento prohíbe enfrentar dos primeros en la ronda previa.");
+    const refs=opening.flat().filter(x=>/^P[1-9][0-9]*$/.test(x));
+    if(refs.length!==pre.length||new Set(refs).size!==pre.length||
+      refs.some(x=>Number(x.slice(1))>pre.length))
+      throw Error("Los pases de la ronda previa están incompletos o duplicados.");
     return {...plan,preliminariesMatches:pre,firstRoundMatches:opening,
       directEntrants:direct,illustrative:false};
   }
