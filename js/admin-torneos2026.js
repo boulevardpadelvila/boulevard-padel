@@ -284,8 +284,10 @@
     }
     body.append(wrapper);
   }
+  const bracketBase=()=>motor.groupPlan(data?.assignments?.length||6).base;
   const sourceLabel=src=>/^P[1-9]\d*$/.test(src)?'Ganador P'+src.slice(1):
-    /^W:\d+:\d+$/.test(src)?'Ganador R'+src.slice(2).replace(':','-'):src;
+    /^W:\d+:\d+$/.test(src)?'Ganador '+motor.matchCode(
+      bracketBase(),...src.slice(2).split(':').map(Number)):src;
   function renderBracket(){
     const wrapper=el('div','bp26-admin__knockout');
     wrapper.append(el('h3','bp26-admin__heading','Llave completa de eliminatorias'));
@@ -311,7 +313,7 @@
       const card=el('article','bp26-admin__match');
       const first=match.pair1_name||sourceLabel(match.source1);
       const second=match.pair2_name||sourceLabel(match.source2);
-      card.append(el('strong','bp26-admin__match-id',`Partido ${stage===0?'P'+match.slot:'R'+stage+'-'+match.slot}`),
+      card.append(el('strong','bp26-admin__match-id',`Partido ${motor.matchCode(bracketBase(),stage,match.slot)}`),
         el('div','bp26-admin__rivals',first+'  vs.  '+second));
       if(match.status==='played')card.append(el('p','bp26-admin__score','Resultado: '+match.sets.map(x=>x.join('-')).join(' · ')));
       const actions=el('div','bp26-admin__actions');
