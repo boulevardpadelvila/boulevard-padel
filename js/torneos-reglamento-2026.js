@@ -145,6 +145,19 @@
       knockoutMatches:qualified-1});
   }
 
+  // Identificadores visibles. Las claves de Supabase (stage/slot) no cambian.
+  // P: previa, D: 16avos, O: octavos, C: cuartos, S: semifinal, F: final.
+  function matchCode(base,stage,slot){
+    if(!Number.isInteger(base)||base<2||base>32||(base&(base-1))!==0||
+      !Number.isInteger(stage)||stage<0||!Number.isInteger(slot)||slot<1)
+      throw Error("Referencia de partido inválida.");
+    const count=stage===0?null:base/(2**stage);
+    const letter=stage===0?"P":({16:"D",8:"O",4:"C",2:"S",1:"F"})[count];
+    if(!letter||(count!==null&&(!Number.isInteger(count)||slot>count)))
+      throw Error("Ronda eliminatoria inválida.");
+    return letter+slot;
+  }
+
   function groupFixture(ids){
     if(!Array.isArray(ids)||![3,4].includes(ids.length)||
       ids.some(x=>typeof x!=="string"||!x)||new Set(ids).size!==ids.length)
@@ -341,5 +354,5 @@
       tiedGroups:ties,topFourReady:played===matches.length&&ties.every(g=>!g.some(id=>rows.slice(0,4).some(r=>r.pairId===id)))};
   }
 
-  return Object.freeze({groupPlan,groupFixture,checkScore,standings,bracket,leagueStandings});
+  return Object.freeze({groupPlan,groupFixture,checkScore,standings,bracket,leagueStandings,matchCode});
 });
