@@ -3803,3 +3803,11 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 - GitHub commits: `6858365` (CSS), `c235999` (motor PDF), `4c0afcc` (tests), `a8a8bc0` (SQL97), `0f4e3b1` (errores Admin), `2135a5b` (pruebas finales). SQL97 migrada y comprobada, CI final 284/284 y PostgreSQL 17 success.
 - Sin alteraciones a datos reales de reservas, turnos fijos o torneo. Próxima acción: desde Admin publicar fixture privado del torneo de 18 parejas; se reemplazará la llave anterior no disputada en forma segura.
 - Nota deportiva a resolver: PDF presenta algunos 1° vs 3° en ronda previa (17, 19, 22, 35, 37, 38, 40); todas las previas evitan 1° vs 1°. El documento fue adoptado como referencia exacta.
+
+
+### 2026-11-16 · Cierre de ajustes visuales y deportivos — nomenclatura eliminatoria
+- Identificadores visibles acordados con el usuario: **P1…** ronda previa; **D1…** dieciseisavos; **O1…** octavos; **C1…** cuartos; **S1/S2** semifinales; **F1** final. Las referencias a ganadores usan «Ganador P1», «Ganador C1», etc., según corresponda.
+- Implementación en el motor común `BPReglamento2026.matchCode(base,stage,slot)`, el Admin (`js/admin-torneos2026.js`), el sitio público (`js/torneos-bracket2026-public.js`) y el simulador privado (`functions/admin/simulador-llaves.html.js`). No cambia IDs técnicos de Supabase, resultados ni llaves deportivas del PDF.
+- Versión confirmada: commit `09a5e62` en `main`. GitHub Actions completo correcto, **285/285 pruebas Node**, con verificación PostgreSQL 17; ejecución local en Lenovo Linux Mint informada por el usuario: **285 aprobadas, 0 fallidas, árbol limpio**, sincronizado con `origin/main`.
+- Estado al cierre de esta etapa: usuario considera los ajustes terminados y **Martín está comprobando el sistema**; cualquier hallazgo posterior se tratará como corrección puntual. No declarar cerrada ni confirmada la revisión de Martín hasta su respuesta.
+- Se mantiene el alcance de privacidad y preservación: **sin cambios en reservas, turnos fijos, programación de cancha ni datos reales del torneo** por el cambio de nomenclatura.
