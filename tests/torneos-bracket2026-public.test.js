@@ -39,3 +39,25 @@ test("torneos del Reglamento 2026 no duplican el bloque heredado de eliminatoria
  assert.match(css,/grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/);
  assert.match(css,/\.bp26-public__podium/);
 });
+
+test("identificadores deportivos por ronda para 6 a 40 parejas",()=>{
+ for(let n=6;n<=40;n++){
+   const {plan,rounds}=publicBracket.rounds(n);
+   const prefix={16:"D",8:"O",4:"C",2:"S",1:"F"};
+   for(const round of rounds){
+     for(const match of round.matches){
+       const code=globalThis.BPReglamento2026.matchCode(plan.base,round.stage,match.slot);
+       const count=round.matches.length;
+       assert.equal(code,(round.stage===0?"P":prefix[count])+match.slot,`n=${n}, stage=${round.stage}`);
+     }
+   }
+ }
+ assert.equal(globalThis.BPReglamento2026.matchCode(16,1,1),"O1");
+ assert.equal(globalThis.BPReglamento2026.matchCode(16,2,1),"C1");
+ assert.equal(globalThis.BPReglamento2026.matchCode(16,3,1),"S1");
+ assert.equal(globalThis.BPReglamento2026.matchCode(16,4,1),"F1");
+ assert.equal(globalThis.BPReglamento2026.matchCode(32,1,1),"D1");
+ assert.equal(publicBracket.sourceLabel("W:1:1",16),"Ganador O1");
+ assert.equal(publicBracket.sourceLabel("W:2:3",16),"Ganador C3");
+ assert.equal(publicBracket.sourceLabel("W:1:1",4),"Ganador S1");
+});
