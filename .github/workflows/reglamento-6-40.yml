@@ -2,7 +2,15 @@ name: Reglamento Torneos 6-40 (aislado)
 on:
   push:
     branches:
-      - desarrollo/reglamento-6-40-20261112
+      - main
+    paths:
+      - 'js/torneos-reglamento-2026.js'
+      - 'js/admin-grupos.js'
+      - 'css/torneos-bracket2026.css'
+      - 'sql/SQL_97_DROPS_LLAVES_Y_REPUBLICACION.sql'
+      - 'tests/torneos-reglamento-2026.test.js'
+      - 'tests/fixtures/t97_*'
+      - '.github/workflows/reglamento-6-40.yml'
   pull_request:
     paths:
       - 'js/torneos-reglamento-2026.js'
@@ -110,3 +118,10 @@ jobs:
         run: psql -X -v ON_ERROR_STOP=1 -f sql/SQL_92_PROGRAMACION_ELIMINATORIAS_2026.sql
       - name: "Probar solapamientos, reprogramación y liberación segura"
         run: psql -X -v ON_ERROR_STOP=1 -f tests/fixtures/t92_postgres_smoke.sql
+
+      - name: "SQL97: preparar validación de llaves PDF en PostgreSQL descartable"
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/fixtures/t97_postgres_bootstrap.sql
+      - name: "SQL97: instalar plantillas y republicación sólo en CI"
+        run: psql -X -v ON_ERROR_STOP=1 -f sql/SQL_97_DROPS_LLAVES_Y_REPUBLICACION.sql
+      - name: "SQL97: prueba de republicación, 18 parejas y auditoría"
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/fixtures/t97_postgres_smoke.sql
