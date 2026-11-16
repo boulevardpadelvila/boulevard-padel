@@ -137,7 +137,7 @@ test("35 cuadros oficiales del PDF: previa y orden de llaves idénticos",()=>{
   "7cdc186250b9f4e9dfbbfb3a38f53876c70a77e42c54ab8018a91b99b4a60e48",
   "3172491be6ff4a51f0bc04c8e0e4402ce701dbe285a8d6013281f5a920d6b351",
   "465ac87f012f99ceffd0baf853f3679bdcb8619a9a9b60dae10d3b40f51319c4",
-  "c2625242419c9ab2e9ec26a51a5656a90b92815b5a5ab9ae79c07dff15604b4",
+  "c2625242419c9aab2e9ec26a51a5656a90b92815b5a5ab9ae79c07dff15604b4",
   "821eb7c823ff76b6f1f6dcc409bd8fdbd1b9b2241c8b2eedab08cb50bc12707e"
 ];
   for(let n=6;n<=40;n++){
