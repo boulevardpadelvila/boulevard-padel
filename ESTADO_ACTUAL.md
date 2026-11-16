@@ -432,3 +432,11 @@ Tras cada etapa importante comprobada: actualizar SOLO este resumen (fecha, conf
 - GitHub Actions: suite 284/284 tests y PostgreSQL 17 aislado SQL90–97 satisfactorios (commit `2135a5b`).
 - Producción: torneo existente no modificado, fixture aún privado; debe republicarse en el Admin tras el despliegue del frontend. Reservas y turnos fijos sin cambios.
 - Importante para Martín: el PDF tiene excepciones de previa 1°–3° (p. ej. 17, 19, 22, 35 parejas), aunque nunca 1°–1°. Confirmar si el PDF prevalece sobre la preferencia verbal estricta 1°–2° para esas cantidades.
+
+
+## 2026-11-16 — Ajustes concluidos; revisión final de Martín en curso
+- **Nomenclatura eliminatoria definitiva:** ronda previa P1/P2…, dieciseisavos D1/D2…, octavos O1/O2…, cuartos C1/C2…, semifinales S1/S2 y final F1. Ganadores identificados con el mismo código (p. ej. «Ganador C1»).
+- Consistencia visual comprobada por pruebas entre Admin, vista pública y simulador privado de 6–40 parejas; la numeración interna `stage/slot` de la base permanece sin cambios.
+- GitHub `main` commit `09a5e62`: GitHub Actions completo en verde, **285/285 pruebas**. El usuario sincronizó su laptop y ejecutó la suite local: **285/285**, `git status` limpio y rama `main` alineada con `origin/main`.
+- La presente actualización es **solo documentación**; para traerla a la laptop bastará `git pull --ff-only`, sin necesidad de repetir pruebas de código.
+- Usuario da por cerrados los ajustes de esta etapa, **sujeto al chequeo que está realizando Martín**. No asumir aprobación de Martín ni alterar el torneo de prueba, reservas o turnos fijos sin nuevo pedido.
