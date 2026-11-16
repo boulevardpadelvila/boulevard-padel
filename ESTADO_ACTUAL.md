@@ -421,3 +421,14 @@ Mensaje sugerido: **«JP, retomamos Boulevard Pádel. Leé ESTADO_ACTUAL.md en G
 ## Regla de mantenimiento de este archivo
 
 Tras cada etapa importante comprobada: actualizar SOLO este resumen (fecha, confirmaciones, commit/pruebas, próximo paso) y registrar el detalle histórico en `BITACORA_DESARROLLO.md`. Conservar una única fuente de historial; no abrir bitácoras duplicadas. No guardar contraseñas, tokens, nombres de clientes ni datos personales sensibles.
+
+
+## 2026-11-16 — Llaves Drops 6–40, revisión de fixture y fechas públicas (SQL97)
+- Fuente deportiva: PDF «Drops 6 a 40 parejas», 35 páginas, posición exacta de previas y rondas siguientes. Motor compartido `js/torneos-reglamento-2026.js` utilizado por simulador y torneo real; casos 6–40 implementados en la misma función `bracket(n)`.
+- Torneo de 18 parejas: previas oficiales 2°C–2°F, 1°E–2°B, 2°A–1°F, 2°E–2°D; no se admiten cruces 1°–1° en previas.
+- Supabase SQL97 instalada: `sql/SQL_97_DROPS_LLAVES_Y_REPUBLICACION.sql`; 35 plantillas internas protegidas; al republicar se reutiliza la llave idéntica, o se reemplaza con historial únicamente si no hay resultados, posiciones ni programación de eliminatorias. No requiere borrar el torneo. `bp_tournament_publish_fixture2026` conserva su firma.
+- Sitio público: `css/torneos-bracket2026.css` restablece texto blanco sobre banda verde en fechas de programación.
+- Admin: muestra el error específico de publicación de Supabase.
+- GitHub Actions: suite 284/284 tests y PostgreSQL 17 aislado SQL90–97 satisfactorios (commit `2135a5b`).
+- Producción: torneo existente no modificado, fixture aún privado; debe republicarse en el Admin tras el despliegue del frontend. Reservas y turnos fijos sin cambios.
+- Importante para Martín: el PDF tiene excepciones de previa 1°–3° (p. ej. 17, 19, 22, 35 parejas), aunque nunca 1°–1°. Confirmar si el PDF prevalece sobre la preferencia verbal estricta 1°–2° para esas cantidades.
