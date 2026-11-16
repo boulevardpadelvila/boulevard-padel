@@ -168,12 +168,16 @@
   border:1px solid #d9e3d7;
   border-radius:12px
 }
+/* La fecha se muestra sobre una franja verde: mantener contraste blanco/verde.
+   Esta hoja carga despues del tema78 y antes sobrescribia solo el color del texto. */
 .public-tournaments .public-tournament-fixture__calendar-heading{
   margin:0 0 12px;
   text-align:left;
-  padding:0 0 9px;
-  border-bottom:1px solid #c5d9c7;
-  color:#174b30;
+  padding:10px 12px;
+  background:#00432e;
+  border-bottom:3px solid #c9a75a;
+  color:#fff;
+  border-radius:8px 8px 3px 3px;
   font-size:.94rem
 }
 .public-tournaments .public-tournament-fixture__calendar-grid{
