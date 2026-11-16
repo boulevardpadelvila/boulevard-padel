@@ -3793,3 +3793,13 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 - **Operación y mantenimiento:** conservar GitHub, Supabase, Cloudflare, bitácora y respaldos. No borrar reservas ni turnos fijos reales. Si se desea retirar el torneo de prueba, hacerlo desde el Admin únicamente después de indicación del usuario. Cambios futuros serán tareas nuevas y puntuales.
 - **Separación de proyectos:** `TG Torneos` es un producto comercial independiente para TecnoGestión JotaPe, nunca debe desarrollarse usando la cuenta o infraestructura de BP.
 
+
+
+### 2026-11-16 · SQL97 / Drops 6–40 / republicación segura
+- Diagnóstico: `bp_tournament_publish_fixture2026` rechazaba publicar después de «Corregir fixture» porque existía `bp_tournament_brackets2026` aunque el fixture se había retirado correctamente.
+- Solución: validación contra 35 plantillas del PDF, republicación con misma llave sin cambiar IDs; sustitución transaccional de llaves previas incorrectas sólo sin resultados, programación o posiciones, dejando registro en `bp_tournament_bracket_revisions2026`.
+- Llaves 6–40 incorporadas al motor común. En 18 parejas corregidos los previos a 2°C–2°F, 1°E–2°B, 2°A–1°F, 2°E–2°D; ubicación posterior según p.13 del PDF.
+- Corrección CSS de banda verde de fechas públicas: letras blancas. Admin muestra errores reales en publicación.
+- GitHub commits: `6858365` (CSS), `c235999` (motor PDF), `4c0afcc` (tests), `a8a8bc0` (SQL97), `0f4e3b1` (errores Admin), `2135a5b` (pruebas finales). SQL97 migrada y comprobada, CI final 284/284 y PostgreSQL 17 success.
+- Sin alteraciones a datos reales de reservas, turnos fijos o torneo. Próxima acción: desde Admin publicar fixture privado del torneo de 18 parejas; se reemplazará la llave anterior no disputada en forma segura.
+- Nota deportiva a resolver: PDF presenta algunos 1° vs 3° en ronda previa (17, 19, 22, 35, 37, 38, 40); todas las previas evitan 1° vs 1°. El documento fue adoptado como referencia exacta.
