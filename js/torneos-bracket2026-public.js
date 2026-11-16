@@ -33,11 +33,11 @@
     }
     return {plan,rounds:all};
   }
-  function sourceLabel(src){
+  function sourceLabel(src,base){
     if(/^P[1-9][0-9]*$/.test(src))return "Ganador P"+src.slice(1);
     if(/^W:[0-9]+:[0-9]+$/.test(src)){
       const [,stage,slot]=src.split(":");
-      return "Ganador R"+stage+"-"+slot;
+      return "Ganador "+(base?root.BPReglamento2026.matchCode(base,Number(stage),Number(slot)):"R"+stage+"-"+slot);
     }
     return src;
   }
@@ -76,12 +76,12 @@
       column.append(element("h4","bp26-public__heading",round.name));
       for(const m of round.matches){
         const live=byMatch.get(round.stage+":"+m.slot);
-        const a=live?.pair1_name||sourceLabel(m.source1);
-        const b=live?.pair2_name||sourceLabel(m.source2);
+        const a=live?.pair1_name||sourceLabel(m.source1,model.plan.base);
+        const b=live?.pair2_name||sourceLabel(m.source2,model.plan.base);
         const match=element("article","bp26-public__match");
         if(live?.status==="played")match.classList.add("bp26-public__match--played");
         match.append(
-          element("div","bp26-public__match-top","Partido "+(round.stage===0?"P":"R"+round.stage+"-")+m.slot),
+          element("div","bp26-public__match-top","Partido "+root.BPReglamento2026.matchCode(model.plan.base,round.stage,m.slot)),
           element("p","bp26-public__team",a),
           element("p","bp26-public__versus","VS"),
           element("p","bp26-public__team",b)
