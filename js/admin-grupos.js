@@ -2066,7 +2066,9 @@
           console.error(reloadError);
         }
         setFixtureFeedback(
-          "No pudimos publicar el fixture. Revisá que todos los partidos estén completos, correctamente organizados y que los grupos sigan publicados.",
+          "No pudimos publicar el fixture. " +
+            (error?.message ||
+              "Revisá los partidos, los grupos publicados y la sesión de administrador."),
           "error",
         );
       }
