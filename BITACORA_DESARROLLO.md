@@ -3826,3 +3826,9 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 - Cambios únicamente en frontend y pruebas; sin modificación de reservas, turnos fijos, resultados, llaves ni Supabase. Commit funcional y pruebas `1c44e02`; GitHub Actions 44196933179: 288/288 pruebas Node aprobadas y PostgreSQL 17 descartable satisfactorio. Pendiente comprobación visual en el navegador tras despliegue.
 - Respaldo automático: la tarea «Respaldo Boulevard Pádel» ya estaba suspendida desde el 14/11/2026 por autorización interactiva requerida por Supabase. Se verificó la existencia de la planilla privada en Drive de BP. La tarea original abarcaba reservas y turnos fijos, no torneos.
 - Por indicación expresa del usuario, conservar la tarea suspendida y la planilla existente hasta que Martín decida si desea continuar. No reactivar ni eliminar la tarea, ni ampliar el respaldo a torneos sin una nueva indicación. Mantener exportaciones manuales CSV/PDF del Admin.
+
+
+### 2026-11-17 · Ajuste final de distribución y podio Admin 2026
+- Eliminatorias: dos tarjetas por fila en escritorio/tablet, una en móvil; última final centrada a media anchura en escritorio. Se preservan marcador, ganador y acciones.
+- Podio: dos tarjetas independientes, oro y plata, copas SVG diferenciadas y mayor tipografía para campeones. Se muestra cuando la final jugada tiene ganador válido.
+- Cambios de presentación y pruebas exclusivamente; sin cambios en Supabase, reservas, turnos fijos ni resultados. Commit funcional `a2e68fd`; CI Node 289/289 aprobadas. Pendiente comprobación visual del nuevo diseño en producción.
