@@ -453,3 +453,8 @@ Tras cada etapa importante comprobada: actualizar SOLO este resumen (fecha, conf
 - Admin de torneos 2026: parejas centradas en tres renglones, marcador a la izquierda y pareja ganadora oficial a la derecha; adaptación a móvil. Sin cambios deportivos ni de base de datos.
 - Último commit de código y pruebas: `1c44e02`. GitHub Actions 44196933179 completado: **288/288 pruebas Node, 0 fallas**, PostgreSQL 17 aislado satisfactorio. Pendiente verificación visual en producción y sincronización local.
 - **Respaldo automático suspendido por decisión del usuario**, a la espera de Martín. La tarea ya estaba inactiva desde el 14/11 por autorización de Supabase. La planilla de reservas/turnos fijos permanece en Drive de BP; no incluía respaldo automático de torneos. Se conservan los CSV y PDF manuales. No reactivar, eliminar ni ampliar la tarea sin nueva indicación.
+
+
+## 2026-11-17 — Tarjetas de eliminatorias en dos columnas y podio oro/plata
+- Admin 2026: dos tarjetas por fila, final centrada; una columna en móvil. Podio de dos tarjetas con copas dorada y plateada, campeones con fuente mayor.
+- Commit funcional `a2e68fd`; 289/289 pruebas Node en GitHub Actions 44199127909. Pendiente verificación visual en navegador y sincronización local. Sin cambios en datos o lógica deportiva. Respaldo automático continúa suspendido.
