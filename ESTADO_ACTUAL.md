@@ -458,3 +458,8 @@ Tras cada etapa importante comprobada: actualizar SOLO este resumen (fecha, conf
 ## 2026-11-17 — Tarjetas de eliminatorias en dos columnas y podio oro/plata
 - Admin 2026: dos tarjetas por fila, final centrada; una columna en móvil. Podio de dos tarjetas con copas dorada y plateada, campeones con fuente mayor.
 - Commit funcional `a2e68fd`; 289/289 pruebas Node en GitHub Actions 44199127909. Pendiente verificación visual en navegador y sincronización local. Sin cambios en datos o lógica deportiva. Respaldo automático continúa suspendido.
+
+
+## 2026-11-17 — Diseño de eliminatorias unificado Admin/público
+- Sitio público 2026 alineado con Admin: dos tarjetas por fila, una en móvil, final centrada, parejas centradas, resultado y ganadores oficiales en la misma franja, podio oro/plata con campeones destacados. Solo lectura para los jugadores. Grillas de grupos sin cambios.
+- Commit funcional `c70d897`; CI Node 290/290, cero fallas. Pendiente validación visual en navegador y sincronización laptop. Sin modificaciones en Supabase ni lógica deportiva; respaldo automático continúa suspendido.
