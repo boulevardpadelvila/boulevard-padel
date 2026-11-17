@@ -83,3 +83,17 @@ test("Admin: eliminatorias en dos columnas y podio diferenciado oro/plata",()=>{
  assert.match(css, /\.bp26-admin__podium\{\s*display:grid;\s*grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
  assert.match(css, /\.bp26-admin__podium-card--gold \.bp26-admin__podium-name\{font-size:1\.4rem\}/);
 });
+
+test("Público 2026: diseño de eliminatorias unificado, ganador por ID y podio jerarquizado",()=>{
+ const js=read("js/torneos-bracket2026-public.js");
+ const css=read("css/torneos-bracket2026.css");
+ assert.match(js,/element\("p","bp26-public__versus","vs"\)/);
+ assert.match(js,/live\.winner_pair_id===live\.pair1_id\?live\.pair1_name:/);
+ assert.match(js,/live\.winner_pair_id===live\.pair2_id\?live\.pair2_name:null/);
+ assert.match(js,/if\(winner\)result\.append\(element\("span","bp26-public__winner","Ganadores: "\+winner\)\)/);
+ assert.match(css,/\.bp26-public__rounds>\.bp26-public__round,\s*[\s\S]*?grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+ assert.match(css,/\.bp26-public__match:only-of-type\{[^}]*justify-self:center/);
+ assert.match(css,/\.bp26-public__winner\{[^}]*text-align:right/);
+ assert.match(css,/\.bp26-public__podium-item--gold \.bp26-public__podium-name\{font-size:1\.4rem\}/);
+ assert.doesNotMatch(js,/\.rpc\(|\.insert\(|\.update\(|\.delete\(/);
+});
