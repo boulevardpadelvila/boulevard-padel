@@ -157,9 +157,9 @@ test("Admin 2026: dos tablas legibles y tarjetas compactas en escritorio y móvi
   });
   assert.ok(desktop.numberAligns.length>0 && desktop.numberAligns.every(x=>x==="right"),JSON.stringify(desktop));
   assert.ok(desktop.namesAlign.every(x=>x==="left"||x==="start"),JSON.stringify(desktop));
-  const threeColumns=await page.locator("#bp26-admin .bp26-admin__matches").first()
+  const twoColumns=await page.locator("#bp26-admin .bp26-admin__matches").first()
     .evaluate(el=>getComputedStyle(el).gridTemplateColumns.trim().split(/\s+/).length);
-  assert.equal(threeColumns,3,"En la prueba con semifinales hay dos tarjetas, pero la grilla conserva tres columnas");
+  assert.equal(twoColumns,2,"Las dos semifinales ocupan la fila completa");
   assert.equal(desktop.groupWidths.length,2);
   assert.ok(desktop.groupWidths.every(x=>x>500),JSON.stringify(desktop));
   assert.ok(desktop.cardHeights.every(x=>x>=180&&x<320),JSON.stringify(desktop));
@@ -259,7 +259,7 @@ test("Admin 2026: modal de posiciones permite cancelar y confirmar sin diálogo 
 });
 
 
-test("Admin 2026: eliminatorias grandes 3/2/1 columnas sin perder controles",async()=>{
+test("Admin 2026: eliminatorias grandes 2/2/1 columnas sin perder controles",async()=>{
   const page=await browser.newPage({viewport:{width:1500,height:960}});
   await page.setContent('<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"></head><body><main class="admin-torneos" style="width:calc(100% - 24px);max-width:1470px;margin:auto"><select id="torneos-pairs-tournament"><option value="t1" selected>Llave grande</option></select><section id="bp-results-panel"></section></main></body></html>');
   for(const name of ["css/admin.css","css/admin-torneos.css","css/admin-contraste.css","css/admin-torneos2026.css"])
@@ -317,7 +317,7 @@ test("Admin 2026: eliminatorias grandes 3/2/1 columnas sin perder controles",asy
   const desktop=await measure();
   assert.equal(desktop.rounds,5,JSON.stringify(desktop));
   assert.equal(desktop.total,31,JSON.stringify(desktop));
-  assert.equal(desktop.columns,3,JSON.stringify(desktop));
+  assert.equal(desktop.columns,2,JSON.stringify(desktop));
   assert.equal(new Set(desktop.firstThreeRows).size,1,JSON.stringify(desktop));
   assert.equal(desktop.scheduledButtons,2,JSON.stringify(desktop));
   assert.ok(desktop.postergado&&desktop.actions,JSON.stringify(desktop));
