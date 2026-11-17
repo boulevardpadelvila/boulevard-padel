@@ -447,3 +447,9 @@ Tras cada etapa importante comprobada: actualizar SOLO este resumen (fecha, conf
 - Las eliminatorias incompletas muestran posiciones simbólicas («1° A», «Ganador P1», etc.), que se reemplazan por los nombres y marcadores disponibles del torneo. Mantiene Liga y podio cuando existen.
 - Frontend únicamente (`js/admin-respaldos.js`), sin cambios en Supabase ni datos reales. Pruebas GitHub Actions 287/287 y PostgreSQL descartable satisfactorios, commit funcional `62c1185`.
 - Falta revisión de presentación impresa por usuario/Martín en navegador (Guardar como PDF, A4 horizontal). La laptop requiere `git pull --ff-only` para sincronizar.
+
+
+## 2026-11-17 — Ajuste visual de eliminatorias y respaldo automático pausado
+- Admin de torneos 2026: parejas centradas en tres renglones, marcador a la izquierda y pareja ganadora oficial a la derecha; adaptación a móvil. Sin cambios deportivos ni de base de datos.
+- Último commit de código y pruebas: `1c44e02`. GitHub Actions 44196933179 completado: **288/288 pruebas Node, 0 fallas**, PostgreSQL 17 aislado satisfactorio. Pendiente verificación visual en producción y sincronización local.
+- **Respaldo automático suspendido por decisión del usuario**, a la espera de Martín. La tarea ya estaba inactiva desde el 14/11 por autorización de Supabase. La planilla de reservas/turnos fijos permanece en Drive de BP; no incluía respaldo automático de torneos. Se conservan los CSV y PDF manuales. No reactivar, eliminar ni ampliar la tarea sin nueva indicación.
