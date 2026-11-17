@@ -355,12 +355,26 @@
       roundGrid.append(card);
     }
     const final=matches.find(m=>m.stage===Math.max(...matches.map(x=>x.stage)));
-    if(final?.status==='played' && final.winner_pair_id){
-      const champ=el('div','bp26-admin__champion');
-      champ.append(el('strong','','🏆 Campeones'),el('h3','',nameOf(final.winner_pair_id)));
+    if(final?.status==='played' && final.pair1_id && final.pair2_id &&
+      [final.pair1_id,final.pair2_id].includes(final.winner_pair_id)){
+      const podium=el('div','bp26-admin__podium');
       const runner=final.pair1_id===final.winner_pair_id?final.pair2_id:final.pair1_id;
-      if(runner)champ.append(el('p','','Subcampeones: '+nameOf(runner)));
-      wrapper.append(champ);
+      for(const [kind,label,id] of [
+        ['gold','Campeones',final.winner_pair_id],['silver','Subcampeones',runner]
+      ]){
+        const item=el('article','bp26-admin__podium-card bp26-admin__podium-card--'+kind);
+        const trophy=document.createElementNS('http://www.w3.org/2000/svg','svg');
+        for(const [key,value] of Object.entries({viewBox:'0 0 24 24',fill:'none',stroke:'currentColor',
+          'stroke-width':'1.6','stroke-linecap':'round','stroke-linejoin':'round','aria-hidden':'true',
+          class:'bp26-admin__trophy'}))trophy.setAttribute(key,value);
+        const shape=document.createElementNS('http://www.w3.org/2000/svg','path');
+        shape.setAttribute('d','M8 21h8m-4-4v4M7 4h10v8a5 5 0 0 1-10 0V4ZM7 6H5a2 2 0 0 0-2 2v1a4 4 0 0 0 4 4m10-7h2a2 2 0 0 1 2 2v1a4 4 0 0 1-4 4');
+        trophy.append(shape);
+        item.append(trophy,el('strong','bp26-admin__podium-label',label),
+          el('h3','bp26-admin__podium-name',nameOf(id)));
+        podium.append(item);
+      }
+      wrapper.append(podium);
     }
     body.append(wrapper);
   }
