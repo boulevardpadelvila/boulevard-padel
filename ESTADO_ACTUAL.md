@@ -440,3 +440,10 @@ Tras cada etapa importante comprobada: actualizar SOLO este resumen (fecha, conf
 - GitHub `main` commit `09a5e62`: GitHub Actions completo en verde, **285/285 pruebas**. El usuario sincronizó su laptop y ejecutó la suite local: **285/285**, `git status` limpio y rama `main` alineada con `origin/main`.
 - La presente actualización es **solo documentación**; para traerla a la laptop bastará `git pull --ff-only`, sin necesidad de repetir pruebas de código.
 - Usuario da por cerrados los ajustes de esta etapa, **sujeto al chequeo que está realizando Martín**. No asumir aprobación de Martín ni alterar el torneo de prueba, reservas o turnos fijos sin nuevo pedido.
+
+
+## 2026-11-16 — PDF del torneo rediseñado, pendiente verificación visual de Martín
+- Exportación Admin «PDF del torneo»: A4 horizontal, diseño verde/dorado, tarjetas de participantes y grupos, resultados y cuadro de eliminatorias con códigos P/D/O/C/S/F.
+- Las eliminatorias incompletas muestran posiciones simbólicas («1° A», «Ganador P1», etc.), que se reemplazan por los nombres y marcadores disponibles del torneo. Mantiene Liga y podio cuando existen.
+- Frontend únicamente (`js/admin-respaldos.js`), sin cambios en Supabase ni datos reales. Pruebas GitHub Actions 287/287 y PostgreSQL descartable satisfactorios, commit funcional `62c1185`.
+- Falta revisión de presentación impresa por usuario/Martín en navegador (Guardar como PDF, A4 horizontal). La laptop requiere `git pull --ff-only` para sincronizar.
