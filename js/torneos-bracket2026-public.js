@@ -83,7 +83,7 @@
         match.append(
           element("div","bp26-public__match-top","Partido "+root.BPReglamento2026.matchCode(model.plan.base,round.stage,m.slot)),
           element("p","bp26-public__team",a),
-          element("p","bp26-public__versus","VS"),
+          element("p","bp26-public__versus","vs"),
           element("p","bp26-public__team",b)
         );
         if(live?.schedule_status==="scheduled"&&live.scheduled_at){
@@ -95,7 +95,14 @@
         } else if(live?.schedule_status==="postponed") {
           match.append(element("p","bp26-public__score","Partido postergado"));
         }
-        if(live?.status==="played")match.append(element("p","bp26-public__score","Resultado: "+displayScore(live.sets)));
+        if(live?.status==="played"){
+          const result=element("p","bp26-public__score bp26-public__result");
+          result.append(element("span","bp26-public__score-value","Resultado: "+displayScore(live.sets)));
+          const winner=live.winner_pair_id && (live.winner_pair_id===live.pair1_id?live.pair1_name:
+            live.winner_pair_id===live.pair2_id?live.pair2_name:null);
+          if(winner)result.append(element("span","bp26-public__winner","Ganadores: "+winner));
+          match.append(result);
+        }
         column.append(match);
       }
       stages.append(column);
