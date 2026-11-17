@@ -61,3 +61,14 @@ test("identificadores deportivos por ronda para 6 a 40 parejas",()=>{
  assert.equal(publicBracket.sourceLabel("W:2:3",16),"Ganador C3");
  assert.equal(publicBracket.sourceLabel("W:1:1",4),"Ganador S1");
 });
+
+test("Admin 2026: rivales independientes y ganador validado por ID, sin modificar marcadores",()=>{
+ const js=read("js/admin-torneos2026.js");
+ const css=read("css/admin-torneos2026.css");
+ assert.match(js,/rivals\.append\(el\('span','bp26-admin__pair',first\)/);
+ assert.match(js,/el\('span','bp26-admin__vs','vs'\),el\('span','bp26-admin__pair',second\)/);
+ assert.match(js,/match\.winner_pair_id===match\.pair1_id\?first:match\.winner_pair_id===match\.pair2_id\?second:null/);
+ assert.match(js,/if\(winner\)result\.append\(el\('span','bp26-admin__winner','Ganadores: '\+winner\)\)/);
+ assert.match(css,/\.bp26-admin__match>\.bp26-admin__rivals\{[^}]*display:grid;[^}]*justify-items:center/);
+ assert.match(css,/\.bp26-admin__winner\{[^}]*text-align:right/);
+});
