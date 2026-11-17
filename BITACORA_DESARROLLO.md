@@ -3832,3 +3832,8 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 - Eliminatorias: dos tarjetas por fila en escritorio/tablet, una en móvil; última final centrada a media anchura en escritorio. Se preservan marcador, ganador y acciones.
 - Podio: dos tarjetas independientes, oro y plata, copas SVG diferenciadas y mayor tipografía para campeones. Se muestra cuando la final jugada tiene ganador válido.
 - Cambios de presentación y pruebas exclusivamente; sin cambios en Supabase, reservas, turnos fijos ni resultados. Commit funcional `a2e68fd`; CI Node 289/289 aprobadas. Pendiente comprobación visual del nuevo diseño en producción.
+
+
+### 2026-11-17 · Unificación visual de eliminatorias Admin y sitio público
+- Cuadro público 2026: dos tarjetas por fila en todas las rondas en escritorio, una en móvil, final centrada, rivales centrados en tres renglones y marcador a la izquierda con pareja ganadora oficial a la derecha, validada por ID. Podio en dos tarjetas oro/plata, copas diferenciadas y tipografía mayor para campeones. No se incorporan acciones administrativas en el público.
+- Cambios limitados a `js/torneos-bracket2026-public.js`, `css/torneos-bracket2026.css` y pruebas. Se mantienen los datos, las llaves, la publicación y las grillas de grupos. Sin cambios en Supabase, turnero, reservas ni turnos fijos. CI Node 290/290 aprobadas, commit funcional `c70d897`; pendiente revisión visual tras despliegue. Respaldo automático sigue suspendido.
