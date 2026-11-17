@@ -435,3 +435,155 @@
   }
   .public-tournaments .bp26-public__podium-trophy{width:48px;height:48px}
 }
+
+/* Unificación con Admin 2026: dos partidos por fila en todas las rondas.
+   Sólo afecta el cuadro eliminatorio público, nunca las grillas de grupos. */
+.public-tournaments .bp26-public__rounds,
+.public-tournaments .bp26-public__rounds--semis-final{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  width:100%;
+  max-width:none;
+  gap:20px 13px;
+  min-width:0
+}
+.public-tournaments .bp26-public__rounds>.bp26-public__round,
+.public-tournaments .bp26-public__rounds--semis-final>.bp26-public__round:first-child,
+.public-tournaments .bp26-public__rounds--semis-final>.bp26-public__round:last-child{
+  grid-column:1/-1;
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:13px;
+  align-items:stretch;
+  width:100%;
+  min-width:0
+}
+.public-tournaments .bp26-public__rounds>.bp26-public__round>.bp26-public__heading{
+  grid-column:1/-1;
+  margin:0;
+  padding:0 0 8px;
+  border:0;
+  border-bottom:1px solid #b2cbb7;
+  border-radius:0;
+  background:none;
+  text-align:left;
+  color:#205d37;
+  font-size:1.05rem
+}
+.public-tournaments .bp26-public__rounds>.bp26-public__round>.bp26-public__match:only-of-type{
+  grid-column:1/-1;
+  width:calc((100% - 13px)/2);
+  justify-self:center
+}
+.public-tournaments .bp26-public__match,
+.public-tournaments .bp26-public__match--played,
+.public-tournaments .bp26-public__rounds--semis-final>.bp26-public__round:last-child .bp26-public__match{
+  box-sizing:border-box;
+  display:flex;
+  flex-direction:column;
+  min-width:0;
+  padding:15px;
+  border:1px solid #b4cdb9;
+  border-left:4px solid #267549;
+  border-radius:11px;
+  background:#f7faf6;
+  color:#1b3c29
+}
+.public-tournaments .bp26-public__match-top{
+  margin:0 0 12px;
+  font-size:.83rem;
+  line-height:1.4;
+  color:#205b37;
+  text-transform:none;
+  letter-spacing:normal
+}
+.public-tournaments .bp26-public__team{
+  margin:2px 0;
+  text-align:center;
+  color:#00432e;
+  font-size:.88rem;
+  font-weight:700;
+  line-height:1.35;
+  overflow-wrap:anywhere
+}
+.public-tournaments .bp26-public__versus{
+  margin:1px 0;
+  text-align:center;
+  color:#6b786d;
+  font-size:.72rem;
+  font-weight:400;
+  line-height:1.2
+}
+.public-tournaments .bp26-public__score{
+  margin:9px 0 0;
+  font-size:.82rem;
+  line-height:1.35;
+  color:#4b6453;
+  padding:5px 0 0
+}
+.public-tournaments .bp26-public__result{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  justify-content:space-between;
+  gap:5px 12px;
+  margin-top:auto;
+  padding:8px 10px;
+  border:0;
+  border-radius:7px;
+  background:#e0f0e2;
+  color:#00583b
+}
+.public-tournaments .bp26-public__team + .bp26-public__result{margin-top:10px}
+.public-tournaments .bp26-public__score-value{
+  flex:0 0 auto;
+  max-width:100%;
+  overflow-wrap:anywhere
+}
+.public-tournaments .bp26-public__winner{
+  flex:1 1 160px;
+  min-width:0;
+  text-align:right;
+  overflow-wrap:anywhere
+}
+.public-tournaments .bp26-public__podium{
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:13px;
+  align-items:stretch
+}
+.public-tournaments .bp26-public__podium-item{
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  gap:10px;
+  min-width:0;
+  text-align:center;
+  padding:24px 18px;
+  border:1px solid;
+  border-radius:14px;
+  box-shadow:none;
+  overflow-wrap:anywhere
+}
+.public-tournaments .bp26-public__podium-item--gold{background:#fff9e7;border-color:#d0b76c;color:#886116}
+.public-tournaments .bp26-public__podium-item--silver{background:#f2f5f8;border-color:#bcc6cf;color:#596d80}
+.public-tournaments .bp26-public__podium-trophy{width:46px;height:46px}
+.public-tournaments .bp26-public__podium-item--gold .bp26-public__podium-trophy{width:56px;height:56px;color:#aa7b1c}
+.public-tournaments .bp26-public__podium-label{font-size:1.05rem;font-weight:750}
+.public-tournaments .bp26-public__podium-name{font-size:1.10rem;line-height:1.35;color:#193b29;overflow-wrap:anywhere}
+.public-tournaments .bp26-public__podium-item--gold .bp26-public__podium-label{font-size:1.2rem}
+.public-tournaments .bp26-public__podium-item--gold .bp26-public__podium-name{font-size:1.4rem}
+@media(max-width:710px){
+  .public-tournaments .bp26-public__rounds,
+  .public-tournaments .bp26-public__rounds--semis-final,
+  .public-tournaments .bp26-public__rounds>.bp26-public__round,
+  .public-tournaments .bp26-public__rounds--semis-final>.bp26-public__round:first-child,
+  .public-tournaments .bp26-public__rounds--semis-final>.bp26-public__round:last-child{grid-template-columns:minmax(0,1fr)}
+  .public-tournaments .bp26-public__rounds>.bp26-public__round>.bp26-public__match:only-of-type{width:100%}
+  .public-tournaments .bp26-public__podium{gap:8px;margin-inline:9px}
+  .public-tournaments .bp26-public__podium-item{padding:15px 8px;gap:7px}
+  .public-tournaments .bp26-public__podium-item--gold .bp26-public__podium-name{font-size:1.1rem}
+  .public-tournaments .bp26-public__podium-item--silver .bp26-public__podium-name{font-size:.95rem}
+  .public-tournaments .bp26-public__podium-item--gold .bp26-public__podium-label{font-size:1rem}
+  .public-tournaments .bp26-public__podium-item--silver .bp26-public__podium-label{font-size:.9rem}
+}
