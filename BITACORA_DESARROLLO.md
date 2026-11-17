@@ -3811,3 +3811,11 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 - Versión confirmada: commit `09a5e62` en `main`. GitHub Actions completo correcto, **285/285 pruebas Node**, con verificación PostgreSQL 17; ejecución local en Lenovo Linux Mint informada por el usuario: **285 aprobadas, 0 fallidas, árbol limpio**, sincronizado con `origin/main`.
 - Estado al cierre de esta etapa: usuario considera los ajustes terminados y **Martín está comprobando el sistema**; cualquier hallazgo posterior se tratará como corrección puntual. No declarar cerrada ni confirmada la revisión de Martín hasta su respuesta.
 - Se mantiene el alcance de privacidad y preservación: **sin cambios en reservas, turnos fijos, programación de cancha ni datos reales del torneo** por el cambio de nomenclatura.
+
+
+### 2026-11-16 · Rediseño del PDF del torneo (A4 horizontal)
+- Se reemplazó la presentación impresa de tablas planas en `js/admin-respaldos.js` por un informe visual A4 apaisado, con colores verde/dorado de Boulevard Pádel, tarjetas de participantes, zonas, programación de grupos y cuadro de eliminatorias.
+- Los partidos eliminatorios incluyen las rondas y códigos deportivos P/D/O/C/S/F, rivales reales cuando el servidor los conoce, identificadores simbólicos de grupos y ganadores cuando aún no están definidos, estado y resultados cargados.
+- Continúa usando el botón «PDF del torneo» y «Guardar como PDF» del navegador; no se incorpora servicio externo ni se requiere modificar tablas o RPC de Supabase. Mantiene CSV y privacidad sin datos de contacto.
+- Pruebas CI de Node: **287/287** aprobadas; PostgreSQL descartable completo OK. Implementado en `main`, último commit funcional `62c1185`.
+- Pendiente de validación visual humana: descargar PDF desde Admin con un torneo de 18 parejas y revisar la legibilidad de la llave en la impresión A4 horizontal; no se modifican reservas ni turnos fijos.
