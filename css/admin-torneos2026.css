@@ -415,3 +415,50 @@
     padding:13px
   }
 }
+
+/* Eliminatorias: mismos tres renglones que las tarjetas de grupos.
+   Ganador oficial a la derecha del marcador, con ajuste para nombres largos. */
+#bp26-admin .bp26-admin__match>.bp26-admin__rivals{
+  display:grid;
+  grid-template-columns:minmax(0,1fr);
+  justify-items:center;
+  text-align:center;
+  gap:2px;
+  padding:4px 0;
+  color:#00432e;
+}
+#bp26-admin .bp26-admin__pair{
+  display:block;
+  width:100%;
+  min-width:0;
+  font-size:.88rem;
+  font-weight:700;
+  line-height:1.35;
+  overflow-wrap:anywhere;
+}
+#bp26-admin .bp26-admin__vs{
+  color:#6b786d;
+  font-size:.72rem;
+  line-height:1.2;
+  font-weight:400;
+}
+#bp26-admin .bp26-admin__match>.bp26-admin__score{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  justify-content:space-between;
+  gap:5px 12px;
+  background:#e0f0e2;
+  color:#00583b;
+}
+#bp26-admin .bp26-admin__score-value{
+  flex:0 0 auto;
+  max-width:100%;
+  overflow-wrap:anywhere;
+}
+#bp26-admin .bp26-admin__winner{
+  flex:1 1 160px;
+  min-width:0;
+  text-align:right;
+  overflow-wrap:anywhere;
+}
