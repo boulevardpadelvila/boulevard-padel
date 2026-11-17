@@ -243,8 +243,8 @@
     const champion=final?pair(final.winner_pair_id):"Por definir";
     const runner=final?pair([final.pair1_id,final.pair2_id].find(x=>x!==final.winner_pair_id)):"Por definir";
     const podium=final&&champion!=="Por definir"&&runner!=="Por definir"?
-      '<div class="podium"><div><span>CAMPEONES</span><strong>'+html(champion)+'</strong></div>'+
-      '<div><span>SUBCAMPEONES</span><strong>'+html(runner)+'</strong></div></div>':"";
+      '<div class="podium"><div><span>Campeones</span><strong>'+html(champion)+'</strong></div>'+
+      '<div><span>Subcampeones</span><strong>'+html(runner)+'</strong></div></div>':"";
     const league=(d.leagueMatches||[]).map(m=>["Fecha "+m.round_number,m.match_number,pair(m.pair1_id),pair(m.pair2_id),setsLabel(m.sets)]);
     const leagueFinal=(d.leagueFinals||[]).map(m=>[m.stage==="final"?"Final":"Semifinal",m.slot,
       pair(m.pair1_id),pair(m.pair2_id),setsLabel(m.sets)]);
@@ -274,6 +274,8 @@
       '.round{flex:1;min-width:0;display:flex;flex-direction:column}',
       '.round h3{background:#06432d;color:#fff;border-bottom:3px solid #cba45e;border-radius:7px;padding:10px 3px;text-align:center;font-size:11px}',
       '.round-body{display:flex;flex:1;flex-direction:column;justify-content:space-around;gap:8px;padding:10px 0}',
+      '.round:not(:last-child) .fixture-card:after{content:"";display:block;width:8px;border-top:1px solid #8faa99;position:absolute;left:100%;top:50%}',
+      '.round-body .fixture-card{position:relative}',
       '.fixture-card{border:1px solid #c2d5c9;border-radius:8px;background:#f5faf6;text-align:center;break-inside:avoid;overflow:hidden}',
       '.fixture-label{background:#dceee2;padding:6px;display:flex;align-items:center;justify-content:space-between;gap:3px}',
       '.fixture-label b{background:#12533b;color:white;padding:4px 7px;border-radius:5px;font-size:11px}',
