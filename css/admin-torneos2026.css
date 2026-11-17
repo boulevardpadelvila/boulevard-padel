@@ -294,7 +294,7 @@
   .bp26-placements-dialog .admin-save-dialog__actions{grid-template-columns:1fr}
 }
 
-/* Eliminatorias 2026: máximo tres tarjetas por fila, separadas por ronda.
+/* Eliminatorias 2026: máximo dos tarjetas por fila, separadas por ronda.
    No modifica fixture, resultados, horarios ni las tablas de posiciones. */
 #bp26-admin .bp26-admin__round{
   min-width:0;
@@ -305,7 +305,7 @@
 }
 #bp26-admin .bp26-admin__matches{
   display:grid;
-  grid-template-columns:repeat(3,minmax(0,1fr));
+  grid-template-columns:repeat(2,minmax(0,1fr));
   gap:13px;
   align-items:stretch;
   min-width:0
@@ -461,4 +461,56 @@
   min-width:0;
   text-align:right;
   overflow-wrap:anywhere;
+}
+
+/* Final centrada a media anchura; podio independiente en oro y plata. */
+#bp26-admin .bp26-admin__matches>.bp26-admin__match:only-child{
+  grid-column:1/-1;
+  width:calc((100% - 13px)/2);
+  justify-self:center
+}
+#bp26-admin .bp26-admin__podium{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:13px;
+  margin:20px 0;
+  align-items:stretch
+}
+#bp26-admin .bp26-admin__podium-card{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  min-width:0;
+  text-align:center;
+  padding:24px 18px;
+  border:1px solid;
+  border-radius:14px;
+  overflow-wrap:anywhere
+}
+#bp26-admin .bp26-admin__podium-card--gold{
+  background:#fff9e7;
+  border-color:#d0b76c;
+  color:#886116
+}
+#bp26-admin .bp26-admin__podium-card--silver{
+  background:#f2f5f8;
+  border-color:#bcc6cf;
+  color:#596d80
+}
+#bp26-admin .bp26-admin__trophy{width:46px;height:46px;flex:none}
+#bp26-admin .bp26-admin__podium-card--gold .bp26-admin__trophy{width:56px;height:56px;color:#aa7b1c}
+#bp26-admin .bp26-admin__podium-label{font-size:1.05rem;font-weight:750}
+#bp26-admin .bp26-admin__podium-name{margin:0;font-size:1.10rem;line-height:1.35;color:#193b29}
+#bp26-admin .bp26-admin__podium-card--gold .bp26-admin__podium-label{font-size:1.2rem}
+#bp26-admin .bp26-admin__podium-card--gold .bp26-admin__podium-name{font-size:1.4rem}
+@media(max-width:710px){
+  #bp26-admin .bp26-admin__matches>.bp26-admin__match:only-child{width:100%}
+  #bp26-admin .bp26-admin__podium{gap:8px}
+  #bp26-admin .bp26-admin__podium-card{padding:15px 8px;gap:7px}
+  #bp26-admin .bp26-admin__podium-card--gold .bp26-admin__podium-name{font-size:1.1rem}
+  #bp26-admin .bp26-admin__podium-card--silver .bp26-admin__podium-name{font-size:.95rem}
+  #bp26-admin .bp26-admin__podium-card--gold .bp26-admin__podium-label{font-size:1rem}
+  #bp26-admin .bp26-admin__podium-card--silver .bp26-admin__podium-label{font-size:.9rem}
 }
