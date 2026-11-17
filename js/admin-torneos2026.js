@@ -313,9 +313,17 @@
       const card=el('article','bp26-admin__match');
       const first=match.pair1_name||sourceLabel(match.source1);
       const second=match.pair2_name||sourceLabel(match.source2);
-      card.append(el('strong','bp26-admin__match-id',`Partido ${motor.matchCode(bracketBase(),stage,match.slot)}`),
-        el('div','bp26-admin__rivals',first+'  vs.  '+second));
-      if(match.status==='played')card.append(el('p','bp26-admin__score','Resultado: '+match.sets.map(x=>x.join('-')).join(' · ')));
+      const rivals=el('div','bp26-admin__rivals');
+      rivals.append(el('span','bp26-admin__pair',first),
+        el('span','bp26-admin__vs','vs'),el('span','bp26-admin__pair',second));
+      card.append(el('strong','bp26-admin__match-id',`Partido ${motor.matchCode(bracketBase(),stage,match.slot)}`),rivals);
+      if(match.status==='played'){
+        const result=el('p','bp26-admin__score');
+        result.append(el('span','bp26-admin__score-value','Resultado: '+match.sets.map(x=>x.join('-')).join(' · ')));
+        const winner=match.winner_pair_id && (match.winner_pair_id===match.pair1_id?first:match.winner_pair_id===match.pair2_id?second:null);
+        if(winner)result.append(el('span','bp26-admin__winner','Ganadores: '+winner));
+        card.append(result);
+      }
       const actions=el('div','bp26-admin__actions');
       const scheduling=el('div','bp26-admin__schedule');
       if(match.schedule_status==='scheduled' && match.scheduled_at){
