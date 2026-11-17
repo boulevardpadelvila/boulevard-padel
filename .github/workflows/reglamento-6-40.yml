@@ -14,6 +14,7 @@ on:
       - 'tests/torneos-reglamento-browser2026.test.cjs'
       - 'js/admin-grupos.js'
       - 'css/torneos-bracket2026.css'
+      - 'css/admin-torneos2026.css'
       - 'sql/SQL_97_DROPS_LLAVES_Y_REPUBLICACION.sql'
       - 'tests/torneos-reglamento-2026.test.js'
       - 'tests/fixtures/t97_*'
