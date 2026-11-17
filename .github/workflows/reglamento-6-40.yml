@@ -7,6 +7,8 @@ on:
       - 'js/torneos-reglamento-2026.js'
       - 'js/torneos-bracket2026-public.js'
       - 'js/admin-torneos2026.js'
+      - 'js/admin-respaldos.js'
+      - 'tests/admin-respaldos.test.js'
       - 'functions/admin/simulador-llaves.html.js'
       - 'tests/torneos-bracket2026-public.test.js'
       - 'tests/torneos-reglamento-browser2026.test.cjs'
