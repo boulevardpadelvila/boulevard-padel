@@ -78,3 +78,42 @@ test("PDF de torneo contiene parejas, ganador y marcadores sin teléfonos y esca
   assert.doesNotMatch(doc,/Teléfono|booking_phone|contact_phone/i);
   assert.match(doc,/Guardar como PDF/);
 });
+
+test("PDF horizontal muestra llave completa aun sin resultados, con nombres y códigos oficiales",()=>{
+  globalThis.BPReglamento2026=require("../js/torneos-reglamento-2026.js");
+  const pairs=Array.from({length:18},(_,i)=>({
+    id:"p"+(i+1),status:"approved",player1_name:"Jugador "+(i+1),player2_name:"Compañero "+(i+1)
+  }));
+  const doc=backup.tournamentHtml({name:"Torneo de 18",format:"groups_knockout",status:"registration_closed"},{
+    pairs,groups:[],groupMembers:[],groupMatches:[],groupResults:[],
+    bracket:{matches:[]},leagueMatches:[],leagueFinals:[]
+  });
+  assert.match(doc,/@page\{size:A4 landscape/);
+  assert.match(doc,/Cuadro de eliminatorias/);
+  assert.match(doc,/Ronda previa/);
+  assert.match(doc,/Cuartos/);
+  assert.match(doc,/Semifinales/);
+  assert.match(doc,/P1/);
+  assert.match(doc,/C1/);
+  assert.match(doc,/S1/);
+  assert.match(doc,/F1/);
+  assert.match(doc,/Ganador P1/);
+  assert.match(doc,/2° C/);
+  assert.doesNotMatch(doc,/booking_phone|contact_phone|service_role/i);
+});
+test("PDF permite exportar una llave en progreso sin inventar ganadores",()=>{
+  globalThis.BPReglamento2026=require("../js/torneos-reglamento-2026.js");
+  const pairs=Array.from({length:8},(_,i)=>({
+    id:"p"+i,status:"approved",player1_name:"Ana "+i,player2_name:"Sol "+i
+  }));
+  const doc=backup.tournamentHtml({name:"Copa",format:"groups_knockout",status:"in_progress"},{
+    pairs,groups:[],groupMembers:[],groupMatches:[],groupResults:[],
+    bracket:{matches:[{stage:0,slot:1,source1:"3° A",source2:"2° B",
+      pair1_name:"Ana y Sol",status:"pending"}]},
+    leagueMatches:[],leagueFinals:[]
+  });
+  assert.match(doc,/Ana y Sol/);
+  assert.match(doc,/Ganador P1/);
+  assert.match(doc,/Final/);
+  assert.doesNotMatch(doc,/<script src=/);
+});
