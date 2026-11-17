@@ -72,3 +72,14 @@ test("Admin 2026: rivales independientes y ganador validado por ID, sin modifica
  assert.match(css,/\.bp26-admin__match>\.bp26-admin__rivals\{[^}]*display:grid;[^}]*justify-items:center/);
  assert.match(css,/\.bp26-admin__winner\{[^}]*text-align:right/);
 });
+
+test("Admin: eliminatorias en dos columnas y podio diferenciado oro/plata",()=>{
+ const js=read("js/admin-torneos2026.js");
+ const css=read("css/admin-torneos2026.css");
+ assert.match(css, /\.bp26-admin__matches\{\s*display:grid;\s*grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+ assert.match(css, /\.bp26-admin__matches>\.bp26-admin__match:only-child\{[^}]*justify-self:center/);
+ assert.match(js, /\['gold','Campeones',final\.winner_pair_id\],\['silver','Subcampeones',runner\]/);
+ assert.match(js, /createElementNS\('http:\/\/www\.w3\.org\/2000\/svg','svg'\)/);
+ assert.match(css, /\.bp26-admin__podium\{\s*display:grid;\s*grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+ assert.match(css, /\.bp26-admin__podium-card--gold \.bp26-admin__podium-name\{font-size:1\.4rem\}/);
+});
