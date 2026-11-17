@@ -3819,3 +3819,10 @@ Convertir el acceso administrativo en una herramienta de gestión cotidiana con 
 - Continúa usando el botón «PDF del torneo» y «Guardar como PDF» del navegador; no se incorpora servicio externo ni se requiere modificar tablas o RPC de Supabase. Mantiene CSV y privacidad sin datos de contacto.
 - Pruebas CI de Node: **287/287** aprobadas; PostgreSQL descartable completo OK. Implementado en `main`, último commit funcional `62c1185`.
 - Pendiente de validación visual humana: descargar PDF desde Admin con un torneo de 18 parejas y revisar la legibilidad de la llave en la impresión A4 horizontal; no se modifican reservas ni turnos fijos.
+
+
+### 2026-11-17 · Tarjetas de eliminatorias y suspensión temporal del respaldo automático
+- Admin 2026: parejas centradas en tres renglones (pareja 1 / vs / pareja 2), con estilo coherente con fase de grupos; resultado a la izquierda y pareja ganadora oficial a la derecha, identificada por `winner_pair_id`, con ajuste a pantallas estrechas. Se conserva el diseño de acciones y la nomenclatura deportiva.
+- Cambios únicamente en frontend y pruebas; sin modificación de reservas, turnos fijos, resultados, llaves ni Supabase. Commit funcional y pruebas `1c44e02`; GitHub Actions 44196933179: 288/288 pruebas Node aprobadas y PostgreSQL 17 descartable satisfactorio. Pendiente comprobación visual en el navegador tras despliegue.
+- Respaldo automático: la tarea «Respaldo Boulevard Pádel» ya estaba suspendida desde el 14/11/2026 por autorización interactiva requerida por Supabase. Se verificó la existencia de la planilla privada en Drive de BP. La tarea original abarcaba reservas y turnos fijos, no torneos.
+- Por indicación expresa del usuario, conservar la tarea suspendida y la planilla existente hasta que Martín decida si desea continuar. No reactivar ni eliminar la tarea, ni ampliar el respaldo a torneos sin una nueva indicación. Mantener exportaciones manuales CSV/PDF del Admin.
